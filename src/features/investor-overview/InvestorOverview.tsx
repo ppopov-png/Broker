@@ -6,6 +6,7 @@ import { ArrowUpRight, FileText, Info } from 'lucide-react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import './investor-overview.css'
 import './overview-layout.css'
+import './overview-light-theme.css'
 
 const chart = [
   { date: '7 июл', value: 100000 }, { date: '10 июл', value: 102400 }, { date: '14 июл', value: 105100 },

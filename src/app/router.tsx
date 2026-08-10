@@ -9,6 +9,11 @@ import { InvestorMessages } from '../features/investor-messages/InvestorMessages
 import { InvestorSupport } from '../features/investor-support/InvestorSupport'
 import { InvestorProfile } from '../features/investor-profile/InvestorProfile'
 import { InvestorLogin } from '../features/auth/InvestorLogin'
+import { TeamLeadOffers } from '../features/team-lead-offers/TeamLeadOffers'
+import { TeamLeadInvestments } from '../features/team-lead-investments/TeamLeadInvestments'
+import { TeamLeadReports } from '../features/team-lead-reports/TeamLeadReports'
+import { TeamLeadSettlements } from '../features/team-lead-settlements/TeamLeadSettlements'
+import { TeamLeadDashboard } from '../features/team-lead-dashboard/TeamLeadDashboard'
 
 const investorSections = ['overview', 'offers', 'portfolio', 'funds', 'messages', 'support', 'profile'] as const
 const teamLeadSections = ['overview', 'offers', 'investments', 'settlements', 'reports', 'messages', 'support', 'profile'] as const
@@ -26,6 +31,11 @@ function RolePage({ role }: { role: UserRole }) {
   if (role === 'investor' && title === 'support') return <InvestorSupport />
   if (role === 'investor' && title === 'profile') return <InvestorProfile />
   if (role === 'team-lead' && title === 'messages') return <InvestorMessages />
+  if (role === 'team-lead' && title === 'overview') return <TeamLeadDashboard />
+  if (role === 'team-lead' && title === 'offers') return <TeamLeadOffers />
+  if (role === 'team-lead' && title === 'investments') return <TeamLeadInvestments />
+  if (role === 'team-lead' && title === 'reports') return <TeamLeadReports />
+  if (role === 'team-lead' && title === 'settlements') return <TeamLeadSettlements />
   if (role === 'team-lead' && title === 'support') return <InvestorSupport />
   if (role === 'team-lead' && title === 'profile') return <InvestorProfile />
 

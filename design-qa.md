@@ -1,30 +1,40 @@
-# Design QA — Investor Profile
+# Design QA — Cool Lavender dashboard
 
-- Source visual truth: `C:\Users\Павел\.codex\generated_images\019fd73a-9b04-7b20-bbe2-0cbfdd209536\exec-72535a5b-0c49-4720-8214-2447b71dfbca.png`
-- Target viewport: desktop, 1440 × 1024.
-- Intended state: investor profile, profile tab open.
-- Implementation screenshot: unavailable.
-- Primary interactions implemented: direct navigation from topbar, profile field editing, copy Trigonum ID, tab switching, settings actions, notification toggles, support navigation.
+## Comparison target
+
+- Source visual truth: `C:\Users\7636~1\AppData\Local\Temp\codex-clipboard-1aa31a2d-dd1a-432c-aa07-b030a3756693.png`
+- Implementation: `http://127.0.0.1:5174/investor/overview`
+- Viewport: in-app desktop browser, 1280 × 720 CSS px, density 1×.
+- State: investor overview, light theme selected from the persistent top-bar toggle.
+- Evidence: browser-rendered light dashboard capture reviewed alongside the supplied Cool Lavender palette board. The supplied board defines the visual token direction rather than a one-to-one dashboard layout.
 
 ## Findings
 
-- [P1] Browser-rendered comparison unavailable.
-  - Evidence: the current session has no callable browser capture surface.
-  - Impact: visual fidelity to the selected concept cannot be verified from code or build output alone.
-  - Fix: open `/investor/profile` in the local app at the target viewport, capture it, compare against the source visual, then address any typography, spacing, colour, or responsive discrepancies.
+No actionable P0/P1/P2 visual findings within the requested scope.
 
-## Required Fidelity Surfaces
+### Fidelity surfaces
 
-- Fonts and typography: implemented using the project’s existing typography; not browser-verified.
-- Spacing and layout rhythm: two-column journal layout implemented; not browser-verified.
-- Colors and visual tokens: dark navy, violet emphasis and green verification states implemented; not browser-verified.
-- Image quality and asset fidelity: uses the existing Trigonum logo and library icons; no new raster asset required by the selected account-settings concept.
-- Copy and content: investor account fields, account status and security copy implemented.
+- **Fonts and typography:** Golos Text remains consistent with the existing Broker application; strong dark-plum numeric hierarchy is readable on the cream surface.
+- **Spacing and layout rhythm:** KPI strip, chart/events split, and strategies remain aligned to the dark dashboard’s existing desktop grid. The light panel uses breathing room without increasing the density.
+- **Colors and visual tokens:** Cool Lavender is represented as `#2B124C` / `#5B2A86` for ink and primary accents, `#BFA7E5` for soft lines, and `#F2ECFA` / `#FCFAFF` for surfaces and background.
+- **Image quality and assets:** Existing Trigonum logo and Lucide interface icons are retained; no substitute illustrations or raster artifacts were introduced.
+- **Copy and content:** The investor dashboard content is unchanged; the theme control has explicit accessible labels for each destination theme.
 
-## Implementation Checklist
+## Interaction checks
 
-1. Capture the browser-rendered `/investor/profile` route at 1440 × 1024.
-2. Compare it with the selected reference image.
-3. Fix P1/P2 differences and update this report.
+- Light-theme toggle switches `html[data-theme]` to `light`.
+- Repeating the action switches it back to `dark`.
+- Browser console: no errors during either switch.
 
-final result: blocked
+## Implementation checklist
+
+- [x] Add a shared persisted theme provider.
+- [x] Add top-bar light/dark control.
+- [x] Create the Cool Lavender desktop treatment for Investor Overview.
+- [x] Verify production build and live toggle interaction.
+
+## Follow-up polish
+
+- [P3] Apply dedicated Cool Lavender compositions to the other investor and team-lead screens in a later pass; this delivery intentionally designs the requested dashboard screen first.
+
+final result: passed

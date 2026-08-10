@@ -1,11 +1,14 @@
-import { BarChart3, ChevronDown, CircleHelp, FileText, LayoutDashboard, LogOut, MessageCircle, ShieldCheck, WalletCards } from 'lucide-react'
+import { BarChart3, ChevronDown, CircleHelp, FileText, LayoutDashboard, LogOut, MessageCircle, MoonStar, ShieldCheck, SunMedium, WalletCards } from 'lucide-react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import logo from '../../assets/trigonum-logo-white.png'
+import logoBlack from '../../assets/trigonum-logo-black.png'
 import './app-shell.css'
 import './app-shell-interactions.css'
 import './app-shell-support.css'
 import './app-shell-direct-profile.css'
 import './app-shell-logout.css'
+import './app-shell-theme.css'
+import { useTheme } from '../../shared/theme'
 
 type ShellRole = 'investor' | 'team-lead'
 
@@ -40,16 +43,17 @@ export function AppShell({ role = 'investor' }: { role?: ShellRole }) {
   const email = role === 'investor' ? 'investor@example.com' : 'teamlead@example.com'
   const avatar = role === 'investor' ? 'TI' : 'TL'
   const logout = () => { sessionStorage.removeItem('broker-demo-session'); navigate('/login') }
+  const { theme, toggleTheme } = useTheme()
 
   return <div className="shell">
     <aside className="sidebar">
-      <div className="brand"><span className="brand-icon" aria-hidden="true"><img src={logo} alt="" /></span><img className="brand-logo" src={logo} alt="Trigonum" /></div>
+      <div className="brand"><span className="brand-icon" aria-hidden="true"><img src={theme === 'light' ? logoBlack : logo} alt="" /></span><img className="brand-logo" src={theme === 'light' ? logoBlack : logo} alt="Trigonum" /></div>
       <nav>{items.map(([label, to, Icon, count]) => <NavLink key={to} to={to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}><Icon size={22} /><span>{label}</span>{count && <em className="nav-badge">{count}</em>}</NavLink>)}</nav>
       <div className="sidebar-footer">
         <NavLink className="support" to={`${prefix}/support`}><CircleHelp size={22} /><span><b>Поддержка</b><small>support@trigonum.io</small></span></NavLink>
         <button className="logout" onClick={logout}><LogOut size={21} /><span>Выйти</span></button>
       </div>
     </aside>
-    <section className="shell-main"><header className="topbar">{title ? <h1>{title}</h1> : <div />}<NavLink className="identity identity-trigger" to={`${prefix}/profile`}><div><b>Trigonum ID</b><small>{email}</small></div><div className="avatar">{avatar}</div><ChevronDown size={18} /></NavLink></header><Outlet /></section>
+    <section className="shell-main"><header className="topbar">{title ? <h1>{title}</h1> : <div />}<div className="topbar-actions"><button className="theme-switch" type="button" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'} title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}><span className={theme === 'light' ? 'active' : ''}><SunMedium size={15}/></span><span className={theme === 'dark' ? 'active' : ''}><MoonStar size={15}/></span></button><NavLink className="identity identity-trigger" to={`${prefix}/profile`}><div><b>Trigonum ID</b><small>{email}</small></div><div className="avatar">{avatar}</div><ChevronDown size={18} /></NavLink></div></header><Outlet /></section>
   </div>
 }
