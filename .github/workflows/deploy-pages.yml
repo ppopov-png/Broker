@@ -1,9 +1,9 @@
-name: Deploy Broker 2.0
+name: Deploy Trigonum Broker to GitHub Pages
 
 on:
   push:
     branches:
-      - broker-2.0
+      - main
   workflow_dispatch:
 
 permissions:
