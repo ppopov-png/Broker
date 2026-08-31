@@ -1,0 +1,28 @@
+<svg width="720" height="620" viewBox="0 0 720 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="metal1" x1="170" y1="90" x2="510" y2="500" gradientUnits="userSpaceOnUse"><stop stop-color="#F8FCFF"/><stop offset="0.22" stop-color="#AAB8C9"/><stop offset="0.52" stop-color="#27364C"/><stop offset="0.76" stop-color="#EEF4FA"/><stop offset="1" stop-color="#77869A"/></linearGradient>
+  <linearGradient id="metal2" x1="510" y1="110" x2="250" y2="520" gradientUnits="userSpaceOnUse"><stop stop-color="#F5F8FC"/><stop offset="0.28" stop-color="#8E9BAD"/><stop offset="0.58" stop-color="#111B2C"/><stop offset="1" stop-color="#CFD9E5"/></linearGradient>
+  <linearGradient id="blue" x1="188" y1="402" x2="522" y2="230" gradientUnits="userSpaceOnUse"><stop stop-color="#004DFF"/><stop offset="0.55" stop-color="#08A8FF"/><stop offset="1" stop-color="#29E2EE"/></linearGradient>
+  <linearGradient id="green" x1="372" y1="443" x2="568" y2="404" gradientUnits="userSpaceOnUse"><stop stop-color="#08A8FF"/><stop offset="1" stop-color="#25D274"/></linearGradient>
+  <filter id="shadow" x="62" y="55" width="610" height="527" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feDropShadow dx="0" dy="24" stdDeviation="24" flood-color="#06214C" flood-opacity="0.22"/></filter>
+  <filter id="glow" x="93" y="115" width="545" height="411" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="8"/></filter>
+</defs>
+<g opacity="0.7">
+  <ellipse cx="360" cy="507" rx="255" ry="58" stroke="#93A4B7" stroke-opacity="0.35"/>
+  <ellipse cx="360" cy="507" rx="207" ry="43" stroke="#AAB7C4" stroke-opacity="0.4"/>
+  <path d="M98 507H622M360 198V566M148 405L572 405M201 316L519 316" stroke="#A9B6C5" stroke-opacity="0.18"/>
+</g>
+<g filter="url(#glow)" opacity="0.8"><path d="M152 454L359 124L574 452L152 454Z" stroke="url(#blue)" stroke-width="10"/></g>
+<g filter="url(#shadow)">
+  <path d="M360 83L588 473L501 440L360 201L219 439L132 474L360 83Z" fill="url(#metal1)" stroke="#516074" stroke-width="2"/>
+  <path d="M360 83L362 201L219 439L132 474L360 83Z" fill="url(#metal2)" fill-opacity="0.9"/>
+  <path d="M588 473L360 201L362 83L588 473Z" fill="#E9F0F6" fill-opacity="0.72"/>
+  <path d="M132 474L360 201L588 473L502 440L360 301L217 441L132 474Z" fill="#121D2D"/>
+  <path d="M132 474L360 300L588 473L501 440L360 356L218 441L132 474Z" fill="url(#metal1)"/>
+  <path d="M220 438L360 356L500 439L466 449L360 391L254 449L220 438Z" fill="#111B2B"/>
+  <path d="M225 434L360 347L495 434" stroke="url(#blue)" stroke-width="5"/>
+  <path d="M252 448L360 388L470 448" stroke="url(#green)" stroke-width="4"/>
+  <path d="M360 200L360 347" stroke="#1B8DFF" stroke-width="3"/>
+  <path d="M359 103L359 195" stroke="#FFFFFF" stroke-opacity="0.82" stroke-width="3"/>
+</g>
+</svg>
