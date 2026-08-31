@@ -32,19 +32,13 @@ jobs:
         run: npm ci
 
       - name: Build public site
-        env:
-          VITE_BASE_PATH: /${{ github.event.repository.name }}/
-        run: npm run build --workspace=@trigonum/site
+        run: npm run build --workspace=@trigonum/site -- --base /${{ github.event.repository.name }}/
 
       - name: Build onboarding
-        env:
-          VITE_BASE_PATH: /${{ github.event.repository.name }}/open/
-        run: npm run build --workspace=@trigonum/onboarding
+        run: npm run build --workspace=@trigonum/onboarding -- --base /${{ github.event.repository.name }}/open/
 
       - name: Build cabinet
-        env:
-          VITE_BASE_PATH: /${{ github.event.repository.name }}/app/
-        run: npm run build --workspace=@trigonum/cabinet
+        run: npm run build --workspace=@trigonum/cabinet -- --base /${{ github.event.repository.name }}/app/
 
       - name: Assemble one deployment
         shell: bash
