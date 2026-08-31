@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "@trigonum/brand/tokens.css";
+
+html {
+  font-family: "Golos Text", sans-serif;
+  background: var(--trigonum-bg);
+  color: var(--trigonum-text);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}

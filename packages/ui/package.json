@@ -1,0 +1,11 @@
+{
+  "name": "@trigonum/ui",
+  "private": true,
+  "version": "0.0.0",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "react": "^19.2.8"
+  }
+}

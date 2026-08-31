@@ -1,0 +1,27 @@
+{
+  "name": "trigonum-broker-2",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:site": "npm run dev --workspace=@trigonum/site",
+    "dev:onboarding": "npm run dev --workspace=@trigonum/onboarding",
+    "dev:cabinet": "npm run dev --workspace=@trigonum/cabinet",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "oxlint apps packages"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "oxlint": "^1.75.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  }
+}

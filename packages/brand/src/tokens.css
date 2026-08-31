@@ -1,0 +1,18 @@
+:root {
+  --trigonum-blue: #0f5fe8;
+  --trigonum-cyan: #0ea5c6;
+  --trigonum-green: #24b768;
+  --trigonum-ink: #081b3a;
+  --trigonum-text: #17233f;
+  --trigonum-muted: #667085;
+  --trigonum-bg: #f6f8fb;
+  --trigonum-surface: #ffffff;
+  --trigonum-border: #dbe2ea;
+  --trigonum-success: #22a447;
+  --trigonum-warning: #f59e0b;
+  --trigonum-danger: #dc2626;
+  --trigonum-radius-sm: 8px;
+  --trigonum-radius-md: 12px;
+  --trigonum-radius-lg: 18px;
+  --trigonum-shadow-card: 0 8px 30px rgb(8 27 58 / 8%);
+}
