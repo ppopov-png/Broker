@@ -1,12 +1,14 @@
 import { Globe2, LockKeyhole, ShieldCheck, UsersRound } from 'lucide-react'
-
-const items = [
-  { icon: ShieldCheck, title: 'ПРОЗРАЧНОСТЬ', text: 'Полная информация и контроль над капиталом' },
-  { icon: UsersRound, title: 'КЛИЕНТООРИЕНТИРОВАННОСТЬ', text: 'Индивидуальный подход и персональные решения' },
-  { icon: LockKeyhole, title: 'ТЕХНОЛОГИЧНОСТЬ', text: 'Интеллектуальные системы поддерживают каждое решение' },
-  { icon: Globe2, title: 'ГЛОБАЛЬНЫЕ ВОЗМОЖНОСТИ', text: 'Широкий доступ к инструментам по всему миру' },
-]
+import { useI18n } from '../i18n/I18nProvider'
 
 export function ValueStrip() {
+  const { t } = useI18n()
+  const items = [
+    { icon: ShieldCheck, title: t('value.transparency'), text: t('value.transparencyText') },
+    { icon: UsersRound, title: t('value.client'), text: t('value.clientText') },
+    { icon: LockKeyhole, title: t('value.tech'), text: t('value.techText') },
+    { icon: Globe2, title: t('value.global'), text: t('value.globalText') },
+  ]
+
   return <section className="value-strip" id="how">{items.map(({ icon: Icon, title, text }) => <article className="value-item" key={title}><Icon /><div><h3>{title}</h3><p>{text}</p></div></article>)}</section>
 }
