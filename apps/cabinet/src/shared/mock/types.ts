@@ -15,6 +15,9 @@ export interface Position {
   invested: number
   profit: number
   yieldLabel: string
+  currentValue: number
+  openedAt: string
+  series: number[]
 }
 
 export type TransactionType = 'deposit' | 'withdrawal' | 'transfer' | 'investment' | 'accrual'

@@ -1,38 +1,43 @@
-import { ArrowDownCircle, ArrowRightLeft, ArrowUpCircle, PieChart as PieChartIcon, ShieldCheck, TrendingUp, Wallet, WalletCards } from 'lucide-react'
+import { ArrowDownCircle, ArrowRightLeft, ArrowUpCircle, CalendarDays, Gauge, Percent, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
-import { formatCurrency, formatPercent, formatShare, formatSigned } from '../../../shared/lib/format'
-import { capitalBreakdown, capitalTotals, positions } from '../../../shared/mock/data'
+import { formatCurrency, formatPercent, formatSigned } from '../../../shared/lib/format'
+import { capitalBreakdown, capitalTotals } from '../../../shared/mock/data'
 import { Card } from '../../../shared/ui/Card'
-import { CapitalChart } from '../../../shared/ui/CapitalChart'
+import { Modal } from '../../../shared/ui/Modal'
+import { Reveal } from '../../../shared/ui/Reveal'
 import { StatCard } from '../../../shared/ui/StatCard'
 import { OutlineButton, PrimaryButton } from '../../../shared/ui/buttons'
-import { Modal } from '../../../shared/ui/Modal'
+import { AccrualHeatmap } from '../components/AccrualHeatmap'
+import { AchievementsGrid } from '../components/AchievementsGrid'
+import { AllocationLab } from '../components/AllocationLab'
+import { CapitalGoalCard } from '../components/CapitalGoalCard'
+import { InvestorLevelCard } from '../components/InvestorLevelCard'
+import { LiveEarnings } from '../components/LiveEarnings'
+import { PositionsBreakdown } from '../components/PositionsBreakdown'
+import { earningSources, investingSince, totalEarned } from '../model/capital-data'
 
 const movement = [
-  { label: 'Пополнения', amount: 50_000, icon: ArrowDownCircle, tone: 'text-[var(--trigonum-success)]' },
-  { label: 'Выводы', amount: -15_000, icon: ArrowUpCircle, tone: 'text-[var(--trigonum-ink)]' },
-  { label: 'Инвестиции в продукты', amount: -95_000, icon: TrendingUp, tone: 'text-[var(--trigonum-ink)]' },
-  { label: 'Возвраты из продуктов', amount: 28_000, icon: ArrowDownCircle, tone: 'text-[var(--trigonum-success)]' },
-  { label: 'Чистый поток', amount: capitalTotals.netFlow, icon: ArrowRightLeft, tone: 'text-[var(--trigonum-success)]', strong: true },
+  { label: 'Пополнения', amount: 50_000 },
+  { label: 'Выводы', amount: -15_000 },
+  { label: 'Инвестиции в продукты', amount: -95_000 },
+  { label: 'Возвраты из продуктов', amount: 28_000 },
+  { label: 'Чистый поток', amount: capitalTotals.netFlow, strong: true },
 ]
 
-const incomeByDirection = [
-  { label: 'Earn', value: 101_950, profit: 1_950, yieldLabel: '≈7% p.a.', tone: 'blue' as const },
-  { label: 'Strategies', value: 81_286, profit: 6_286, yieldLabel: '+8.4%', tone: 'violet' as const },
-  { label: 'Events', value: 25_184, profit: 184, yieldLabel: '+0.7%', tone: 'green' as const },
-]
+const investedTotal = earningSources.reduce((sum, s) => sum + s.principal, 0)
+const weightedApy = earningSources.reduce((sum, s) => sum + s.principal * s.apy, 0) / investedTotal
+const daysInvesting = Math.round((Date.now() - new Date(investingSince).getTime()) / 86_400_000)
 
 export function CapitalPage() {
   const [transferOpen, setTransferOpen] = useState(false)
 
   return (
-    <div className="pb-10">
-      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+    <div className="flex flex-col gap-5 pb-10">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[var(--trigonum-ink)]">Капитал</h1>
-          <p className="mt-1 text-sm text-[var(--trigonum-muted)]">Полная картина вашего капитала, доходности и движения средств</p>
+          <p className="mt-1 text-sm text-[var(--trigonum-muted)]">Где работает ваш капитал, сколько он приносит и что открывается дальше</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link to="/deposit">
@@ -51,28 +56,24 @@ export function CapitalPage() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-        <StatCard label="Общий капитал" value={formatCurrency(capitalTotals.total)} hint="USD" icon={<Wallet size={17} />} iconTone="blue" />
+      <Reveal>
+        <LiveEarnings />
+      </Reveal>
+
+      <Reveal delay={40} className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="В работе"
-          value={formatCurrency(capitalTotals.inWork)}
-          hint={`${formatShare((capitalTotals.inWork / capitalTotals.total) * 100)} от капитала`}
-          icon={<PieChartIcon size={17} />}
-          iconTone="violet"
-        />
-        <StatCard
-          label="Доступно"
-          value={formatCurrency(capitalTotals.available)}
-          hint={`${formatShare((capitalTotals.available / capitalTotals.total) * 100)} от капитала`}
-          icon={<WalletCards size={17} />}
-          iconTone="green"
+          label="Средневзвешенная доходность"
+          value={`${weightedApy.toFixed(1)}% годовых`}
+          hint={`по ${formatCurrency(investedTotal)} в работе`}
+          icon={<Percent size={17} />}
+          iconTone="blue"
         />
         <StatCard
           label="Чистая прибыль YTD"
           value={formatSigned(capitalTotals.ytdProfit)}
           hint={formatPercent(capitalTotals.ytdProfitPct)}
           hintTone="success"
-          icon={<TrendingUp size={17} />}
+          icon={<Gauge size={17} />}
           iconTone="green"
         />
         <StatCard
@@ -81,109 +82,51 @@ export function CapitalPage() {
           hint={formatPercent(capitalTotals.netFlowPct)}
           hintTone="success"
           icon={<ArrowRightLeft size={17} />}
-          iconTone="blue"
+          iconTone="violet"
         />
-      </div>
+        <StatCard
+          label="В инвестициях"
+          value={`${daysInvesting} дней`}
+          hint={`заработано ${formatCurrency(totalEarned)}`}
+          icon={<CalendarDays size={17} />}
+          iconTone="amber"
+        />
+      </Reveal>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-3 lg:items-start">
-        <Card className="lg:col-span-2">
-          <CapitalChart />
-        </Card>
+      <Reveal delay={80} className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
+        <InvestorLevelCard />
+        <CapitalGoalCard />
+      </Reveal>
 
-        <Card title="Структура капитала">
-          <div className="relative mx-auto h-44 w-44">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={capitalBreakdown} dataKey="amount" nameKey="label" innerRadius={54} outerRadius={78} paddingAngle={2} stroke="none">
-                  {capitalBreakdown.map((slice) => (
-                    <Cell key={slice.key} fill={slice.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
-              <div>
-                <p className="text-base font-bold text-[var(--trigonum-ink)]">{formatCurrency(capitalTotals.total)}</p>
-                <p className="text-[11px] text-[var(--trigonum-muted)]">Общий капитал</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 flex flex-col gap-2">
-            {capitalBreakdown.map((slice) => (
-              <div key={slice.key} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-[var(--trigonum-text)]">
-                  <span className="size-2.5 rounded-full" style={{ backgroundColor: slice.color }} />
-                  {slice.label}
-                </span>
-                <span className="text-[var(--trigonum-muted)]">
-                  {formatShare(slice.share)} · {formatCurrency(slice.amount)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+      <Reveal delay={140}>
+        <AchievementsGrid />
+      </Reveal>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
-        <Card title="Движение капитала">
+      <Reveal delay={200}>
+        <AllocationLab />
+      </Reveal>
+
+      <Reveal delay={260} className="grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr] lg:items-start">
+        <AccrualHeatmap />
+        <Card title="Движение капитала" subtitle="Все переводы за текущий год">
           <div className="flex flex-col divide-y divide-[var(--trigonum-border)]">
             {movement.map((m) => (
               <div key={m.label} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
                 <span className={`text-sm ${m.strong ? 'font-semibold text-[var(--trigonum-ink)]' : 'text-[var(--trigonum-text)]'}`}>{m.label}</span>
-                <span className={`text-sm font-semibold ${m.tone}`}>{formatSigned(m.amount)}</span>
+                <span className={`text-sm font-semibold ${m.amount >= 0 ? 'text-[var(--trigonum-success)]' : 'text-[var(--trigonum-ink)]'}`}>
+                  {formatSigned(m.amount)}
+                </span>
               </div>
             ))}
           </div>
         </Card>
+      </Reveal>
 
-        <Card title="Доход по направлениям">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {incomeByDirection.map((d) => (
-              <div key={d.label} className="rounded-xl border border-[var(--trigonum-border)] p-3">
-                <p className="text-xs font-semibold text-[var(--trigonum-muted)]">{d.label}</p>
-                <p className="mt-1 text-sm font-bold text-[var(--trigonum-ink)]">{formatCurrency(d.value)}</p>
-                <p className="text-xs font-semibold text-[var(--trigonum-success)]">{formatSigned(d.profit)}</p>
-                <p className="text-xs text-[var(--trigonum-muted)]">{d.yieldLabel}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+      <Reveal delay={320}>
+        <PositionsBreakdown />
+      </Reveal>
 
-      <Card
-        className="mt-5"
-        title="Активные позиции"
-        action={
-          <Link to="/invest" className="text-xs font-semibold text-[var(--trigonum-blue)]">
-            Все позиции →
-          </Link>
-        }
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
-            <thead>
-              <tr className="border-b border-[var(--trigonum-border)] text-left text-xs uppercase tracking-wide text-[var(--trigonum-muted)]">
-                <th className="py-2 font-semibold">Продукт</th>
-                <th className="py-2 font-semibold">Инвестировано</th>
-                <th className="py-2 font-semibold">Прибыль</th>
-                <th className="py-2 text-right font-semibold">Доходность</th>
-              </tr>
-            </thead>
-            <tbody>
-              {positions.map((p) => (
-                <tr key={p.id} className="border-b border-[var(--trigonum-border)] last:border-0">
-                  <td className="py-3 font-medium text-[var(--trigonum-ink)]">{p.product}</td>
-                  <td className="py-3 text-[var(--trigonum-text)]">{formatCurrency(p.invested)}</td>
-                  <td className="py-3 font-semibold text-[var(--trigonum-success)]">{formatSigned(p.profit)}</td>
-                  <td className="py-3 text-right text-[var(--trigonum-text)]">{p.yieldLabel}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-5 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-5 py-4">
         <p className="flex items-center gap-2 text-sm text-[var(--trigonum-text)]">
           <ShieldCheck size={18} className="text-[var(--trigonum-success)]" />
           Ваш капитал защищён. Средства хранятся на отдельных счетах у наших кастодианов и не используются в операционной деятельности.

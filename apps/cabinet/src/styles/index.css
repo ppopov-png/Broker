@@ -12,3 +12,128 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+/* --- Анимации интерфейса --------------------------------------------- */
+
+@keyframes trg-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes trg-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes trg-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes trg-cell {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes trg-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes trg-sheen {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+@keyframes trg-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.trg-rise {
+  animation: trg-rise 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.trg-pop {
+  animation: trg-pop 0.28s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.trg-fade {
+  animation: trg-fade 0.2s ease-out both;
+}
+
+.trg-cell {
+  animation: trg-cell 0.32s ease-out both;
+}
+
+.trg-draw {
+  stroke-dasharray: 1;
+  animation: trg-draw 1.1s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.trg-glow {
+  animation: trg-glow 2.4s ease-in-out infinite;
+}
+
+/* Блик по разблокированной ачивке */
+.trg-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.trg-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 65%) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+
+.trg-sheen:hover::after {
+  animation: trg-sheen 0.9s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -34,10 +34,50 @@ export const capitalBreakdown: CapitalBreakdownItem[] = [
 ]
 
 export const positions: Position[] = [
-  { id: 'pos-market-neutral', product: 'Market Neutral', kind: 'earn', invested: 50_000, profit: 3_420, yieldLabel: '+6.84%' },
-  { id: 'pos-system-alpha', product: 'System Alpha', kind: 'strategies', invested: 25_000, profit: 2_866, yieldLabel: '+11.46%' },
-  { id: 'pos-macro-rotation', product: 'Macro Rotation Event', kind: 'events', invested: 15_020, profit: 1_020, yieldLabel: '+6.8%' },
-  { id: 'pos-reserve-earn', product: 'Reserve Earn', kind: 'earn', invested: 100_000, profit: 1_950, yieldLabel: '≈7% p.a.' },
+  {
+    id: 'pos-market-neutral',
+    product: 'Market Neutral',
+    kind: 'earn',
+    invested: 50_000,
+    profit: 3_420,
+    yieldLabel: '+6.84%',
+    currentValue: 53_420,
+    openedAt: '2024-11-12',
+    series: [50000, 50320, 50180, 50960, 51420, 51240, 52180, 52640, 52410, 53100, 53420],
+  },
+  {
+    id: 'pos-system-alpha',
+    product: 'System Alpha',
+    kind: 'strategies',
+    invested: 25_000,
+    profit: 2_866,
+    yieldLabel: '+11.46%',
+    currentValue: 27_866,
+    openedAt: '2024-08-03',
+    series: [25000, 25240, 25120, 25780, 26310, 26140, 26820, 27240, 27080, 27610, 27866],
+  },
+  {
+    id: 'pos-macro-rotation',
+    product: 'Macro Rotation Event',
+    kind: 'events',
+    invested: 15_020,
+    profit: 1_020,
+    yieldLabel: '+6.8%',
+    currentValue: 16_040,
+    openedAt: '2025-03-18',
+    series: [15020, 15180, 15090, 15420, 15680, 15540, 15810, 15960, 15880, 16010, 16040],
+  },
+  {
+    id: 'pos-reserve-earn',
+    product: 'Reserve Earn',
+    kind: 'earn',
+    invested: 100_000,
+    profit: 1_950,
+    yieldLabel: '≈7% p.a.',
+    currentValue: 101_950,
+    openedAt: '2025-01-09',
+    series: [100000, 100180, 100360, 100540, 100730, 100910, 101100, 101290, 101480, 101720, 101950],
+  },
 ]
 
 export const capitalSeries: { label: string; value: number }[] = [

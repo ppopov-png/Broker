@@ -21,9 +21,9 @@ export function Modal({ open, onClose, title, subtitle, children }: ModalProps) 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[rgb(8_27_58_/_45%)] p-4" onClick={onClose}>
+    <div className="trg-fade fixed inset-0 z-50 grid place-items-center bg-[rgb(8_27_58_/_45%)] p-4 backdrop-blur-[2px]" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-[var(--trigonum-radius-lg)] bg-[var(--trigonum-surface)] p-6 shadow-2xl"
+        className="trg-pop w-full max-w-md rounded-[var(--trigonum-radius-lg)] bg-[var(--trigonum-surface)] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
