@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
   open: boolean
@@ -13,20 +14,34 @@ interface ModalProps {
 export function Modal({ open, onClose, title, subtitle, children }: ModalProps) {
   useEffect(() => {
     if (!open) return
+
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+
+    // Фон не должен прокручиваться под открытым окном.
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = previousOverflow
+    }
   }, [open, onClose])
 
   if (!open) return null
 
-  return (
-    <div className="trg-fade fixed inset-0 z-50 grid place-items-center bg-[rgb(8_27_58_/_45%)] p-4 backdrop-blur-[2px]" onClick={onClose}>
+  // Портал в body: иначе анимированные секции страницы создают свой контекст наложения
+  // и перекрывают окно.
+  return createPortal(
+    <div
+      className="trg-fade fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-[rgb(8_27_58_/_45%)] p-4 backdrop-blur-[2px] sm:items-center"
+      onClick={onClose}
+    >
       <div
-        className="trg-pop w-full max-w-md rounded-[var(--trigonum-radius-lg)] bg-[var(--trigonum-surface)] p-6 shadow-2xl"
+        className="trg-pop my-auto flex max-h-[calc(100vh-2rem)] w-full max-w-md flex-col rounded-[var(--trigonum-radius-lg)] bg-[var(--trigonum-surface)] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-[var(--trigonum-border)] p-5">
           <div>
             <h3 className="text-lg font-bold text-[var(--trigonum-ink)]">{title}</h3>
             {subtitle && <p className="mt-1 text-sm text-[var(--trigonum-muted)]">{subtitle}</p>}
@@ -34,14 +49,15 @@ export function Modal({ open, onClose, title, subtitle, children }: ModalProps) 
           <button
             type="button"
             onClick={onClose}
-            className="grid size-8 shrink-0 place-items-center rounded-full text-[var(--trigonum-muted)] hover:bg-[var(--trigonum-bg)]"
+            className="grid size-8 shrink-0 place-items-center rounded-full text-[var(--trigonum-muted)] transition hover:bg-[var(--trigonum-bg)]"
             aria-label="Закрыть"
           >
             <X size={18} />
           </button>
         </div>
-        {children}
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

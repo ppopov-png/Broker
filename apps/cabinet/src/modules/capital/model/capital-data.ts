@@ -122,6 +122,36 @@ export const accrualStreak = (() => {
 
 export const accrualTotal = dailyAccruals.reduce((sum, d) => sum + d.amount, 0)
 
+/** Доли источников в дневном начислении — пропорционально их годовому доходу. */
+const sourceShares = (() => {
+  const yearly = earningSources.map((s) => (s.principal * s.apy) / 100)
+  const total = yearly.reduce((sum, v) => sum + v, 0)
+  return earningSources.map((s, i) => ({ key: s.key, label: s.label, color: s.color, share: yearly[i] / total }))
+})()
+
+export function accrualBreakdown(amount: number) {
+  return sourceShares.map((s) => ({ ...s, amount: amount * s.share }))
+}
+
+export interface MonthlyAccrual {
+  key: string
+  label: string
+  amount: number
+}
+
+export const monthlyAccruals: MonthlyAccrual[] = (() => {
+  const buckets = new Map<string, number>()
+  for (const day of dailyAccruals) {
+    const key = day.date.slice(0, 7)
+    buckets.set(key, (buckets.get(key) ?? 0) + day.amount)
+  }
+  return [...buckets.entries()].map(([key, amount]) => ({
+    key,
+    label: new Date(`${key}-01`).toLocaleDateString('ru-RU', { month: 'short' }),
+    amount,
+  }))
+})()
+
 export const capitalGoalDefault = 500_000
 
 export const investingSince = '2024-03-12'

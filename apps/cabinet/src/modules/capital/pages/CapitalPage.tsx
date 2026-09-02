@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatCurrency, formatPercent, formatSigned } from '../../../shared/lib/format'
 import { capitalBreakdown, capitalTotals } from '../../../shared/mock/data'
-import { Card } from '../../../shared/ui/Card'
 import { Modal } from '../../../shared/ui/Modal'
 import { Reveal } from '../../../shared/ui/Reveal'
 import { StatCard } from '../../../shared/ui/StatCard'
@@ -16,14 +15,6 @@ import { InvestorLevelCard } from '../components/InvestorLevelCard'
 import { LiveEarnings } from '../components/LiveEarnings'
 import { PositionsBreakdown } from '../components/PositionsBreakdown'
 import { earningSources, investingSince, totalEarned } from '../model/capital-data'
-
-const movement = [
-  { label: 'Пополнения', amount: 50_000 },
-  { label: 'Выводы', amount: -15_000 },
-  { label: 'Инвестиции в продукты', amount: -95_000 },
-  { label: 'Возвраты из продуктов', amount: 28_000 },
-  { label: 'Чистый поток', amount: capitalTotals.netFlow, strong: true },
-]
 
 const investedTotal = earningSources.reduce((sum, s) => sum + s.principal, 0)
 const weightedApy = earningSources.reduce((sum, s) => sum + s.principal * s.apy, 0) / investedTotal
@@ -106,20 +97,8 @@ export function CapitalPage() {
         <AllocationLab />
       </Reveal>
 
-      <Reveal delay={260} className="grid grid-cols-1 gap-5 lg:grid-cols-[2fr_1fr] lg:items-start">
+      <Reveal delay={260}>
         <AccrualHeatmap />
-        <Card title="Движение капитала" subtitle="Все переводы за текущий год">
-          <div className="flex flex-col divide-y divide-[var(--trigonum-border)]">
-            {movement.map((m) => (
-              <div key={m.label} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
-                <span className={`text-sm ${m.strong ? 'font-semibold text-[var(--trigonum-ink)]' : 'text-[var(--trigonum-text)]'}`}>{m.label}</span>
-                <span className={`text-sm font-semibold ${m.amount >= 0 ? 'text-[var(--trigonum-success)]' : 'text-[var(--trigonum-ink)]'}`}>
-                  {formatSigned(m.amount)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Card>
       </Reveal>
 
       <Reveal delay={320}>

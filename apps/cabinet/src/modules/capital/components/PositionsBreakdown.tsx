@@ -1,84 +1,110 @@
-import { ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { CalendarClock, Crown, TrendingUp } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { formatCurrency, formatDate, formatPercent, formatSigned } from '../../../shared/lib/format'
 import { capitalTotals, positions } from '../../../shared/mock/data'
 import type { Position } from '../../../shared/mock/types'
 import { Card } from '../../../shared/ui/Card'
 import { Pill } from '../../../shared/ui/Pill'
-import { ProgressBar } from '../../../shared/ui/ProgressBar'
+import { SegmentedControl } from '../../../shared/ui/SegmentedControl'
 import { Sparkline } from '../../../shared/ui/Sparkline'
 import { OutlineButton, PrimaryButton } from '../../../shared/ui/buttons'
 
-const kindTone = {
-  earn: { label: 'Earn', tone: 'info' as const },
-  strategies: { label: 'Strategies', tone: 'violet' as const },
-  events: { label: 'Events', tone: 'success' as const },
+const kindMeta = {
+  earn: { label: 'Earn', tone: 'info' as const, color: 'var(--trigonum-blue)' },
+  strategies: { label: 'Strategies', tone: 'violet' as const, color: 'var(--trigonum-violet)' },
+  events: { label: 'Events', tone: 'success' as const, color: 'var(--trigonum-green)' },
 }
+
+const sortOptions = [
+  { value: 'profit', label: 'По прибыли' },
+  { value: 'yield', label: 'По доходности' },
+  { value: 'age', label: 'По сроку' },
+] as const
+
+type SortValue = (typeof sortOptions)[number]['value']
 
 function daysInPosition(openedAt: string): number {
   return Math.max(1, Math.round((Date.now() - new Date(openedAt).getTime()) / 86_400_000))
 }
 
-function PositionRow({ position }: { position: Position }) {
-  const [open, setOpen] = useState(false)
+function PositionCard({ position, isBest }: { position: Position; isBest: boolean }) {
+  const meta = kindMeta[position.kind]
   const share = (position.currentValue / capitalTotals.total) * 100
   const days = daysInPosition(position.openedAt)
-  const meta = kindTone[position.kind]
+  const perDay = (position.invested * position.yieldPct) / 100 / 365
+
+  // Где текущая доходность стоит внутри целевого коридора продукта.
+  const span = position.targetHigh - position.targetLow || 1
+  const inRange = Math.min(100, Math.max(0, ((position.yieldPct - position.targetLow) / span) * 100))
 
   return (
-    <div className="border-b border-[var(--trigonum-border)] last:border-0">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-4 rounded-lg py-3 text-left transition-colors hover:bg-[var(--trigonum-bg)]"
-      >
-        <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 text-sm font-semibold text-[var(--trigonum-ink)]">
-            {position.product}
-            <Pill tone={meta.tone}>{meta.label}</Pill>
-          </p>
-          <p className="text-xs text-[var(--trigonum-muted)]">
-            {formatCurrency(position.invested)} вложено · {days} дн. в позиции
-          </p>
+    <div className="group overflow-hidden rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] transition duration-200 hover:-translate-y-1 hover:shadow-[var(--trigonum-shadow-card)]">
+      <div className="h-1" style={{ backgroundColor: meta.color }} />
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--trigonum-ink)]">
+              {position.product}
+              <Pill tone={meta.tone}>{meta.label}</Pill>
+              {isBest && (
+                <Pill tone="warning" icon={<Crown size={11} />}>
+                  Лучшая
+                </Pill>
+              )}
+            </p>
+            <p className="mt-1 text-xs text-[var(--trigonum-muted)]">
+              {formatCurrency(position.invested)} вложено · открыта {formatDate(position.openedAt)}
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-lg font-bold text-[var(--trigonum-ink)]">{formatCurrency(position.currentValue)}</p>
+            <p className="text-sm font-semibold text-[var(--trigonum-success)]">
+              {formatSigned(position.profit)} · {formatPercent(position.yieldPct)}
+            </p>
+          </div>
         </div>
-        <div className="hidden sm:block">
-          <Sparkline data={position.series} width={96} height={28} />
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-semibold text-[var(--trigonum-success)]">{formatSigned(position.profit)}</p>
-          <p className="text-xs text-[var(--trigonum-muted)]">{position.yieldLabel}</p>
-        </div>
-        <ChevronDown size={16} className={`shrink-0 text-[var(--trigonum-muted)] transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
 
-      <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-        <div className="overflow-hidden">
-          <div className="grid grid-cols-1 gap-4 pb-4 sm:grid-cols-[1.6fr_1fr]">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              ['Вложено', formatCurrency(position.invested)],
-              ['Текущая стоимость', formatCurrency(position.currentValue)],
-              ['Открыта', formatDate(position.openedAt)],
-              ['Прибыль за всё время', formatSigned(position.profit)],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-lg bg-[var(--trigonum-bg)] p-3">
-                <p className="text-[11px] text-[var(--trigonum-muted)]">{label}</p>
-                <p className="mt-0.5 text-sm font-semibold text-[var(--trigonum-ink)]">{value}</p>
-              </div>
-            ))}
-            <div className="col-span-2 sm:col-span-4">
-              <div className="mb-1 flex items-center justify-between text-xs text-[var(--trigonum-muted)]">
-                <span>Доля в портфеле</span>
-                <span className="font-semibold text-[var(--trigonum-ink)]">{formatPercent(share, false)}</span>
-              </div>
-              <ProgressBar value={share} />
+        <div className="mt-3 h-12">
+          <Sparkline data={position.series} width={320} height={48} area color={meta.color} />
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {[
+            ['Приносит в день', `≈${formatCurrency(perDay, true)}`, <TrendingUp key="i" size={12} />],
+            ['В позиции', `${days} дн.`, <CalendarClock key="i" size={12} />],
+            ['Доля портфеля', formatPercent(share, false), null],
+          ].map(([label, value, icon]) => (
+            <div key={label as string} className="rounded-lg bg-[var(--trigonum-bg)] px-2.5 py-2">
+              <p className="flex items-center gap-1 text-[10px] text-[var(--trigonum-muted)]">
+                {icon}
+                {label}
+              </p>
+              <p className="mt-0.5 text-xs font-semibold text-[var(--trigonum-ink)]">{value}</p>
             </div>
+          ))}
+        </div>
+
+        <div className="mt-3">
+          <div className="mb-1 flex items-center justify-between text-[11px] text-[var(--trigonum-muted)]">
+            <span>Целевой коридор продукта</span>
+            <span>
+              {position.targetLow}% – {position.targetHigh}%
+            </span>
           </div>
-            <div className="flex flex-col justify-center gap-2">
-              <PrimaryButton className="w-full">Докупить</PrimaryButton>
-              <OutlineButton className="w-full">Вывести из позиции</OutlineButton>
-            </div>
+          <div className="relative h-1.5 w-full rounded-full bg-[color-mix(in_srgb,var(--trigonum-success)_18%,white)]">
+            <span
+              className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--trigonum-surface)] shadow transition-[left] duration-500"
+              style={{ left: `${inRange}%`, backgroundColor: meta.color }}
+            />
           </div>
+          <p className="mt-1 text-[11px] text-[var(--trigonum-muted)]">
+            Текущая доходность {formatPercent(position.yieldPct)} — внутри коридора
+          </p>
+        </div>
+
+        <div className="mt-4 flex gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100">
+          <PrimaryButton className="flex-1 px-3 py-2 text-xs">Докупить</PrimaryButton>
+          <OutlineButton className="flex-1 px-3 py-2 text-xs">Вывести</OutlineButton>
         </div>
       </div>
     </div>
@@ -86,16 +112,32 @@ function PositionRow({ position }: { position: Position }) {
 }
 
 export function PositionsBreakdown() {
-  const invested = positions.reduce((sum, p) => sum + p.invested, 0)
+  const [sort, setSort] = useState<SortValue>('profit')
+
+  const totals = useMemo(() => {
+    const invested = positions.reduce((sum, p) => sum + p.invested, 0)
+    const value = positions.reduce((sum, p) => sum + p.currentValue, 0)
+    return { invested, value, profit: value - invested }
+  }, [])
+
+  const bestId = useMemo(() => positions.reduce((best, p) => (p.profit > best.profit ? p : best), positions[0]).id, [])
+
+  const sorted = useMemo(() => {
+    const list = [...positions]
+    if (sort === 'profit') return list.sort((a, b) => b.profit - a.profit)
+    if (sort === 'yield') return list.sort((a, b) => b.yieldPct - a.yieldPct)
+    return list.sort((a, b) => new Date(a.openedAt).getTime() - new Date(b.openedAt).getTime())
+  }, [sort])
 
   return (
     <Card
       title="Во что инвестировано"
-      subtitle={`${positions.length} активные позиции на ${formatCurrency(invested)} — раскройте для деталей`}
+      subtitle={`${positions.length} позиции · ${formatCurrency(totals.value)} текущая стоимость · ${formatSigned(totals.profit)} прибыль`}
+      action={<SegmentedControl value={sort} onChange={setSort} options={sortOptions.map(({ value, label }) => ({ value, label }))} />}
     >
-      <div className="flex flex-col">
-        {positions.map((position) => (
-          <PositionRow key={position.id} position={position} />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {sorted.map((position) => (
+          <PositionCard key={position.id} position={position} isBest={position.id === bestId} />
         ))}
       </div>
     </Card>

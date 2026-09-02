@@ -12,6 +12,7 @@ import { allocationOrder, allocationProfile, currentAllocation } from '../model/
 import {
   constraints,
   maxIncomeAtRisk,
+  pnlOnApply,
   projectedIncome,
   rebalance,
   riskLabel,
@@ -51,6 +52,7 @@ export function AllocationLab() {
   const { label: riskName, tone: riskTone } = riskLabel(risk)
   const delta = income - baseIncome
   const forecast = yearForecast(allocation)
+  const pnl = pnlOnApply(allocation)
   const touched = allocationOrder.some((key) => Math.abs(allocation[key] - currentAllocation[key]) > 0.5)
   const sliderMax = useMemo(() => Math.ceil(maxIncomeAtRisk(100) / 500) * 500, [])
 
@@ -287,6 +289,25 @@ export function AllocationLab() {
                 duration={350}
                 className="block text-lg font-bold text-[var(--trigonum-success)]"
               />
+            </div>
+
+            <div className="mt-3 border-t border-[var(--trigonum-border)] pt-3">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-xs text-[var(--trigonum-muted)]">Зафиксируется при применении</p>
+                <AnimatedNumber
+                  value={pnl.lockingNow}
+                  format={(v) => (v < 1 ? '$0' : `+${formatCurrency(v)}`)}
+                  duration={350}
+                  className={`text-base font-bold ${pnl.lockingNow >= 1 ? 'text-[var(--trigonum-success)]' : 'text-[var(--trigonum-muted)]'}`}
+                />
+              </div>
+              <p className="mt-1 text-[11px] leading-snug text-[var(--trigonum-muted)]">
+                {pnl.lockingNow < 1
+                  ? 'Ни одна позиция не сокращается — прибыль не фиксируется'
+                  : 'Прибыль по сокращаемым позициям станет реальной'}
+                . Уже зафиксировано {formatCurrency(pnl.alreadyRealized)}, нереализованными останутся{' '}
+                {formatCurrency(pnl.remainingUnrealized)}.
+              </p>
             </div>
           </div>
 

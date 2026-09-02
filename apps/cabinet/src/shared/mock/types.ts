@@ -18,6 +18,10 @@ export interface Position {
   currentValue: number
   openedAt: string
   series: number[]
+  /** Текущая доходность в процентах годовых и целевой коридор продукта. */
+  yieldPct: number
+  targetLow: number
+  targetHigh: number
 }
 
 export type TransactionType = 'deposit' | 'withdrawal' | 'transfer' | 'investment' | 'accrual'

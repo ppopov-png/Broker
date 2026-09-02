@@ -44,6 +44,9 @@ export const positions: Position[] = [
     currentValue: 53_420,
     openedAt: '2024-11-12',
     series: [50000, 50320, 50180, 50960, 51420, 51240, 52180, 52640, 52410, 53100, 53420],
+    yieldPct: 6.84,
+    targetLow: 6,
+    targetHigh: 8,
   },
   {
     id: 'pos-system-alpha',
@@ -55,6 +58,9 @@ export const positions: Position[] = [
     currentValue: 27_866,
     openedAt: '2024-08-03',
     series: [25000, 25240, 25120, 25780, 26310, 26140, 26820, 27240, 27080, 27610, 27866],
+    yieldPct: 11.46,
+    targetLow: 10,
+    targetHigh: 14,
   },
   {
     id: 'pos-macro-rotation',
@@ -66,6 +72,9 @@ export const positions: Position[] = [
     currentValue: 16_040,
     openedAt: '2025-03-18',
     series: [15020, 15180, 15090, 15420, 15680, 15540, 15810, 15960, 15880, 16010, 16040],
+    yieldPct: 6.8,
+    targetLow: 5,
+    targetHigh: 10,
   },
   {
     id: 'pos-reserve-earn',
@@ -77,6 +86,9 @@ export const positions: Position[] = [
     currentValue: 101_950,
     openedAt: '2025-01-09',
     series: [100000, 100180, 100360, 100540, 100730, 100910, 101100, 101290, 101480, 101720, 101950],
+    yieldPct: 7.0,
+    targetLow: 6,
+    targetHigh: 8,
   },
 ]
 
