@@ -1,23 +1,9 @@
 import { Check, ChevronDown, Globe2 } from 'lucide-react'
 import { useState } from 'react'
+import trigonumIcon from '../assets/trigonum-icon.svg'
+import trigonumWordmark from '../assets/trigonum-wordmark.svg'
 import { useI18n, type Language } from '../i18n/I18nProvider'
 import { cabinetUrl, onboardingUrl } from '../lib/appLinks'
-
-function MiniMark() {
-  return (
-    <svg viewBox="0 0 64 58" aria-hidden="true" className="brand-mark">
-      <defs>
-        <linearGradient id="trigonumMarkGradient" x1="7" y1="5" x2="57" y2="53" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#3F3F8A" />
-          <stop offset="0.52" stopColor="#7575FF" />
-          <stop offset="1" stopColor="#A940E8" />
-        </linearGradient>
-      </defs>
-      <path d="M32 4 59 52H47L32 26 17 52H5L32 4Z" fill="url(#trigonumMarkGradient)" />
-      <path d="m17 52 15-9 15 9H17Z" fill="#25254F" opacity=".94" />
-    </svg>
-  )
-}
 
 const languageNames: Record<Language, string> = { ru: 'RU', en: 'EN', ky: 'KG' }
 const languageFullNames: Record<Language, string> = { ru: 'Русский', en: 'English', ky: 'Кыргызча' }
@@ -29,8 +15,8 @@ export function Header() {
   return (
     <header className="site-header">
       <a className="brand" href="#top" aria-label="Trigonum Broker">
-        <MiniMark />
-        <span className="brand-name">TRIGONUM</span>
+        <img className="brand-mark" src={trigonumIcon} alt="" aria-hidden="true" />
+        <img className="brand-wordmark" src={trigonumWordmark} alt="TRIGONUM" />
         <span className="brand-divider" />
         <span className="brand-product">BROKER</span>
       </a>
