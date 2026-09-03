@@ -18,7 +18,7 @@ export function Sidebar() {
   const ActiveIcon = activeAccount.type === 'company' ? Building2 : UserRound
 
   return (
-    <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-4 py-5">
+    <aside className="sticky top-0 flex h-screen w-64 shrink-0 self-start flex-col border-r border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-4 py-5">
       <div className="px-2">
         <Logo />
       </div>
@@ -63,14 +63,14 @@ export function Sidebar() {
                     setActiveAccountId(account.id)
                     setAccountOpen(false)
                   }}
-                  className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition ${active ? 'bg-blue-50' : 'hover:bg-[var(--trigonum-bg)]'}`}
+                  className={`flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left transition ${active ? 'bg-blue-50' : 'hover:bg-[var(--trigonum-bg)]'}`}
                 >
-                  <span className={`grid size-8 shrink-0 place-items-center rounded-lg ${account.type === 'company' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}><Icon size={16} /></span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block whitespace-normal break-words text-xs font-bold leading-snug text-[var(--trigonum-ink)]">{account.name}</span>
-                    <span className="mt-0.5 block text-[10px] text-[var(--trigonum-muted)]">{account.accountLabel}</span>
+                  <span className={`mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg ${account.type === 'company' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}><Icon size={16} /></span>
+                  <span className="w-0 flex-1">
+                    <span className="block whitespace-normal text-xs font-bold leading-[1.35] text-[var(--trigonum-ink)]" style={{ overflowWrap: 'anywhere' }}>{account.name}</span>
+                    <span className="mt-1 block text-[10px] text-[var(--trigonum-muted)]">{account.accountLabel}</span>
                   </span>
-                  {active && <Check size={14} className="shrink-0 text-[var(--trigonum-blue)]" />}
+                  {active && <Check size={14} className="mt-1 shrink-0 text-[var(--trigonum-blue)]" />}
                 </button>
               )
             })}
@@ -80,14 +80,14 @@ export function Sidebar() {
         <button
           type="button"
           onClick={() => setAccountOpen((value) => !value)}
-          className="flex w-full items-center gap-2.5 rounded-xl border border-[var(--trigonum-border)] bg-white px-2.5 py-2.5 text-left hover:bg-[var(--trigonum-bg)]"
+          className="flex w-full items-start gap-2.5 rounded-xl border border-[var(--trigonum-border)] bg-white px-2.5 py-2.5 text-left hover:bg-[var(--trigonum-bg)]"
         >
-          <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${activeAccount.type === 'company' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}><ActiveIcon size={17} /></span>
-          <span className="min-w-0 flex-1">
-            <span className="block whitespace-normal break-words text-xs font-bold leading-snug text-[var(--trigonum-ink)]">{activeAccount.name}</span>
-            <span className="mt-0.5 block text-[10px] text-[var(--trigonum-muted)]">{activeAccount.accountLabel}</span>
+          <span className={`mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg ${activeAccount.type === 'company' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}><ActiveIcon size={17} /></span>
+          <span className="w-0 flex-1">
+            <span className="block whitespace-normal text-xs font-bold leading-[1.35] text-[var(--trigonum-ink)]" style={{ overflowWrap: 'anywhere' }}>{activeAccount.name}</span>
+            <span className="mt-1 block text-[10px] text-[var(--trigonum-muted)]">{activeAccount.accountLabel}</span>
           </span>
-          <ChevronsUpDown size={14} className="shrink-0 text-[var(--trigonum-muted)]" />
+          <ChevronsUpDown size={14} className="mt-1 shrink-0 text-[var(--trigonum-muted)]" />
         </button>
         <p className="px-2 pt-3 text-[10px] text-[var(--trigonum-muted)]">© 2026 Trigonum Broker</p>
       </div>
