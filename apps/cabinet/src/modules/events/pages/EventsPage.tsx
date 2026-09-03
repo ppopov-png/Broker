@@ -9,7 +9,6 @@ import {
   History,
   Info,
   Medal,
-  RefreshCcw,
   Ticket,
   Timer,
   TrendingDown,
@@ -64,8 +63,6 @@ interface LiveEvent {
   liveCapital: boolean
   flowMultiplier: number
   visual: 'btc' | 'eth' | 'basket' | 'relative'
-  queueRequests?: number
-  queueCapital?: number
 }
 
 interface PastEvent {
@@ -83,9 +80,6 @@ interface PastEvent {
   totalPnl: number
   bestPnl: number
   bestAlias: string
-  queueUsed: boolean
-  peakQueue: number
-  queueCapital: number
   maxDrawdown: number
   closedDate: string
   timeline: EventTimelineStep[]
@@ -149,8 +143,6 @@ const initialLiveEvents: LiveEvent[] = [
     liveCapital: false,
     flowMultiplier: 0,
     visual: 'btc',
-    queueRequests: 14,
-    queueCapital: 118_000,
   },
   {
     id: 'EV-STB-028',
@@ -254,16 +246,12 @@ const pastEvents: PastEvent[] = [
     totalPnl: 124_000,
     bestPnl: 12_400,
     bestAlias: '#7F2A',
-    queueUsed: true,
-    peakQueue: 18,
-    queueCapital: 164_000,
     maxDrawdown: -2.1,
     closedDate: '28 августа',
     timeline: [
       { label: 'TAIS обнаружила сигнал', time: '00:00', detail: 'Event опубликован и открыт для allocation.' },
       { label: '50% объёма', time: '00:09', detail: '$500K распределено между инвесторами.' },
       { label: 'Event заполнен', time: '00:27', detail: 'Основной объём $1M полностью распределён.' },
-      { label: 'Пиковая очередь', time: '01:04', detail: '18 инвесторов ожидали освобождения $164K allocation.' },
       { label: 'Закрытие Event', time: '11д 04ч', detail: 'Результат +12.4%, прибыль инвесторов +$124K.' },
     ],
   },
@@ -282,16 +270,12 @@ const pastEvents: PastEvent[] = [
     totalPnl: 99_400,
     bestPnl: 7_100,
     bestAlias: '#31BC',
-    queueUsed: true,
-    peakQueue: 31,
-    queueCapital: 286_000,
     maxDrawdown: -1.6,
     closedDate: '21 августа',
     timeline: [
       { label: 'Event открыт', time: '00:00', detail: 'TAIS зафиксировала расширение ликвидности.' },
       { label: '75% объёма', time: '00:11', detail: '$1.05M распределено.' },
       { label: 'Event заполнен', time: '00:18', detail: '$1.4M allocation полностью занят.' },
-      { label: 'Пиковая очередь', time: '00:46', detail: '31 инвестор, суммарный спрос $286K.' },
       { label: 'Закрытие Event', time: '8д 17ч', detail: 'Результат +7.1%, прибыль инвесторов +$99.4K.' },
     ],
   },
@@ -310,9 +294,6 @@ const pastEvents: PastEvent[] = [
     totalPnl: -41_280,
     bestPnl: 0,
     bestAlias: '—',
-    queueUsed: false,
-    peakQueue: 0,
-    queueCapital: 0,
     maxDrawdown: -6.7,
     closedDate: '14 августа',
     timeline: [
@@ -338,16 +319,12 @@ const pastEvents: PastEvent[] = [
     totalPnl: 291_200,
     bestPnl: 18_200,
     bestAlias: '#A812',
-    queueUsed: true,
-    peakQueue: 46,
-    queueCapital: 512_000,
     maxDrawdown: -2.8,
     closedDate: '7 августа',
     timeline: [
       { label: 'Event открыт', time: '00:00', detail: 'TAIS зафиксировала начало ротации BTC → ETH.' },
       { label: '50% объёма', time: '00:03', detail: '$800K занято за первые три минуты.' },
       { label: 'Event заполнен', time: '00:08', detail: '$1.6M allocation полностью распределён.' },
-      { label: 'Пиковая очередь', time: '00:22', detail: '46 инвесторов ожидали $512K allocation.' },
       { label: 'Закрытие Event', time: '14д 02ч', detail: 'Результат +18.2%, прибыль инвесторов +$291.2K.' },
     ],
   },
@@ -366,15 +343,11 @@ const pastEvents: PastEvent[] = [
     totalPnl: 85_000,
     bestPnl: 6_800,
     bestAlias: '#0D91',
-    queueUsed: true,
-    peakQueue: 22,
-    queueCapital: 191_000,
     maxDrawdown: -1.9,
     closedDate: '30 июля',
     timeline: [
       { label: 'Event открыт', time: '00:00', detail: 'Открыта позиция LONG BTC.' },
       { label: 'Event заполнен', time: '00:16', detail: '$1.25M капитала распределено.' },
-      { label: 'Очередь сформирована', time: '00:29', detail: 'Пиковый спрос очереди $191K.' },
       { label: 'Целевая зона достигнута', time: '8д 20ч', detail: 'Цена вошла в рабочую целевую область.' },
       { label: 'Закрытие Event', time: '9д 11ч', detail: 'Финальный результат +6.8%.' },
     ],
@@ -394,9 +367,6 @@ const pastEvents: PastEvent[] = [
     totalPnl: 169_200,
     bestPnl: 9_400,
     bestAlias: '#CC41',
-    queueUsed: false,
-    peakQueue: 0,
-    queueCapital: 0,
     maxDrawdown: -2.4,
     closedDate: '22 июля',
     timeline: [
@@ -420,7 +390,7 @@ const hallRows = [
   { label: 'Крупнейшая индивидуальная прибыль', value: '+$84,210', meta: 'Участник #7F2A · Сезон III', icon: Trophy },
   { label: 'Максимальная прибыль одного Event', value: '+$291,200', meta: 'EV-ROT-044 · 117 инвесторов', icon: TrendingUp },
   { label: 'Самое быстрое заполнение', value: '03:41', meta: 'Event #028 · объём $1.5M', icon: Timer },
-  { label: 'Самая большая очередь', value: '61 инвестор', meta: 'Event #039 · спрос $684K', icon: Users },
+  { label: 'Больше всего инвесторов', value: '154 инвестора', meta: 'EV-ONC-045 · объём $1.25M', icon: Users },
 ] as const
 
 function InfoTip({ text }: { text: string }) {
@@ -488,7 +458,7 @@ function EventCard({ event, onOpen }: { event: LiveEvent; onOpen: () => void }) 
         <div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><p className="text-[10px] uppercase tracking-wide text-[var(--trigonum-muted)]">Риск</p><p className="mt-1 font-bold">{event.risk}</p></div>
       </div>
       <div className="mt-4"><div className="mb-2 flex items-end justify-between"><div><p className="text-xs text-[var(--trigonum-muted)]">{full ? 'Распределено' : 'Доступно'}</p><p className={`mt-1 text-lg font-bold tabular-nums ${full ? 'text-blue-700' : remaining / event.capacity <= 0.12 ? 'text-rose-700' : 'text-[var(--trigonum-ink)]'}`}>{full ? formatCurrency(event.capacity) : formatCurrency(remaining)}</p></div><p className="text-xs font-semibold text-[var(--trigonum-muted)]">{filled.toFixed(1)}%</p></div><ProgressBar value={filled} tone="green" /></div>
-      <div className="mt-4 flex items-center justify-between border-t border-[var(--trigonum-border)] pt-4"><span className="text-xs text-[var(--trigonum-muted)]">{event.participants} инвесторов</span><span className={`rounded-lg px-3 py-1.5 text-xs font-bold ${full ? 'bg-blue-50 text-blue-700' : affordable ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{full ? `Очередь ${event.queueRequests ?? 0}` : affordable ? 'Доступен' : 'Недостаточно средств'}</span></div>
+      <div className="mt-4 flex items-center justify-between border-t border-[var(--trigonum-border)] pt-4"><span className="text-xs text-[var(--trigonum-muted)]">{event.participants} инвесторов</span><span className={`rounded-lg px-3 py-1.5 text-xs font-bold ${full ? 'bg-blue-50 text-blue-700' : affordable ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{full ? 'Заполнен' : affordable ? 'Доступен' : 'Недостаточно средств'}</span></div>
     </div>
   </button>
 }
@@ -522,15 +492,11 @@ function CompactStat({ label, value, tone = 'default' }: { label: string; value:
   return <div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--trigonum-muted)]">{label}</p><p className={`mt-1 truncate text-base font-black tabular-nums ${valueClass}`}>{value}</p></div>
 }
 
-function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease }: { event: LiveEvent; onBack: () => void; onReserveTais: (amount: number) => void; onReserveContra: (amount: number) => void; onRelease: (amount: number) => void }) {
+function EventDetail({ event, onBack, onReserveTais, onReserveContra }: { event: LiveEvent; onBack: () => void; onReserveTais: (amount: number) => void; onReserveContra: (amount: number) => void }) {
   const maxAmount = Math.min(event.maxInvestment, AVAILABLE_BALANCE)
   const initialAmount = Math.max(event.minInvestment, Math.min(20_000, maxAmount))
   const [side, setSide] = useState<PositionSide>('tais')
   const [desiredAmount, setDesiredAmount] = useState(initialAmount)
-  const [queueAmount, setQueueAmount] = useState(initialAmount)
-  const [queuedAmount, setQueuedAmount] = useState(0)
-  const [queuePosition, setQueuePosition] = useState<number | null>(null)
-  const [queueAheadCapital, setQueueAheadCapital] = useState(0)
   const [myAllocation, setMyAllocation] = useState(0)
   const [myContra, setMyContra] = useState(0)
   const [watching, setWatching] = useState(false)
@@ -539,10 +505,6 @@ function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease 
   useEffect(() => {
     const amount = Math.max(event.minInvestment, Math.min(20_000, maxAmount))
     setDesiredAmount(amount)
-    setQueueAmount(amount)
-    setQueuedAmount(0)
-    setQueuePosition(null)
-    setQueueAheadCapital(0)
     setMyAllocation(0)
     setMyContra(0)
     setSide('tais')
@@ -555,7 +517,6 @@ function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease 
   const minutesToFull = event.velocityPerMinute > 0 ? remaining / event.velocityPerMinute : 0
   const trigonumShare = (event.trigonumCapital / event.capacity) * 100
   const amountValid = desiredAmount >= event.minInvestment && desiredAmount <= maxAmount && desiredAmount <= AVAILABLE_BALANCE
-  const queueAmountValid = queueAmount >= event.minInvestment && queueAmount <= maxAmount && queueAmount <= AVAILABLE_BALANCE
   const canInvestTais = !full && amountValid && remaining >= desiredAmount && event.secondsLeft > 0
   const canInvestContra = amountValid && event.secondsLeft > 0
   const scenarioLow = desiredAmount * event.targetLow / 100
@@ -577,25 +538,6 @@ function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease 
     setMyContra((value) => value + desiredAmount)
   }
 
-  const release = () => {
-    const amount = Math.min(5_000, myAllocation)
-    if (amount <= 0) return
-    onRelease(amount)
-    setMyAllocation((value) => Math.max(0, value - amount))
-  }
-
-  const joinQueue = () => {
-    if (!queueAmountValid) return
-    setQueuedAmount(queueAmount)
-    setQueuePosition((event.queueRequests ?? 0) + 1)
-    setQueueAheadCapital(event.queueCapital ?? 0)
-  }
-
-  const simulateQueueMove = () => {
-    setQueuePosition((value) => value ? Math.max(1, value - 2) : value)
-    setQueueAheadCapital((value) => Math.max(0, value - 18_000))
-  }
-
   const renderAmountPicker = (value: number, setValue: (value: number) => void) => <div className="space-y-3"><div className="flex items-end gap-3"><label className="min-w-0 flex-1"><span className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Сумма</span><div className="mt-1 flex items-center rounded-xl border border-[var(--trigonum-border)] bg-white px-3"><span className="text-sm font-bold text-[var(--trigonum-muted)]">$</span><input type="number" min={event.minInvestment} max={maxAmount} step={1} value={value} onChange={(e) => setValue(Number(e.target.value))} className="w-full bg-transparent px-2 py-2.5 text-xl font-black outline-none" /></div></label><div className="shrink-0 pb-0.5 text-right"><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Доступно</p><p className="text-sm font-bold">{formatCurrency(AVAILABLE_BALANCE)}</p></div></div><input type="range" min={event.minInvestment} max={maxAmount} step={1} value={value} onChange={(e) => setValue(Number(e.target.value))} className="w-full" /><div className="flex flex-wrap gap-1.5">{quickAmounts.map((amount) => <button key={amount} type="button" onClick={() => setValue(amount)} className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition ${value === amount ? 'border-[var(--trigonum-blue)] bg-blue-50 text-blue-700' : 'border-[var(--trigonum-border)] bg-white hover:border-[var(--trigonum-blue)]'}`}>{amount === maxAmount ? 'MAX' : formatCurrency(amount)}</button>)}</div></div>
 
   return <div className="space-y-4">
@@ -603,7 +545,7 @@ function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease 
 
     <Card className="overflow-hidden !p-0">
       <div className="bg-[linear-gradient(135deg,#071a2d_0%,#0b3350_52%,#0d6a67_100%)] px-5 py-4 text-white"><div className="grid gap-4 lg:grid-cols-[1.5fr_.62fr_.58fr] lg:items-center"><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-100">{event.category}</span><span className="text-[10px] font-semibold text-slate-300">{event.id}</span></div><h2 className="mt-2 text-2xl font-black">{event.title}</h2><p className="mt-1 text-sm text-slate-200">{event.shortIdea}</p></div><div className="lg:border-l lg:border-white/10 lg:pl-4"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-300">Позиция TAIS</p><p className="mt-1 text-xl font-black text-emerald-300">{event.taisPosition}</p><p className="mt-1 text-xs text-slate-300">Цель +{event.targetLow}–{event.targetHigh}% · {event.horizon}</p></div><div className="lg:border-l lg:border-white/10 lg:pl-4 lg:text-right"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-300">До закрытия входа</p><p className="mt-1 text-2xl font-black tabular-nums">{formatCountdown(event.secondsLeft)}</p><span className={`mt-1 inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold ${full ? 'bg-blue-400/20 text-blue-100' : event.secondsLeft <= 15 * 60 ? 'bg-rose-400/20 text-rose-100' : 'bg-emerald-400/20 text-emerald-100'}`}>{full ? 'Основной объём заполнен' : `${fillPct.toFixed(1)}% распределено`}</span></div></div></div>
-      <div className="grid grid-cols-2 divide-x divide-y divide-[var(--trigonum-border)] border-t border-[var(--trigonum-border)] bg-white md:grid-cols-4 md:divide-y-0"><div className="p-3"><CompactStat label="Объём Event" value={formatCurrency(event.capacity)} /></div><div className="p-3"><CompactStat label={full ? 'Распределено' : 'Осталось'} value={full ? formatCurrency(event.committed) : formatCurrency(remaining)} tone={full ? 'blue' : remaining / event.capacity <= 0.12 ? 'danger' : 'default'} /></div><div className="p-3"><CompactStat label="Минимум" value={formatCurrency(event.minInvestment)} /></div><div className="p-3"><CompactStat label={full ? 'Очередь' : 'Инвесторов'} value={full ? `${event.queueRequests ?? 0} чел. · ${formatCurrency(event.queueCapital ?? 0)}` : `${event.participants}`} tone={full ? 'blue' : 'default'} /></div></div>
+      <div className="grid grid-cols-2 divide-x divide-y divide-[var(--trigonum-border)] border-t border-[var(--trigonum-border)] bg-white md:grid-cols-4 md:divide-y-0"><div className="p-3"><CompactStat label="Объём Event" value={formatCurrency(event.capacity)} /></div><div className="p-3"><CompactStat label={full ? 'Распределено' : 'Осталось'} value={full ? formatCurrency(event.committed) : formatCurrency(remaining)} tone={full ? 'blue' : remaining / event.capacity <= 0.12 ? 'danger' : 'default'} /></div><div className="p-3"><CompactStat label="Минимум" value={formatCurrency(event.minInvestment)} /></div><div className="p-3"><CompactStat label="Инвесторов" value={`${event.participants}`} /></div></div>
     </Card>
 
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_410px] xl:items-start">
@@ -624,19 +566,17 @@ function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease 
             <div className="mt-2"><ProgressBar value={fillPct} tone="green" /></div>
             <div className="mt-3 grid gap-2 sm:grid-cols-3"><div className="rounded-lg bg-[var(--trigonum-bg)] p-2.5"><CompactStat label="Инвесторов" value={`${event.participants}`} /></div><div className="rounded-lg bg-[var(--trigonum-bg)] p-2.5"><CompactStat label="Темп" value={event.velocityPerMinute > 0 ? `${formatCurrency(event.velocityPerMinute)}/мин` : 'Набор закрыт'} tone={event.velocityPerMinute > 0 ? 'success' : 'default'} /></div><div className="rounded-lg bg-[var(--trigonum-bg)] p-2.5"><CompactStat label="До заполнения" value={!full && event.velocityPerMinute > 0 ? `≈ ${Math.max(1, Math.ceil(minutesToFull))} мин` : 'Заполнен'} tone={full ? 'blue' : 'default'} /></div></div>
           </div>
-
-          {full && <div className="mt-3 grid gap-2 sm:grid-cols-3"><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><CompactStat label="Заявок в очереди" value={`${event.queueRequests ?? 0}`} tone="blue" /></div><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><CompactStat label="Капитал в очереди" value={formatCurrency(event.queueCapital ?? 0)} tone="blue" /></div><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><CompactStat label="Следующая позиция" value={`#${(event.queueRequests ?? 0) + 1}`} tone="blue" /></div></div>}
         </Card>
       </div>
 
       <div className="xl:sticky xl:top-4">
         <Card className="!p-0">
-          <div className="border-b border-[var(--trigonum-border)] p-4"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2"><Wallet size={18} className={side === 'tais' ? 'text-emerald-600' : 'text-violet-600'} /><div><p className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Действие</p><h3 className="font-black">{full && side === 'tais' ? 'Очередь на allocation' : 'Открыть позицию'}</h3></div></div><span className="text-xs font-bold tabular-nums text-[var(--trigonum-muted)]">{formatCountdown(event.secondsLeft)}</span></div><div className="mt-3"><PositionToggle event={event} side={side} onChange={setSide} /></div></div>
+          <div className="border-b border-[var(--trigonum-border)] p-4"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2"><Wallet size={18} className={side === 'tais' ? 'text-emerald-600' : 'text-violet-600'} /><div><p className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Действие</p><h3 className="font-black">{full && side === 'tais' ? 'Event заполнен' : side === 'tais' ? 'Инвестировать в Event' : 'Ставка против TAIS'}</h3></div></div><span className="text-xs font-bold tabular-nums text-[var(--trigonum-muted)]">{formatCountdown(event.secondsLeft)}</span></div><div className="mt-3"><PositionToggle event={event} side={side} onChange={setSide} /></div></div>
 
           <div className="p-4">
-            {full && side === 'tais' ? <div className="space-y-4">{queuePosition === null ? <><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><div className="flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-wide text-blue-700">Основной Event заполнен</p><p className="mt-1 text-sm text-blue-950">Можно занять место на освобождающийся allocation.</p></div><Users size={22} className="text-blue-600" /></div><div className="mt-3 grid grid-cols-2 gap-3"><CompactStat label="Сейчас в очереди" value={`${event.queueRequests ?? 0}`} tone="blue" /><CompactStat label="Капитал впереди" value={formatCurrency(event.queueCapital ?? 0)} tone="blue" /></div></div>{renderAmountPicker(queueAmount, setQueueAmount)}<div className="rounded-xl bg-[var(--trigonum-bg)] px-3 py-2.5 text-xs"><div className="flex items-center justify-between"><span>Ожидаемая позиция</span><b>#{(event.queueRequests ?? 0) + 1}</b></div></div><button type="button" disabled={!queueAmountValid} onClick={joinQueue} className="w-full rounded-xl bg-[var(--trigonum-ink)] px-4 py-3 text-sm font-black text-white disabled:opacity-40">Встать в очередь на {formatCurrency(queueAmount)}</button></> : <div className="rounded-xl border border-blue-200 bg-blue-50 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-wide text-blue-700">Ваша очередь</p><p className="mt-1 text-4xl font-black text-blue-950">#{queuePosition}</p></div><button type="button" onClick={() => { setQueuePosition(null); setQueuedAmount(0); setQueueAheadCapital(0) }} className="rounded-lg border border-blue-200 bg-white p-2 text-blue-700"><X size={15} /></button></div><div className="mt-4 grid grid-cols-2 gap-3"><CompactStat label="Ваша заявка" value={formatCurrency(queuedAmount)} tone="blue" /><CompactStat label="Капитал впереди" value={formatCurrency(queueAheadCapital)} tone="blue" /></div><button type="button" onClick={simulateQueueMove} className="mt-4 w-full rounded-xl bg-white px-3 py-2.5 text-xs font-bold text-blue-800">Показать движение очереди</button></div>}</div> : <div className="space-y-4"><div><p className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Выбранная позиция</p><div className="mt-1 flex items-center justify-between gap-3"><p className={`text-2xl font-black ${side === 'tais' ? 'text-emerald-700' : 'text-violet-700'}`}>{side === 'tais' ? event.taisPosition : event.counterPosition}</p><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${side === 'tais' ? 'bg-emerald-50 text-emerald-700' : 'bg-violet-50 text-violet-700'}`}>{side === 'tais' ? 'TAIS' : 'Обратная'}</span></div></div>{renderAmountPicker(desiredAmount, setDesiredAmount)}{side === 'tais' ? <div className="grid grid-cols-2 gap-2"><div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3"><CompactStat label={`При +${event.targetLow}%`} value={`+${formatCurrency(scenarioLow)}`} tone="success" /></div><div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3"><CompactStat label={`При +${event.targetHigh}%`} value={`+${formatCurrency(scenarioHigh)}`} tone="success" /></div></div> : <div className="space-y-2"><div className="rounded-xl border border-violet-200 bg-violet-50 p-3"><p className="text-[10px] font-bold uppercase tracking-wide text-violet-700">Ставка против гипотезы TAIS</p><p className="mt-1 text-sm font-black text-violet-950">TAIS не достигнет +{event.targetLow}% в горизонте {event.horizon}</p><p className="mt-1 text-xs text-violet-700">Если нижняя граница цели TAIS не выполнена к завершению Event, ставка выигрывает.</p></div><div className="grid grid-cols-3 gap-2"><div className="rounded-xl border border-violet-100 bg-violet-50 p-3"><CompactStat label="Коэффициент" value={`×${contraOdds.toFixed(2)}`} tone="blue" /></div><div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3"><CompactStat label="Выплата" value={formatCurrency(contraPayout)} tone="success" /></div><div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3"><CompactStat label="Прибыль" value={`+${formatCurrency(contraProfit)}`} tone="success" /></div></div></div>}<button type="button" disabled={side === 'tais' ? !canInvestTais : !canInvestContra} onClick={reserve} className={`w-full rounded-xl px-4 py-3 text-sm font-black text-white disabled:opacity-40 ${side === 'tais' ? 'bg-emerald-600' : 'bg-violet-600'}`}>{side === 'tais' ? (remaining < desiredAmount ? 'Такой объём уже недоступен' : `Открыть ${event.taisPosition}`) : 'Поставить на неуспех TAIS'}</button></div>}
+            {full && side === 'tais' ? <div className="space-y-3"><div className="rounded-xl border border-blue-200 bg-blue-50 p-4"><p className="text-[10px] font-bold uppercase tracking-wide text-blue-700">Основной Event заполнен</p><p className="mt-2 text-lg font-black text-blue-950">Новые вложения больше не принимаются</p><p className="mt-2 text-sm leading-5 text-blue-800">Капитал участников уже зафиксирован в Event до его завершения.</p></div><button type="button" onClick={() => setSide('contra')} className="w-full rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-black text-violet-800">Рассмотреть ставку против TAIS</button></div> : <div className="space-y-4"><div><p className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Выбранная позиция</p><div className="mt-1 flex items-center justify-between gap-3"><p className={`text-2xl font-black ${side === 'tais' ? 'text-emerald-700' : 'text-violet-700'}`}>{side === 'tais' ? event.taisPosition : event.counterPosition}</p><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${side === 'tais' ? 'bg-emerald-50 text-emerald-700' : 'bg-violet-50 text-violet-700'}`}>{side === 'tais' ? 'TAIS' : 'Обратная'}</span></div></div>{renderAmountPicker(desiredAmount, setDesiredAmount)}{side === 'tais' ? <div className="grid grid-cols-2 gap-2"><div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3"><CompactStat label={`При +${event.targetLow}%`} value={`+${formatCurrency(scenarioLow)}`} tone="success" /></div><div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3"><CompactStat label={`При +${event.targetHigh}%`} value={`+${formatCurrency(scenarioHigh)}`} tone="success" /></div></div> : <div className="space-y-2"><div className="rounded-xl border border-violet-200 bg-violet-50 p-3"><p className="text-[10px] font-bold uppercase tracking-wide text-violet-700">Ставка против гипотезы TAIS</p><p className="mt-1 text-sm font-black text-violet-950">TAIS не достигнет +{event.targetLow}% в горизонте {event.horizon}</p><p className="mt-1 text-xs text-violet-700">Если нижняя граница цели TAIS не выполнена к завершению Event, ставка выигрывает.</p></div><div className="grid grid-cols-3 gap-2"><div className="rounded-xl border border-violet-100 bg-violet-50 p-3"><CompactStat label="Коэффициент" value={`×${contraOdds.toFixed(2)}`} tone="blue" /></div><div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3"><CompactStat label="Выплата" value={formatCurrency(contraPayout)} tone="success" /></div><div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3"><CompactStat label="Прибыль" value={`+${formatCurrency(contraProfit)}`} tone="success" /></div></div></div>}<button type="button" disabled={side === 'tais' ? !canInvestTais : !canInvestContra} onClick={reserve} className={`w-full rounded-xl px-4 py-3 text-sm font-black text-white disabled:opacity-40 ${side === 'tais' ? 'bg-emerald-600' : 'bg-violet-600'}`}>{side === 'tais' ? (remaining < desiredAmount ? 'Такой объём уже недоступен' : `Открыть ${event.taisPosition}`) : 'Поставить на неуспех TAIS'}</button></div>}
 
-            {(myAllocation > 0 || myContra > 0) && <div className="mt-4 border-t border-[var(--trigonum-border)] pt-4"><p className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Ваши позиции</p><div className="mt-2 space-y-2">{myAllocation > 0 && <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2"><div className="flex items-center gap-2"><BadgeCheck size={15} className="text-emerald-700" /><span className="text-xs font-bold text-emerald-900">{event.taisPosition}</span></div><div className="flex items-center gap-2"><b className="text-sm text-emerald-950">{formatCurrency(myAllocation)}</b><button type="button" onClick={release} className="rounded-lg border border-emerald-200 bg-white px-2 py-1 text-[10px] font-bold text-emerald-700">−$5K</button></div></div>}{myContra > 0 && <div className="flex items-center justify-between rounded-xl border border-violet-100 bg-violet-50 px-3 py-2"><div className="flex items-center gap-2"><BadgeCheck size={15} className="text-violet-700" /><span className="text-xs font-bold text-violet-900">{event.counterPosition}</span></div><b className="text-sm text-violet-950">{formatCurrency(myContra)}</b></div>}</div></div>}
+            {(myAllocation > 0 || myContra > 0) && <div className="mt-4 border-t border-[var(--trigonum-border)] pt-4"><p className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Ваши позиции</p><div className="mt-2 space-y-2">{myAllocation > 0 && <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2"><div className="flex items-center gap-2"><BadgeCheck size={15} className="text-emerald-700" /><span className="text-xs font-bold text-emerald-900">{event.taisPosition}</span></div><b className="text-sm text-emerald-950">{formatCurrency(myAllocation)}</b><p className="mt-1.5 text-[11px] text-emerald-700">Капитал зафиксирован до завершения Event</p></div>}{myContra > 0 && <div className="flex items-center justify-between rounded-xl border border-violet-100 bg-violet-50 px-3 py-2"><div className="flex items-center gap-2"><BadgeCheck size={15} className="text-violet-700" /><span className="text-xs font-bold text-violet-900">{event.counterPosition}</span></div><b className="text-sm text-violet-950">{formatCurrency(myContra)}</b></div>}</div></div>}
           </div>
         </Card>
       </div>
@@ -646,11 +586,11 @@ function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease 
 
 function PastEventCard({ event, onOpen }: { event: PastEvent; onOpen: () => void }) {
   const positive = event.totalPnl >= 0
-  return <button type="button" onClick={onOpen} className="w-full rounded-2xl border border-[var(--trigonum-border)] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[var(--trigonum-blue)] hover:shadow-md"><div className="flex items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">{event.category}</span><span className="text-[11px] font-semibold text-[var(--trigonum-muted)]">{event.closedDate}</span></div><h3 className="mt-3 text-lg font-bold">{event.title}</h3><p className="mt-1 text-sm text-[var(--trigonum-muted)]">{event.shortIdea}</p></div><span className={`shrink-0 rounded-xl px-3 py-2 text-sm font-black ${event.position.startsWith('SHORT') ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}>{event.position}</span></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4"><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Результат</p><p className={`mt-1 text-lg font-black ${event.result >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{event.result > 0 ? '+' : ''}{event.result}%</p></div><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Капитал</p><p className="mt-1 font-bold">{formatCurrency(event.invested)}</p></div><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Инвесторов</p><p className="mt-1 font-bold">{event.investors}</p></div><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Заполнен за</p><p className="mt-1 font-bold">{event.fillTime}</p></div></div><div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--trigonum-border)] pt-3"><div><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Итог инвесторов</p><p className={`mt-1 text-lg font-black ${positive ? 'text-emerald-700' : 'text-rose-700'}`}>{event.totalPnl > 0 ? '+' : ''}{formatCurrency(event.totalPnl)}</p></div><span className={`rounded-lg px-2.5 py-1.5 text-xs font-bold ${event.queueUsed ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{event.queueUsed ? `Была очередь · пик ${event.peakQueue}` : 'Без очереди'}</span></div></button>
+  return <button type="button" onClick={onOpen} className="w-full rounded-2xl border border-[var(--trigonum-border)] bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-[var(--trigonum-blue)] hover:shadow-md"><div className="flex items-start justify-between gap-3"><div><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">{event.category}</span><span className="text-[11px] font-semibold text-[var(--trigonum-muted)]">{event.closedDate}</span></div><h3 className="mt-3 text-lg font-bold">{event.title}</h3><p className="mt-1 text-sm text-[var(--trigonum-muted)]">{event.shortIdea}</p></div><span className={`shrink-0 rounded-xl px-3 py-2 text-sm font-black ${event.position.startsWith('SHORT') ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'}`}>{event.position}</span></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4"><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Результат</p><p className={`mt-1 text-lg font-black ${event.result >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{event.result > 0 ? '+' : ''}{event.result}%</p></div><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Капитал</p><p className="mt-1 font-bold">{formatCurrency(event.invested)}</p></div><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Инвесторов</p><p className="mt-1 font-bold">{event.investors}</p></div><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Заполнен за</p><p className="mt-1 font-bold">{event.fillTime}</p></div></div><div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--trigonum-border)] pt-3"><div><p className="text-[10px] uppercase text-[var(--trigonum-muted)]">Итог инвесторов</p><p className={`mt-1 text-lg font-black ${positive ? 'text-emerald-700' : 'text-rose-700'}`}>{event.totalPnl > 0 ? '+' : ''}{formatCurrency(event.totalPnl)}</p></div><span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-bold text-slate-600">Длительность {event.activeDuration}</span></div></button>
 }
 
 function PastEventDetail({ event, onClose }: { event: PastEvent; onClose: () => void }) {
-  return <Card className="overflow-hidden !p-0"><div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--trigonum-border)] bg-[var(--trigonum-bg)] p-5"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--trigonum-blue)]">Архив · {event.id}</p><h2 className="mt-1 text-2xl font-bold">{event.title}</h2><p className="mt-1 text-sm text-[var(--trigonum-muted)]">{event.position} · завершён {event.closedDate}</p></div><button type="button" onClick={onClose} className="rounded-xl border border-[var(--trigonum-border)] bg-white p-2"><X size={17} /></button></div><div className="p-5"><div className="grid grid-cols-2 gap-3 md:grid-cols-4"><Metric label="Распределено" value={formatCurrency(event.invested)} /><Metric label="Итог инвесторов" value={`${event.totalPnl > 0 ? '+' : ''}${formatCurrency(event.totalPnl)}`} tone={event.totalPnl >= 0 ? 'success' : 'danger'} /><Metric label="Результат Event" value={`${event.result > 0 ? '+' : ''}${event.result}%`} tone={event.result >= 0 ? 'success' : 'danger'} /><Metric label="Макс. просадка" value={`${event.maxDrawdown}%`} tone="danger" /></div><div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]"><div className="rounded-2xl border border-[var(--trigonum-border)] p-4"><div className="flex items-center gap-2"><Activity size={17} /><h3 className="font-bold">Как проходил Event</h3></div><div className="mt-4 space-y-0">{event.timeline.map((step, index) => <div key={`${event.id}-${step.time}`} className="grid grid-cols-[66px_18px_1fr] gap-3"><span className="pt-0.5 text-xs font-bold tabular-nums text-[var(--trigonum-muted)]">{step.time}</span><div className="relative flex justify-center"><span className="mt-1.5 size-2.5 rounded-full bg-[var(--trigonum-blue)]" />{index < event.timeline.length - 1 && <span className="absolute bottom-0 top-4 w-px bg-[var(--trigonum-border)]" />}</div><div className="pb-5"><p className="text-sm font-bold">{step.label}</p><p className="mt-1 text-xs leading-5 text-[var(--trigonum-muted)]">{step.detail}</p></div></div>)}</div></div><div className="space-y-3"><div className="rounded-2xl border border-[var(--trigonum-border)] p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Исполнение</p><div className="mt-3 space-y-2 text-sm"><div className="flex justify-between"><span>Инвесторов</span><b>{event.investors}</b></div><div className="flex justify-between"><span>Заполнение</span><b>{event.fillTime}</b></div><div className="flex justify-between"><span>Длительность</span><b>{event.activeDuration}</b></div><div className="flex justify-between"><span>Очередь</span><b>{event.queueUsed ? `Да · ${event.peakQueue} чел.` : 'Нет'}</b></div>{event.queueUsed && <div className="flex justify-between"><span>Пиковый спрос очереди</span><b>{formatCurrency(event.queueCapital)}</b></div>}</div></div><div className="rounded-2xl border border-amber-200 bg-amber-50 p-4"><p className="text-xs font-bold uppercase tracking-wide text-amber-800">Лучший анонимный результат</p><p className="mt-2 text-2xl font-black text-amber-950">{event.bestPnl > 0 ? `+${formatCurrency(event.bestPnl)}` : '—'}</p><p className="mt-1 text-xs text-amber-800">Участник {event.bestAlias}</p></div></div></div></div></Card>
+  return <Card className="overflow-hidden !p-0"><div className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--trigonum-border)] bg-[var(--trigonum-bg)] p-5"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--trigonum-blue)]">Архив · {event.id}</p><h2 className="mt-1 text-2xl font-bold">{event.title}</h2><p className="mt-1 text-sm text-[var(--trigonum-muted)]">{event.position} · завершён {event.closedDate}</p></div><button type="button" onClick={onClose} className="rounded-xl border border-[var(--trigonum-border)] bg-white p-2"><X size={17} /></button></div><div className="p-5"><div className="grid grid-cols-2 gap-3 md:grid-cols-4"><Metric label="Распределено" value={formatCurrency(event.invested)} /><Metric label="Итог инвесторов" value={`${event.totalPnl > 0 ? '+' : ''}${formatCurrency(event.totalPnl)}`} tone={event.totalPnl >= 0 ? 'success' : 'danger'} /><Metric label="Результат Event" value={`${event.result > 0 ? '+' : ''}${event.result}%`} tone={event.result >= 0 ? 'success' : 'danger'} /><Metric label="Макс. просадка" value={`${event.maxDrawdown}%`} tone="danger" /></div><div className="mt-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]"><div className="rounded-2xl border border-[var(--trigonum-border)] p-4"><div className="flex items-center gap-2"><Activity size={17} /><h3 className="font-bold">Как проходил Event</h3></div><div className="mt-4 space-y-0">{event.timeline.map((step, index) => <div key={`${event.id}-${step.time}`} className="grid grid-cols-[66px_18px_1fr] gap-3"><span className="pt-0.5 text-xs font-bold tabular-nums text-[var(--trigonum-muted)]">{step.time}</span><div className="relative flex justify-center"><span className="mt-1.5 size-2.5 rounded-full bg-[var(--trigonum-blue)]" />{index < event.timeline.length - 1 && <span className="absolute bottom-0 top-4 w-px bg-[var(--trigonum-border)]" />}</div><div className="pb-5"><p className="text-sm font-bold">{step.label}</p><p className="mt-1 text-xs leading-5 text-[var(--trigonum-muted)]">{step.detail}</p></div></div>)}</div></div><div className="space-y-3"><div className="rounded-2xl border border-[var(--trigonum-border)] p-4"><p className="text-xs font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Исполнение</p><div className="mt-3 space-y-2 text-sm"><div className="flex justify-between"><span>Инвесторов</span><b>{event.investors}</b></div><div className="flex justify-between"><span>Заполнение</span><b>{event.fillTime}</b></div><div className="flex justify-between"><span>Длительность</span><b>{event.activeDuration}</b></div></div></div><div className="rounded-2xl border border-amber-200 bg-amber-50 p-4"><p className="text-xs font-bold uppercase tracking-wide text-amber-800">Лучший анонимный результат</p><p className="mt-2 text-2xl font-black text-amber-950">{event.bestPnl > 0 ? `+${formatCurrency(event.bestPnl)}` : '—'}</p><p className="mt-1 text-xs text-amber-800">Участник {event.bestAlias}</p></div></div></div></div></Card>
 }
 
 function SeasonTab() {
@@ -659,9 +599,8 @@ function SeasonTab() {
   const totalCapital = pastEvents.reduce((sum, event) => sum + event.invested, 0)
   const totalPnl = pastEvents.reduce((sum, event) => sum + event.totalPnl, 0)
   const profitable = pastEvents.filter((event) => event.totalPnl > 0).length
-  const withQueue = pastEvents.filter((event) => event.queueUsed).length
 
-  return <div className="space-y-5"><Card className="overflow-hidden !p-0"><div className="bg-[linear-gradient(120deg,#071a2d,#0b4960,#0d766c)] p-6 text-white"><p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-200">Архив TAIS Events</p><h2 className="mt-2 text-3xl font-bold">Сезон IV · III квартал 2026</h2><p className="mt-2 max-w-3xl text-sm text-slate-200">Завершённые возможности: как быстро распределялся капитал, как проходило исполнение и какой результат получили инвесторы.</p><div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><Metric label="Завершено" value={`${pastEvents.length} Events`} /><Metric label="Распределено капитала" value={formatCurrency(totalCapital)} /><Metric label="Итог инвесторов" value={`${totalPnl >= 0 ? '+' : ''}${formatCurrency(totalPnl)}`} tone={totalPnl >= 0 ? 'success' : 'danger'} /><Metric label="С очередью" value={`${withQueue}/${pastEvents.length}`} hint={`${profitable}/${pastEvents.length} прибыльных`} /></div></div></Card>{selected && <PastEventDetail event={selected} onClose={() => setSelectedId(null)} />}<div><div className="mb-3 flex items-center justify-between"><div><h3 className="text-lg font-bold">Завершённые Events</h3><p className="text-sm text-[var(--trigonum-muted)]">Откройте карточку, чтобы посмотреть полный ход Event.</p></div><span className="text-xs font-semibold text-[var(--trigonum-muted)]">{pastEvents.length} событий</span></div><div className="grid gap-4 xl:grid-cols-2">{pastEvents.map((event) => <PastEventCard key={event.id} event={event} onOpen={() => setSelectedId(event.id)} />)}</div></div></div>
+  return <div className="space-y-5"><Card className="overflow-hidden !p-0"><div className="bg-[linear-gradient(120deg,#071a2d,#0b4960,#0d766c)] p-6 text-white"><p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-200">Архив TAIS Events</p><h2 className="mt-2 text-3xl font-bold">Сезон IV · III квартал 2026</h2><p className="mt-2 max-w-3xl text-sm text-slate-200">Завершённые возможности: как быстро распределялся капитал, как проходило исполнение и какой результат получили инвесторы.</p><div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><Metric label="Завершено" value={`${pastEvents.length} Events`} /><Metric label="Распределено капитала" value={formatCurrency(totalCapital)} /><Metric label="Итог инвесторов" value={`${totalPnl >= 0 ? '+' : ''}${formatCurrency(totalPnl)}`} tone={totalPnl >= 0 ? 'success' : 'danger'} /><Metric label="Прибыльных Events" value={`${profitable}/${pastEvents.length}`} /></div></div></Card>{selected && <PastEventDetail event={selected} onClose={() => setSelectedId(null)} />}<div><div className="mb-3 flex items-center justify-between"><div><h3 className="text-lg font-bold">Завершённые Events</h3><p className="text-sm text-[var(--trigonum-muted)]">Откройте карточку, чтобы посмотреть полный ход Event.</p></div><span className="text-xs font-semibold text-[var(--trigonum-muted)]">{pastEvents.length} событий</span></div><div className="grid gap-4 xl:grid-cols-2">{pastEvents.map((event) => <PastEventCard key={event.id} event={event} onOpen={() => setSelectedId(event.id)} />)}</div></div></div>
 }
 
 function LedgerTab() {
@@ -676,7 +615,7 @@ function HallTab() {
 }
 
 function CollectionTab() {
-  const proofs = [{ id: '#031', season: 'Сезон II', result: '+17.8%', badge: 'Участие', position: 'LONG BTC' },{ id: '#038', season: 'Сезон III', result: '+8.6%', badge: 'Участие', position: 'SHORT BTC' },{ id: '#041', season: 'Сезон IV', result: '+12.4%', badge: 'Участие', position: 'LONG ETH' },{ id: '#044', season: 'Сезон IV', result: '+18.2%', badge: 'Через очередь', position: 'LONG BTC' }]
+  const proofs = [{ id: '#031', season: 'Сезон II', result: '+17.8%', badge: 'Участие', position: 'LONG BTC' },{ id: '#038', season: 'Сезон III', result: '+8.6%', badge: 'Участие', position: 'SHORT BTC' },{ id: '#041', season: 'Сезон IV', result: '+12.4%', badge: 'Участие', position: 'LONG ETH' },{ id: '#044', season: 'Сезон IV', result: '+18.2%', badge: 'Участие', position: 'LONG BTC' }]
   return <div className="space-y-5"><Card><div className="flex items-center gap-2"><Ticket size={20} className="text-[var(--trigonum-blue)]" /><h2 className="text-xl font-bold">История участия</h2></div></Card><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{proofs.map((proof, index) => <div key={proof.id} className="rounded-2xl border border-[var(--trigonum-border)] bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><Medal size={24} className="text-[var(--trigonum-blue)]" /><span className="text-xs font-bold text-[var(--trigonum-muted)]">#{String(index + 81).padStart(3, '0')}</span></div><p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-[var(--trigonum-muted)]">TAIS EVENT</p><h3 className="mt-1 text-2xl font-bold">{proof.id}</h3><p className="mt-1 text-sm text-[var(--trigonum-muted)]">{proof.season}</p><p className="mt-4 text-sm font-bold">{proof.position}</p><div className="my-5 h-px bg-[var(--trigonum-border)]" /><p className="text-xs text-[var(--trigonum-muted)]">Результат</p><p className="mt-1 text-3xl font-bold text-emerald-700">{proof.result}</p><span className="mt-4 inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">{proof.badge}</span></div>)}</div></div>
 }
 
@@ -703,8 +642,7 @@ export function EventsPage() {
   const changeEvent = (eventId: string, updater: (event: LiveEvent) => LiveEvent) => setEvents((current) => current.map((event) => event.id === eventId ? updater(event) : event))
   const reserveTais = (eventId: string, amount: number) => changeEvent(eventId, (event) => ({ ...event, committed: Math.min(event.capacity, event.committed + amount), participants: event.participants + 1 }))
   const reserveContra = (eventId: string, amount: number) => changeEvent(eventId, (event) => ({ ...event, contraCapital: event.contraCapital + amount }))
-  const release = (eventId: string, amount: number) => changeEvent(eventId, (event) => ({ ...event, committed: Math.max(0, event.committed - amount) }))
   const views = useMemo(() => [{ id: 'events' as const, label: 'Live Events', icon: Zap },{ id: 'season' as const, label: 'Сезон IV', icon: Trophy },{ id: 'ledger' as const, label: 'Пропущенные', icon: History },{ id: 'hall' as const, label: 'Зал результатов', icon: Crown },{ id: 'collection' as const, label: 'Моя история', icon: Ticket }], [])
 
-  return <div className="pb-10"><header className="mb-6"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--trigonum-blue)]">TAIS · инвестиционные события</p><h1 className="mt-1 text-3xl font-bold text-[var(--trigonum-ink)]">Events</h1><p className="mt-1 max-w-3xl text-sm text-[var(--trigonum-muted)]">TAIS находит рыночную возможность, формирует понятную сделку и открывает короткое окно для прямого участия инвесторов.</p></header><nav className="mb-5 flex flex-wrap gap-2">{views.map((item) => { const Icon = item.icon; return <ViewButton key={item.id} active={view === item.id} onClick={() => { setView(item.id); setSelectedEventId(null) }}><span className="flex items-center gap-2"><Icon size={15} />{item.label}</span></ViewButton> })}</nav>{view === 'events' && (selectedEvent ? <EventDetail event={selectedEvent} onBack={() => setSelectedEventId(null)} onReserveTais={(amount) => reserveTais(selectedEvent.id, amount)} onReserveContra={(amount) => reserveContra(selectedEvent.id, amount)} onRelease={(amount) => release(selectedEvent.id, amount)} /> : <LiveEventsGallery events={events} onSelect={setSelectedEventId} />)}{view === 'season' && <SeasonTab />}{view === 'ledger' && <LedgerTab />}{view === 'hall' && <HallTab />}{view === 'collection' && <CollectionTab />}</div>
+  return <div className="pb-10"><header className="mb-6"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--trigonum-blue)]">TAIS · инвестиционные события</p><h1 className="mt-1 text-3xl font-bold text-[var(--trigonum-ink)]">Events</h1><p className="mt-1 max-w-3xl text-sm text-[var(--trigonum-muted)]">TAIS находит рыночную возможность, формирует понятную сделку и открывает короткое окно для прямого участия инвесторов.</p></header><nav className="mb-5 flex flex-wrap gap-2">{views.map((item) => { const Icon = item.icon; return <ViewButton key={item.id} active={view === item.id} onClick={() => { setView(item.id); setSelectedEventId(null) }}><span className="flex items-center gap-2"><Icon size={15} />{item.label}</span></ViewButton> })}</nav>{view === 'events' && (selectedEvent ? <EventDetail event={selectedEvent} onBack={() => setSelectedEventId(null)} onReserveTais={(amount) => reserveTais(selectedEvent.id, amount)} onReserveContra={(amount) => reserveContra(selectedEvent.id, amount)} /> : <LiveEventsGallery events={events} onSelect={setSelectedEventId} />)}{view === 'season' && <SeasonTab />}{view === 'ledger' && <LedgerTab />}{view === 'hall' && <HallTab />}{view === 'collection' && <CollectionTab />}</div>
 }
