@@ -30,7 +30,6 @@ type MainView = 'events' | 'season' | 'ledger' | 'hall' | 'collection'
 type Risk = 'Низкий' | 'Умеренный' | 'Высокий'
 type SortMode = 'scarcity' | 'time' | 'capacity' | 'return'
 type PositionSide = 'tais' | 'contra'
-type DetailTab = 'overview' | 'capital' | 'queue'
 
 type EventTimelineStep = {
   label: string
@@ -536,7 +535,6 @@ function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease 
   const [myContra, setMyContra] = useState(0)
   const [watching, setWatching] = useState(false)
   const [showThesis, setShowThesis] = useState(false)
-  const [detailTab, setDetailTab] = useState<DetailTab>('overview')
 
   useEffect(() => {
     const amount = Math.max(event.minInvestment, Math.min(20_000, maxAmount))
@@ -549,7 +547,6 @@ function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease 
     setMyContra(0)
     setSide('tais')
     setShowThesis(false)
-    setDetailTab('overview')
   }, [event.id, event.minInvestment, maxAmount])
 
   const full = isFull(event)
@@ -612,13 +609,20 @@ function EventDetail({ event, onBack, onReserveTais, onReserveContra, onRelease 
           <div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-blue)]">Суть Event</p><h3 className="mt-1 text-lg font-black">{event.driver}</h3></div><button type="button" onClick={() => setShowThesis((value) => !value)} className="shrink-0 rounded-lg border border-[var(--trigonum-border)] bg-white px-3 py-1.5 text-xs font-bold">{showThesis ? 'Свернуть' : 'Почему TAIS?'}</button></div><p className="mt-2 text-sm text-[var(--trigonum-muted)]">{event.shortIdea}</p>{showThesis && <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-950">{event.thesis}</div>}
         </Card>
 
-        <Card className="!p-0">
-          <div className="flex flex-wrap gap-1 border-b border-[var(--trigonum-border)] px-3 pt-3">{([{ id: 'overview', label: 'Обзор' }, { id: 'capital', label: 'Капитал' }, ...(full ? [{ id: 'queue', label: 'Очередь' }] : [])] as { id: DetailTab; label: string }[]).map((tab) => <button key={tab.id} type="button" onClick={() => setDetailTab(tab.id)} className={`rounded-t-lg px-3 py-2 text-xs font-bold ${detailTab === tab.id ? 'bg-[var(--trigonum-ink)] text-white' : 'text-[var(--trigonum-muted)] hover:bg-[var(--trigonum-bg)]'}`}>{tab.label}</button>)}</div>
-          <div className="p-4">
-            {detailTab === 'overview' && <div className="grid gap-3 sm:grid-cols-3"><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><CompactStat label="Риск" value={event.risk} /><p className="mt-2 text-xs text-[var(--trigonum-muted)]">Горизонт {event.horizon}</p></div><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><CompactStat label="Дефицит" value={`${event.scarcity}/100`} tone={event.scarcity >= 90 ? 'danger' : 'default'} /><p className="mt-2 text-xs text-[var(--trigonum-muted)]">Доступность основного allocation</p></div><div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><CompactStat label="Капитал Trigonum" value={`${trigonumShare.toFixed(0)}%`} tone="success" /><p className="mt-2 text-xs text-[var(--trigonum-muted)]">{formatCurrency(event.trigonumCapital)} внутри Event</p></div></div>}
-            {detailTab === 'capital' && <div><div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Набор капитала</p><p className="mt-1 text-2xl font-black">{formatCurrency(event.committed)} <span className="text-base font-semibold text-[var(--trigonum-muted)]">из {formatCurrency(event.capacity)}</span></p></div><span className="text-sm font-black">{fillPct.toFixed(1)}%</span></div><div className="mt-3"><ProgressBar value={fillPct} tone="green" /></div><div className="mt-4 grid gap-2 sm:grid-cols-3"><div className="rounded-xl border border-[var(--trigonum-border)] p-3"><CompactStat label="Инвесторов" value={`${event.participants}`} /></div><div className="rounded-xl border border-[var(--trigonum-border)] p-3"><CompactStat label="Темп" value={event.velocityPerMinute > 0 ? `${formatCurrency(event.velocityPerMinute)}/мин` : 'Набор закрыт'} tone={event.velocityPerMinute > 0 ? 'success' : 'default'} /></div><div className="rounded-xl border border-[var(--trigonum-border)] p-3"><CompactStat label="До заполнения" value={!full && event.velocityPerMinute > 0 ? `≈ ${Math.max(1, Math.ceil(minutesToFull))} мин` : 'Заполнен'} tone={full ? 'blue' : 'default'} /></div></div></div>}
-            {detailTab === 'queue' && full && <div className="grid gap-3 sm:grid-cols-3"><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><CompactStat label="Заявок" value={`${event.queueRequests ?? 0}`} tone="blue" /></div><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><CompactStat label="Капитал в очереди" value={formatCurrency(event.queueCapital ?? 0)} tone="blue" /></div><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><CompactStat label="Следующая позиция" value={`#${(event.queueRequests ?? 0) + 1}`} tone="blue" /></div></div>}
+        <Card>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><CompactStat label="Риск" value={event.risk} /><p className="mt-2 text-xs text-[var(--trigonum-muted)]">Горизонт {event.horizon}</p></div>
+            <div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><CompactStat label="Дефицит" value={`${event.scarcity}/100`} tone={event.scarcity >= 90 ? 'danger' : 'default'} /><p className="mt-2 text-xs text-[var(--trigonum-muted)]">Доступность основного allocation</p></div>
+            <div className="rounded-xl bg-[var(--trigonum-bg)] p-3"><CompactStat label="Капитал Trigonum" value={`${trigonumShare.toFixed(0)}%`} tone="success" /><p className="mt-2 text-xs text-[var(--trigonum-muted)]">{formatCurrency(event.trigonumCapital)} внутри Event</p></div>
           </div>
+
+          <div className="mt-3 rounded-xl border border-[var(--trigonum-border)] p-3">
+            <div className="flex items-end justify-between gap-3"><div><div className="flex items-center gap-2"><Gauge size={15} className="text-[var(--trigonum-blue)]" /><p className="text-[10px] font-bold uppercase tracking-wide text-[var(--trigonum-muted)]">Набор капитала</p></div><p className="mt-1 text-xl font-black">{formatCurrency(event.committed)} <span className="text-sm font-semibold text-[var(--trigonum-muted)]">из {formatCurrency(event.capacity)}</span></p></div><span className="text-sm font-black">{fillPct.toFixed(1)}%</span></div>
+            <div className="mt-2"><ProgressBar value={fillPct} tone="green" /></div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3"><div className="rounded-lg bg-[var(--trigonum-bg)] p-2.5"><CompactStat label="Инвесторов" value={`${event.participants}`} /></div><div className="rounded-lg bg-[var(--trigonum-bg)] p-2.5"><CompactStat label="Темп" value={event.velocityPerMinute > 0 ? `${formatCurrency(event.velocityPerMinute)}/мин` : 'Набор закрыт'} tone={event.velocityPerMinute > 0 ? 'success' : 'default'} /></div><div className="rounded-lg bg-[var(--trigonum-bg)] p-2.5"><CompactStat label="До заполнения" value={!full && event.velocityPerMinute > 0 ? `≈ ${Math.max(1, Math.ceil(minutesToFull))} мин` : 'Заполнен'} tone={full ? 'blue' : 'default'} /></div></div>
+          </div>
+
+          {full && <div className="mt-3 grid gap-2 sm:grid-cols-3"><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><CompactStat label="Заявок в очереди" value={`${event.queueRequests ?? 0}`} tone="blue" /></div><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><CompactStat label="Капитал в очереди" value={formatCurrency(event.queueCapital ?? 0)} tone="blue" /></div><div className="rounded-xl border border-blue-100 bg-blue-50 p-3"><CompactStat label="Следующая позиция" value={`#${(event.queueRequests ?? 0) + 1}`} tone="blue" /></div></div>}
         </Card>
       </div>
 
