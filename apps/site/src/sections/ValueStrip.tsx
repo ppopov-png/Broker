@@ -10,5 +10,14 @@ export function ValueStrip() {
     { icon: Globe2, title: t('value.global'), text: t('value.globalText') },
   ]
 
-  return <section className="value-strip" id="how">{items.map(({ icon: Icon, title, text }) => <article className="value-item" key={title}><Icon /><div><h3>{title}</h3><p>{text}</p></div></article>)}</section>
+  return (
+    <section className="value-strip" id="how">
+      {items.map(({ icon: Icon, title, text }) => (
+        <article className="value-item" key={title}>
+          <Icon strokeWidth={1.8} />
+          <div><h3>{title}</h3><p>{text}</p></div>
+        </article>
+      ))}
+    </section>
+  )
 }
