@@ -1,7 +1,8 @@
 import { useBrokerAccount } from '../../../shared/lib/AccountContext'
-import { fundingHistory, fundingMethods } from '../../../shared/mock/data'
+import { fundingHistory } from '../../../shared/mock/data'
 import type { FundingMethod, TransactionItem } from '../../../shared/mock/types'
 import { FundingPage } from '../../../shared/ui/FundingPage'
+import { PersonalFundingPage } from '../../../shared/ui/PersonalFundingPage'
 
 const companyDepositMethods: FundingMethod[] = [
   {
@@ -28,9 +29,12 @@ const companyDeposits: TransactionItem[] = [
 
 export function DepositPage() {
   const { activeAccount } = useBrokerAccount()
-  const isCompany = activeAccount.type === 'company'
-  const methods = isCompany ? companyDepositMethods : fundingMethods
-  const history = isCompany ? companyDeposits : fundingHistory.deposits
+
+  if (activeAccount.type === 'individual') {
+    return <PersonalFundingPage mode="deposit" />
+  }
+
+  const history = companyDeposits.length > 0 ? companyDeposits : fundingHistory.deposits
 
   return (
     <FundingPage
@@ -39,13 +43,13 @@ export function DepositPage() {
       accountName={activeAccount.name}
       accountNumber={activeAccount.accountNumber}
       title="Пополнить"
-      subtitle={isCompany ? 'Пополнение корпоративного счёта' : 'Пополнение личного счёта'}
-      methods={methods}
+      subtitle="Пополнение корпоративного счёта"
+      methods={companyDepositMethods}
       availableLabel="Доступно сейчас"
       availableAmount={activeAccount.availableBalance}
       lastLabel="Последнее пополнение"
       lastItem={history[0]}
-      historyTitle={isCompany ? 'Пополнения компании' : 'Последние пополнения'}
+      historyTitle="Пополнения компании"
       historyItems={history}
     />
   )
