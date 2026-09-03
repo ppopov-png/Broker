@@ -1,0 +1,55 @@
+html,
+body,
+button,
+input,
+select,
+textarea,
+a {
+  font-family: "Golos Text", Arial, sans-serif;
+}
+
+.brand {
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  display: block;
+  object-fit: contain;
+  flex: none;
+}
+
+.brand-wordmark {
+  display: block;
+  width: 142px;
+  height: auto;
+  flex: none;
+}
+
+.brand-divider {
+  width: 1px;
+  height: 24px;
+  margin-left: 1px;
+  background: rgba(37,37,79,.22);
+}
+
+.brand-product {
+  font-family: "Golos Text", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .25em;
+  color: #5a5ac4;
+}
+
+@media (max-width: 1180px) {
+  .brand-wordmark { width: 126px; }
+  .brand-mark { width: 34px; height: 34px; }
+  .brand-product { font-size: 11px; letter-spacing: .2em; }
+}
+
+@media (max-width: 760px) {
+  .brand-wordmark { width: 118px; }
+  .brand-product { display: none; }
+  .brand-divider { display: none; }
+}
