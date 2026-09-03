@@ -49,15 +49,6 @@ jobs:
           cp -R apps/site/dist/. pages-dist/
           cp -R apps/onboarding/dist/. pages-dist/open/
           cp -R apps/cabinet/dist/. pages-dist/app/
-
-          # GitHub Pages does not provide SPA route fallback. Create a real
-          # index.html for every cabinet route so direct links and F5 work
-          # while keeping clean BrowserRouter URLs without hash fragments.
-          for route in capital deposit withdraw invest events transactions documents profile security support; do
-            mkdir -p "pages-dist/app/$route"
-            cp apps/cabinet/dist/index.html "pages-dist/app/$route/index.html"
-          done
-
           touch pages-dist/.nojekyll
 
       - name: Configure Pages
