@@ -1,21 +1,20 @@
 import { Check, ChevronDown, Globe2 } from 'lucide-react'
 import { useState } from 'react'
-import { cabinetUrl, onboardingUrl } from '../lib/appLinks'
 import { useI18n, type Language } from '../i18n/I18nProvider'
+import { cabinetUrl, onboardingUrl } from '../lib/appLinks'
 
 function MiniMark() {
   return (
-    <svg viewBox="0 0 62 62" aria-hidden="true" className="brand-mark">
+    <svg viewBox="0 0 64 58" aria-hidden="true" className="brand-mark">
       <defs>
-        <linearGradient id="logoGradient" x1="8" y1="9" x2="54" y2="54" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#095BF4" />
-          <stop offset="0.58" stopColor="#00A9E8" />
-          <stop offset="1" stopColor="#22C873" />
+        <linearGradient id="trigonumMarkGradient" x1="7" y1="5" x2="57" y2="53" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#3F3F8A" />
+          <stop offset="0.52" stopColor="#7575FF" />
+          <stop offset="1" stopColor="#A940E8" />
         </linearGradient>
       </defs>
-      <path d="M31 5 56 49H44L31 27 18 49H6L31 5Z" fill="url(#logoGradient)" />
-      <path d="m17 50 14-9 14 9H17Z" fill="#0B2C68" opacity=".92" />
-      <path d="M31 27v14" stroke="white" strokeWidth="2" opacity=".85" />
+      <path d="M32 4 59 52H47L32 26 17 52H5L32 4Z" fill="url(#trigonumMarkGradient)" />
+      <path d="m17 52 15-9 15 9H17Z" fill="#25254F" opacity=".94" />
     </svg>
   )
 }
@@ -37,7 +36,7 @@ export function Header() {
       </a>
 
       <nav className="main-nav" aria-label="Основная навигация">
-        <a href="#products">{t('nav.products')} <ChevronDown size={14} /></a>
+        <a href="#products">{t('nav.products')} <ChevronDown size={13} strokeWidth={2.4} /></a>
         <a href="#how">{t('nav.how')}</a>
         <a href="#business">{t('nav.business')}</a>
         <a href="#private">{t('nav.private')}</a>
@@ -55,9 +54,9 @@ export function Header() {
             aria-expanded={languageOpen}
             onClick={() => setLanguageOpen((open) => !open)}
           >
-            <Globe2 size={17} />
+            <Globe2 size={16} />
             <span>{languageNames[language]}</span>
-            <ChevronDown size={13} className={languageOpen ? 'language-chevron open' : 'language-chevron'} />
+            <ChevronDown size={12} className={languageOpen ? 'language-chevron open' : 'language-chevron'} />
           </button>
           {languageOpen && (
             <div className="language-menu">
@@ -66,11 +65,14 @@ export function Header() {
                   type="button"
                   key={item}
                   className={item === language ? 'language-option active' : 'language-option'}
-                  onClick={() => { setLanguage(item); setLanguageOpen(false) }}
+                  onClick={() => {
+                    setLanguage(item)
+                    setLanguageOpen(false)
+                  }}
                 >
                   <span className="language-code">{languageNames[item]}</span>
                   <span>{languageFullNames[item]}</span>
-                  {item === language && <Check size={15} />}
+                  {item === language && <Check size={14} />}
                 </button>
               ))}
             </div>
