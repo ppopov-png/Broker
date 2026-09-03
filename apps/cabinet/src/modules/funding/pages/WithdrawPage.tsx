@@ -1,7 +1,8 @@
 import { useBrokerAccount } from '../../../shared/lib/AccountContext'
-import { fundingHistory, withdrawalMethods } from '../../../shared/mock/data'
+import { fundingHistory } from '../../../shared/mock/data'
 import type { FundingMethod, TransactionItem } from '../../../shared/mock/types'
 import { FundingPage } from '../../../shared/ui/FundingPage'
+import { PersonalFundingPage } from '../../../shared/ui/PersonalFundingPage'
 
 const companyWithdrawalMethods: FundingMethod[] = [
   {
@@ -28,9 +29,12 @@ const companyWithdrawals: TransactionItem[] = [
 
 export function WithdrawPage() {
   const { activeAccount } = useBrokerAccount()
-  const isCompany = activeAccount.type === 'company'
-  const methods = isCompany ? companyWithdrawalMethods : withdrawalMethods
-  const history = isCompany ? companyWithdrawals : fundingHistory.withdrawals
+
+  if (activeAccount.type === 'individual') {
+    return <PersonalFundingPage mode="withdraw" />
+  }
+
+  const history = companyWithdrawals.length > 0 ? companyWithdrawals : fundingHistory.withdrawals
 
   return (
     <FundingPage
@@ -39,13 +43,13 @@ export function WithdrawPage() {
       accountName={activeAccount.name}
       accountNumber={activeAccount.accountNumber}
       title="Вывести"
-      subtitle={isCompany ? 'Вывод с корпоративного счёта' : 'Вывод с личного счёта'}
-      methods={methods}
+      subtitle="Вывод с корпоративного счёта"
+      methods={companyWithdrawalMethods}
       availableLabel="Доступно к выводу"
       availableAmount={activeAccount.availableBalance}
       lastLabel="Последний вывод"
       lastItem={history[0]}
-      historyTitle={isCompany ? 'Выводы компании' : 'Последние выводы'}
+      historyTitle="Выводы компании"
       historyItems={history}
     />
   )
