@@ -1,4 +1,5 @@
 name: Deploy Trigonum Broker to GitHub Pages
+# Keep this workflow as the single production Pages deployment.
 
 on:
   push:
