@@ -34,6 +34,8 @@ export interface FundingTransactionRecord {
   txHash?: string
 }
 
+type FundingTransactionInput = Omit<FundingTransactionRecord, 'type'> & { type: string }
+
 interface AccountFundingState {
   brokerBalance: number
   lockedEvents: number
@@ -46,8 +48,8 @@ interface FundingContextValue {
   getAccountState: (accountId: string) => AccountFundingState
   addSource: (accountId: string, source: FundingSource) => void
   removeSource: (accountId: string, sourceId: string) => void
-  recordDeposit: (accountId: string, transaction: FundingTransactionRecord) => void
-  recordWithdrawal: (accountId: string, transaction: FundingTransactionRecord) => void
+  recordDeposit: (accountId: string, transaction: FundingTransactionInput) => void
+  recordWithdrawal: (accountId: string, transaction: FundingTransactionInput) => void
 }
 
 const now = new Date().toISOString()
@@ -135,26 +137,28 @@ export function FundingProvider({ children }: { children: ReactNode }) {
     persist({ ...states, [accountId]: { ...current, sources: current.sources.filter((item) => item.id !== sourceId) } })
   }
 
-  const recordDeposit = (accountId: string, transaction: FundingTransactionRecord) => {
+  const recordDeposit = (accountId: string, transaction: FundingTransactionInput) => {
     const current = states[accountId] ?? emptyState()
+    const normalized: FundingTransactionRecord = { ...transaction, type: 'deposit', amount: Math.abs(transaction.amount) }
     persist({
       ...states,
       [accountId]: {
         ...current,
         brokerBalance: current.brokerBalance + Math.abs(transaction.amount),
-        transactions: [transaction, ...current.transactions],
+        transactions: [normalized, ...current.transactions],
       },
     })
   }
 
-  const recordWithdrawal = (accountId: string, transaction: FundingTransactionRecord) => {
+  const recordWithdrawal = (accountId: string, transaction: FundingTransactionInput) => {
     const current = states[accountId] ?? emptyState()
+    const normalized: FundingTransactionRecord = { ...transaction, type: 'withdrawal', amount: -Math.abs(transaction.amount) }
     persist({
       ...states,
       [accountId]: {
         ...current,
         brokerBalance: Math.max(0, current.brokerBalance - Math.abs(transaction.amount)),
-        transactions: [transaction, ...current.transactions],
+        transactions: [normalized, ...current.transactions],
       },
     })
   }
