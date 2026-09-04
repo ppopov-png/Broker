@@ -1,0 +1,3 @@
+.events-page > .pb-10 > header:first-child .relative.shrink-0:has(> svg.-rotate-90) {
+  display: none;
+}
