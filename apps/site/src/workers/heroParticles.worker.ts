@@ -28,7 +28,7 @@ type VisibilityMessage = {
 
 type WorkerMessage = InitMessage | ResizeMessage | PointerMessage | VisibilityMessage
 
-const MAX_PARTICLES = 760
+const MAX_PARTICLES = 1100
 const STREAM_ANGLES = [Math.PI, -Math.PI / 4, Math.PI / 2] as const
 const STREAM_RGB = [
   [146, 242, 34],
@@ -73,8 +73,8 @@ function makeStreakSprite(rgb: readonly [number, number, number]) {
   const gradient = spriteCtx.createLinearGradient(0, 0, 512, 0)
   const color = `${rgb[0]},${rgb[1]},${rgb[2]}`
   gradient.addColorStop(0, `rgba(${color},0)`)
-  gradient.addColorStop(0.22, `rgba(${color},.16)`)
-  gradient.addColorStop(0.7, `rgba(${color},.72)`)
+  gradient.addColorStop(0.18, `rgba(${color},.14)`)
+  gradient.addColorStop(0.68, `rgba(${color},.75)`)
   gradient.addColorStop(1, `rgba(${color},1)`)
   spriteCtx.fillStyle = gradient
   spriteCtx.fillRect(0, 0, 512, 14)
@@ -87,14 +87,14 @@ function buildSprites() {
   }
 
   if (!haloSprite) {
-    haloSprite = new OffscreenCanvas(128, 128)
+    haloSprite = new OffscreenCanvas(96, 96)
     const haloCtx = haloSprite.getContext('2d')!
-    const gradient = haloCtx.createRadialGradient(64, 64, 0, 64, 64, 64)
-    gradient.addColorStop(0, 'rgba(117,117,255,.5)')
-    gradient.addColorStop(0.36, 'rgba(175,71,255,.16)')
+    const gradient = haloCtx.createRadialGradient(48, 48, 0, 48, 48, 48)
+    gradient.addColorStop(0, 'rgba(117,117,255,.46)')
+    gradient.addColorStop(0.34, 'rgba(175,71,255,.14)')
     gradient.addColorStop(1, 'rgba(117,117,255,0)')
     haloCtx.fillStyle = gradient
-    haloCtx.fillRect(0, 0, 128, 128)
+    haloCtx.fillRect(0, 0, 96, 96)
   }
 }
 
@@ -128,16 +128,16 @@ function spawn(streamIndex: number, warm = false) {
   if (activeCount >= MAX_PARTICLES) return
   const i = activeCount++
   const particleDepth = 0.32 + Math.random() * 1.02
-  const jitter = (Math.random() + Math.random() - 1) * 0.78
+  const jitter = (Math.random() + Math.random() - 1) * 0.8
 
   stream[i] = streamIndex
   angle[i] = STREAM_ANGLES[streamIndex] + jitter
-  life[i] = warm ? Math.random() * 0.82 : 0
-  speed[i] = (0.0035 + Math.random() * 0.0046) * (0.6 + particleDepth * 0.76)
-  length[i] = (160 + Math.random() * 300) * (0.72 + particleDepth * 0.74)
-  lineWidth[i] = (0.62 + Math.random() * 1.62) * (0.7 + particleDepth * 0.76)
+  life[i] = warm ? Math.random() * 0.84 : 0
+  speed[i] = (0.0034 + Math.random() * 0.0047) * (0.6 + particleDepth * 0.76)
+  length[i] = (165 + Math.random() * 320) * (0.72 + particleDepth * 0.76)
+  lineWidth[i] = (0.58 + Math.random() * 1.58) * (0.7 + particleDepth * 0.74)
   depth[i] = particleDepth
-  offset[i] = (Math.random() - 0.5) * 0.18
+  offset[i] = (Math.random() - 0.5) * 0.19
 }
 
 function burst(perStream: number) {
@@ -168,7 +168,7 @@ function drawParticle(i: number, reach: number, hoveredNow: boolean) {
   const distance = reach * perspective
   const headX = focusX + nx * distance
   const headY = focusY + ny * distance
-  const apparentLength = length[i] * (0.42 + t * 1.2) * depth[i]
+  const apparentLength = length[i] * (0.42 + t * 1.22) * depth[i]
   const tailDistance = distance + apparentLength
   const tailX = focusX + nx * tailDistance
   const tailY = focusY + ny * tailDistance
@@ -179,29 +179,29 @@ function drawParticle(i: number, reach: number, hoveredNow: boolean) {
 
   const fadeIn = Math.min(1, t * 5)
   const fadeOut = Math.max(0, 1 - Math.pow(t, 2.45))
-  const alpha = fadeIn * fadeOut * (0.25 + depth[i] * 0.52) * (hoveredNow ? 1 : 0.62)
-  const thickness = lineWidth[i] * (0.58 + t * 1.08)
+  const alpha = fadeIn * fadeOut * (0.26 + depth[i] * 0.53) * (hoveredNow ? 1 : 0.64)
+  const thickness = lineWidth[i] * (0.57 + t * 1.08)
 
   ctx.setTransform(dpr, 0, 0, dpr, tailX * dpr, tailY * dpr)
   ctx.rotate(rotation)
   ctx.globalAlpha = alpha
-  ctx.drawImage(streakSprites[stream[i]], 0, -thickness * 1.65, streakLength, thickness * 3.3)
+  ctx.drawImage(streakSprites[stream[i]], 0, -thickness * 1.6, streakLength, thickness * 3.2)
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 }
 
 function drawFocus(time: number) {
   if (!ctx || !haloSprite) return
   const pulse = reduced ? 0.6 : 0.5 + 0.5 * Math.sin(time / (hovered ? 560 : 850))
-  const haloRadius = hovered ? 52 : 40
+  const haloRadius = hovered ? 24 : 18
 
-  ctx.globalAlpha = hovered ? 0.72 : 0.54
+  ctx.globalAlpha = hovered ? 0.66 : 0.46
   ctx.drawImage(haloSprite, focusX - haloRadius, focusY - haloRadius, haloRadius * 2, haloRadius * 2)
   ctx.globalAlpha = 1
 
-  ctx.strokeStyle = `rgba(90,90,196,${hovered ? 0.5 + pulse * 0.28 : 0.3 + pulse * 0.2})`
-  ctx.lineWidth = hovered ? 1.45 : 1.15
+  ctx.strokeStyle = `rgba(90,90,196,${hovered ? 0.5 + pulse * 0.25 : 0.3 + pulse * 0.18})`
+  ctx.lineWidth = hovered ? 1.25 : 1
   ctx.beginPath()
-  ctx.arc(focusX, focusY, (hovered ? 13 : 11) + pulse * (hovered ? 5 : 4), 0, Math.PI * 2)
+  ctx.arc(focusX, focusY, (hovered ? 7 : 6) + pulse * (hovered ? 3 : 2), 0, Math.PI * 2)
   ctx.stroke()
 }
 
@@ -221,9 +221,9 @@ function frame() {
     focusY += (targetY - focusY) * (hovered ? 0.14 : 0.075)
 
     if (!reduced) {
-      const maxParticles = hovered ? 760 : 180
-      const spawnChance = hovered ? 0.98 : 0.42
-      const perStream = hovered ? 5 : 2
+      const maxParticles = hovered ? 1100 : 260
+      const spawnChance = hovered ? 1 : 0.58
+      const perStream = hovered ? 8 : 3
 
       if (activeCount < maxParticles) {
         for (let s = 0; s < STREAM_ANGLES.length; s += 1) {
@@ -275,7 +275,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
         for (let i = 0; i < 10; i += 1) spawn(s, true)
       }
     } else {
-      burst(24)
+      burst(36)
     }
 
     lastTime = performance.now()
@@ -293,7 +293,7 @@ self.onmessage = (event: MessageEvent<WorkerMessage>) => {
     hovered = message.hovered
     pointerX = message.x
     pointerY = message.y
-    if (hovered && !wasHovered && !reduced) burst(86)
+    if (hovered && !wasHovered && !reduced) burst(140)
     return
   }
 
