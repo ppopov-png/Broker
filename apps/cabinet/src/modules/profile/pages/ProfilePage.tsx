@@ -4,35 +4,39 @@ import {
   ChevronRight,
   Clock,
   Copy,
+  Download,
+  FileText,
   Lock,
   MessageCircle,
   Pencil,
+  Trash2,
+  TriangleAlert,
+  UserRoundCog,
 } from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useBrokerAccount } from '../../../shared/lib/AccountContext'
 import { formatCurrency } from '../../../shared/lib/format'
-import { tierAccent, tierHero, tierInk, tierMetallic, tierSoft } from '../../../shared/lib/InvestorStatus'
+import {
+  buildScoreHistory,
+  tierAccent,
+  tierHero,
+  tierInk,
+  tierMetallic,
+  tierSoft,
+} from '../../../shared/lib/InvestorStatus'
 import { useInvestorStatus } from '../../../shared/lib/useInvestorStatus'
 import { Card } from '../../../shared/ui/Card'
+import { Modal } from '../../../shared/ui/Modal'
 import { Pill } from '../../../shared/ui/Pill'
 import { Reveal } from '../../../shared/ui/Reveal'
+import { SegmentedControl } from '../../../shared/ui/SegmentedControl'
+import { Sparkline } from '../../../shared/ui/Sparkline'
 import { Switch } from '../../../shared/ui/Switch'
 import { OutlineButton, PrimaryButton } from '../../../shared/ui/buttons'
 
-const PROFILE_STORAGE_KEY = 'trigonum-broker-profile-v6'
-
-interface FieldSpec {
-  key: keyof ProfileFields
-  label: string
-  /** Поле обязательно для полного профиля. */
-  required: boolean
-  placeholder: string
-  /** Подтверждено брокером — редактируется только через поддержку. */
-  locked?: boolean
-  verifiedNote?: string
-  wide?: boolean
-}
+const PROFILE_STORAGE_KEY = 'trigonum-broker-profile-v7'
+const AVATAR_SIZE = 160
 
 type ProfileFields = {
   firstName: string
@@ -55,6 +59,35 @@ type Preferences = {
   email: boolean
   push: boolean
   telegram: boolean
+}
+
+type Settings = {
+  language: 'ru' | 'en'
+  currency: 'USD' | 'EUR' | 'KZT'
+}
+
+/** Значения контактов, которые клиент уже подтвердил кодом. */
+type Verified = { email: string; phone: string }
+
+interface StoredProfile {
+  fields: ProfileFields
+  preferences: Preferences
+  settings: Settings
+  verified: Verified
+  avatar: string | null
+}
+
+interface FieldSpec {
+  key: keyof ProfileFields
+  label: string
+  /** Поле обязательно для полного профиля. */
+  required: boolean
+  placeholder: string
+  /** Подтверждено брокером по документам — меняется только через поддержку. */
+  locked?: boolean
+  /** Контакт, который после изменения нужно подтвердить кодом. */
+  contact?: boolean
+  wide?: boolean
 }
 
 const initialFields: ProfileFields = {
@@ -80,30 +113,45 @@ const initialPreferences: Preferences = {
   telegram: false,
 }
 
+const initialSettings: Settings = { language: 'ru', currency: 'USD' }
+
 const fieldSpecs: FieldSpec[] = [
-  { key: 'firstName', label: 'Имя', required: true, placeholder: 'Артём', locked: true, verifiedNote: 'по документу' },
-  { key: 'lastName', label: 'Фамилия', required: true, placeholder: 'Дробков', locked: true, verifiedNote: 'по документу' },
-  { key: 'email', label: 'Email', required: true, placeholder: 'name@example.com', verifiedNote: 'подтверждён' },
-  { key: 'phone', label: 'Телефон', required: true, placeholder: '+7 (700) 000-00-00', verifiedNote: 'подтверждён' },
+  { key: 'firstName', label: 'Имя', required: true, placeholder: 'Артём', locked: true },
+  { key: 'lastName', label: 'Фамилия', required: true, placeholder: 'Дробков', locked: true },
+  { key: 'email', label: 'Email', required: true, placeholder: 'name@example.com', contact: true },
+  { key: 'phone', label: 'Телефон', required: true, placeholder: '+7 (700) 000-00-00', contact: true },
   { key: 'birthDate', label: 'Дата рождения', required: true, placeholder: 'ДД.ММ.ГГГГ', locked: true },
   { key: 'citizenship', label: 'Гражданство', required: true, placeholder: 'Страна гражданства', locked: true },
   { key: 'country', label: 'Страна проживания', required: true, placeholder: 'Казахстан' },
   { key: 'address', label: 'Адрес', required: true, placeholder: 'Город, улица, дом', wide: true },
-  { key: 'taxResidency', label: 'Налоговое резидентство (TIN)', required: true, placeholder: 'Например, KZ · 900614300123' },
+  { key: 'taxResidency', label: 'Налоговое резидентство (TIN)', required: true, placeholder: 'KZ · 900614300123' },
   { key: 'backupContact', label: 'Резервный контакт', required: false, placeholder: 'Телефон или email' },
 ]
 
-function loadProfile(): { fields: ProfileFields; preferences: Preferences } {
+const contactSpecs = fieldSpecs.filter((spec) => spec.contact)
+
+function loadProfile(): StoredProfile {
+  const fallback: StoredProfile = {
+    fields: initialFields,
+    preferences: initialPreferences,
+    settings: initialSettings,
+    verified: { email: initialFields.email, phone: initialFields.phone },
+    avatar: null,
+  }
+
   try {
     const raw = window.localStorage.getItem(PROFILE_STORAGE_KEY)
-    if (!raw) return { fields: initialFields, preferences: initialPreferences }
-    const parsed = JSON.parse(raw) as { fields?: Partial<ProfileFields>; preferences?: Partial<Preferences> }
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw) as Partial<StoredProfile>
     return {
       fields: { ...initialFields, ...parsed.fields },
       preferences: { ...initialPreferences, ...parsed.preferences },
+      settings: { ...initialSettings, ...parsed.settings },
+      verified: { ...fallback.verified, ...parsed.verified },
+      avatar: parsed.avatar ?? null,
     }
   } catch {
-    return { fields: initialFields, preferences: initialPreferences }
+    return fallback
   }
 }
 
@@ -133,18 +181,58 @@ function validate(fields: ProfileFields, saved: ProfileFields): Partial<Record<k
   return errors
 }
 
+/** Ужимаем картинку до квадрата AVATAR_SIZE, иначе dataURL не влезет в localStorage. */
+async function fileToAvatar(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file)
+  const side = Math.min(bitmap.width, bitmap.height)
+  const canvas = document.createElement('canvas')
+  canvas.width = AVATAR_SIZE
+  canvas.height = AVATAR_SIZE
+
+  const context = canvas.getContext('2d')
+  if (!context) throw new Error('canvas недоступен')
+  context.drawImage(
+    bitmap,
+    (bitmap.width - side) / 2,
+    (bitmap.height - side) / 2,
+    side,
+    side,
+    0,
+    0,
+    AVATAR_SIZE,
+    AVATAR_SIZE,
+  )
+  bitmap.close()
+  return canvas.toDataURL('image/jpeg', 0.82)
+}
+
 export function ProfilePage() {
   const { activeAccount } = useBrokerAccount()
   const { status, invested, lockedEvents, totalCapital } = useInvestorStatus()
 
   const stored = useMemo(loadProfile, [])
-  const [fields, setFields] = useState<ProfileFields>(stored.fields)
-  const [preferences, setPreferences] = useState<Preferences>(stored.preferences)
+  const [fields, setFields] = useState(stored.fields)
+  const [preferences, setPreferences] = useState(stored.preferences)
+  const [settings, setSettings] = useState(stored.settings)
+  const [verified, setVerified] = useState(stored.verified)
+  const [avatar, setAvatar] = useState(stored.avatar)
+
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState<ProfileFields>(stored.fields)
+  const [draft, setDraft] = useState(stored.fields)
   const [errors, setErrors] = useState<Partial<Record<keyof ProfileFields, string>>>({})
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
+
+  // Очередь контактов, ожидающих подтверждения кодом.
+  const [pending, setPending] = useState<(keyof ProfileFields)[]>([])
+  const [code, setCode] = useState('')
+  const [codeError, setCodeError] = useState('')
+  const [closeOpen, setCloseOpen] = useState(false)
+  const [closeConfirm, setCloseConfirm] = useState('')
+  const [closeRequested, setCloseRequested] = useState(false)
+
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => setEditing(false), [activeAccount.id])
 
@@ -154,11 +242,9 @@ export function ProfilePage() {
     return () => window.clearTimeout(id)
   }, [saved])
 
-  const persist = (nextFields: ProfileFields, nextPreferences: Preferences) => {
-    window.localStorage.setItem(
-      PROFILE_STORAGE_KEY,
-      JSON.stringify({ fields: nextFields, preferences: nextPreferences }),
-    )
+  const persist = (patch: Partial<StoredProfile>) => {
+    const next: StoredProfile = { fields, preferences, settings, verified, avatar, ...patch }
+    window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(next))
   }
 
   const startEditing = () => {
@@ -177,15 +263,90 @@ export function ProfilePage() {
     ) as ProfileFields
 
     setFields(trimmed)
-    persist(trimmed, preferences)
+    persist({ fields: trimmed })
     setEditing(false)
     setSaved(true)
+
+    // Изменённые контакты уходят на подтверждение кодом.
+    const changed = contactSpecs
+      .filter((spec) => trimmed[spec.key] !== verified[spec.key as keyof Verified])
+      .map((spec) => spec.key)
+    setPending(changed)
+    setCode('')
+    setCodeError('')
+  }
+
+  const confirmCode = () => {
+    if (!/^\d{6}$/.test(code)) {
+      setCodeError('Код состоит из шести цифр')
+      return
+    }
+    const key = pending[0]
+    const nextVerified = { ...verified, [key]: fields[key] }
+    setVerified(nextVerified)
+    persist({ verified: nextVerified })
+    setPending((queue) => queue.slice(1))
+    setCode('')
+    setCodeError('')
   }
 
   const togglePreference = (key: keyof Preferences) => {
     const next = { ...preferences, [key]: !preferences[key] }
     setPreferences(next)
-    persist(fields, next)
+    persist({ preferences: next })
+  }
+
+  const updateSettings = (patch: Partial<Settings>) => {
+    const next = { ...settings, ...patch }
+    setSettings(next)
+    persist({ settings: next })
+  }
+
+  const pickAvatar = async (file: File | undefined) => {
+    if (!file) return
+    setAvatarError('')
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Нужен файл изображения')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setAvatarError('Файл больше 8 МБ')
+      return
+    }
+    try {
+      const dataUrl = await fileToAvatar(file)
+      setAvatar(dataUrl)
+      persist({ avatar: dataUrl })
+    } catch {
+      setAvatarError('Не удалось обработать файл')
+    }
+  }
+
+  const removeAvatar = () => {
+    setAvatar(null)
+    persist({ avatar: null })
+  }
+
+  const exportData = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      account: {
+        number: activeAccount.accountNumber,
+        type: activeAccount.accountLabel,
+        verifiedAt: activeAccount.verificationDate,
+      },
+      investorStatus: { tier: status.tier, score: status.score, breakdown: status.breakdown },
+      fields,
+      preferences,
+      settings,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `trigonum-${activeAccount.accountNumber}-profile.json`
+    link.click()
+    URL.revokeObjectURL(url)
   }
 
   const missing = fieldSpecs.filter((spec) => spec.required && !fields[spec.key].trim())
@@ -203,7 +364,11 @@ export function ProfilePage() {
   const accent = tierAccent[status.tier]
   const ink = tierInk[status.tier]
   const soft = tierSoft[status.tier]
-  const hasManager = status.tier === 'Diamond' || status.tier === 'Black'
+  const onMetal = status.tier === 'Black' ? '#f4f4f5' : '#1b1d22'
+  const onMetalMuted = status.tier === 'Black' ? 'rgb(255 255 255 / 50%)' : 'rgb(0 0 0 / 48%)'
+  const hasPrivateDesk = status.tier === 'Diamond' || status.tier === 'Black'
+  const scoreHistory = buildScoreHistory(status.score)
+  const pendingSpec = pending.length > 0 ? fieldSpecs.find((spec) => spec.key === pending[0]) : undefined
 
   return (
     <div className="pb-10">
@@ -221,14 +386,42 @@ export function ProfilePage() {
 
           <div className="relative grid gap-8 p-7 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)] xl:items-center">
             <div className="flex min-w-0 items-center gap-5">
-              <div className="relative shrink-0">
-                <div
-                  className="grid size-[76px] place-items-center rounded-full text-xl font-semibold tracking-tight"
-                  style={{ background: 'rgb(255 255 255 / 6%)', boxShadow: `inset 0 0 0 1px ${accent}55` }}
+              <div className="group relative shrink-0">
+                {avatar ? (
+                  <img
+                    src={avatar}
+                    alt=""
+                    className="size-[76px] rounded-full object-cover"
+                    style={{ boxShadow: `inset 0 0 0 1px ${accent}55` }}
+                  />
+                ) : (
+                  <div
+                    className="grid size-[76px] place-items-center rounded-full text-xl font-semibold tracking-tight"
+                    style={{ background: 'rgb(255 255 255 / 6%)', boxShadow: `inset 0 0 0 1px ${accent}55` }}
+                  >
+                    {activeAccount.initials}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="absolute inset-0 grid place-items-center rounded-full bg-black/55 text-[11px] font-semibold opacity-0 transition focus-visible:opacity-100 group-hover:opacity-100"
                 >
-                  {activeAccount.initials}
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 grid size-6 place-items-center rounded-full bg-[var(--trigonum-success)] text-white ring-[3px] ring-black/25">
+                  Сменить
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(event) => {
+                    void pickAvatar(event.target.files?.[0])
+                    event.target.value = ''
+                  }}
+                />
+
+                <span className="pointer-events-none absolute -bottom-0.5 -right-0.5 grid size-6 place-items-center rounded-full bg-[var(--trigonum-success)] text-white ring-[3px] ring-black/25">
                   <Check size={11} strokeWidth={3} />
                 </span>
               </div>
@@ -241,15 +434,25 @@ export function ProfilePage() {
                   {activeAccount.accountLabel} · <span className="tabular-nums">{activeAccount.accountNumber}</span> ·
                   с {activeAccount.verificationDate}
                 </p>
-                <div className="mt-3.5 flex flex-wrap gap-2">
+                <div className="mt-3.5 flex flex-wrap items-center gap-2">
                   <QuietChip>{activeAccount.verificationStatus}</QuietChip>
                   <QuietChip>2FA</QuietChip>
                   <QuietChip>Вывод защищён</QuietChip>
+                  {avatar && (
+                    <button
+                      type="button"
+                      onClick={removeAvatar}
+                      className="text-[11px] font-medium text-white/35 underline-offset-2 hover:text-white/60 hover:underline"
+                    >
+                      Убрать фото
+                    </button>
+                  )}
                 </div>
+                {avatarError && <p className="mt-2 text-[11px] font-medium text-[#ff9b9b]">{avatarError}</p>}
               </div>
             </div>
 
-            {/* Уровень: металлик по тиру, прогресс и переход к привилегиям */}
+            {/* Уровень: металлик по тиру, динамика баллов и переход к привилегиям */}
             <Link
               to="/levels"
               className="group block rounded-[20px] p-px transition hover:brightness-110"
@@ -258,15 +461,12 @@ export function ProfilePage() {
               <div className="rounded-[19px] bg-black/8 p-5 backdrop-blur-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p
-                      className="text-[10px] font-bold uppercase tracking-[.18em]"
-                      style={{ color: status.tier === 'Black' ? 'rgb(255 255 255 / 45%)' : 'rgb(0 0 0 / 45%)' }}
-                    >
+                    <p className="text-[10px] font-bold uppercase tracking-[.18em]" style={{ color: onMetalMuted }}>
                       Уровень
                     </p>
                     <p
                       className="mt-1.5 text-[28px] font-semibold leading-none tracking-[-.03em]"
-                      style={{ color: status.tier === 'Black' ? '#f4f4f5' : '#1b1d22' }}
+                      style={{ color: onMetal }}
                     >
                       {status.tier}
                     </p>
@@ -274,26 +474,30 @@ export function ProfilePage() {
                   <ChevronRight
                     size={17}
                     className="mt-1 transition group-hover:translate-x-0.5"
-                    style={{ color: status.tier === 'Black' ? 'rgb(255 255 255 / 50%)' : 'rgb(0 0 0 / 45%)' }}
+                    style={{ color: onMetalMuted }}
                   />
                 </div>
 
+                <p className="mt-4 text-[9px] font-bold uppercase tracking-[.16em]" style={{ color: onMetalMuted }}>
+                  Баллы за 12 месяцев
+                </p>
+                <div className="mt-1 h-7 opacity-40">
+                  <Sparkline data={scoreHistory} color={onMetal} height={28} />
+                </div>
+
                 <div
-                  className="mt-5 h-1.5 overflow-hidden rounded-full"
+                  className="mt-4 h-1.5 overflow-hidden rounded-full"
                   style={{ background: status.tier === 'Black' ? 'rgb(255 255 255 / 18%)' : 'rgb(0 0 0 / 14%)' }}
                 >
                   <div
                     className="h-full rounded-full"
-                    style={{
-                      width: `${status.progress}%`,
-                      background: status.tier === 'Black' ? '#e8e8ea' : '#1b1d22',
-                    }}
+                    style={{ width: `${status.progress}%`, background: onMetal }}
                   />
                 </div>
 
                 <div
                   className="mt-2.5 flex items-center justify-between gap-3 text-[11px] font-semibold tabular-nums"
-                  style={{ color: status.tier === 'Black' ? 'rgb(255 255 255 / 55%)' : 'rgb(0 0 0 / 50%)' }}
+                  style={{ color: onMetalMuted }}
                 >
                   <span>{status.score} pts</span>
                   <span>{status.nextTier ? `${status.pointsToNext} до ${status.nextTier}` : 'Максимум'}</span>
@@ -367,6 +571,11 @@ export function ProfilePage() {
                             {errors[spec.key]}
                           </span>
                         )}
+                        {spec.contact && draft[spec.key].trim() !== verified[spec.key as keyof Verified] && (
+                          <span className="mt-1 block text-xs text-[var(--trigonum-muted)]">
+                            Понадобится подтверждение кодом
+                          </span>
+                        )}
                       </label>
                     ))}
                   </div>
@@ -382,7 +591,9 @@ export function ProfilePage() {
                 <div className="flex flex-col divide-y divide-[var(--trigonum-border)]">
                   {fieldSpecs.map((spec) => {
                     const value = fields[spec.key].trim()
-                    const confirmed = Boolean(spec.verifiedNote) && value === initialFields[spec.key]
+                    const confirmed = spec.contact
+                      ? value === verified[spec.key as keyof Verified]
+                      : Boolean(spec.locked) && Boolean(value)
                     return (
                       <div key={spec.key} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
                         <span className="text-sm text-[var(--trigonum-muted)]">{spec.label}</span>
@@ -397,7 +608,7 @@ export function ProfilePage() {
                             {value && confirmed && (
                               <Check size={14} strokeWidth={2.5} className="text-[var(--trigonum-success)] opacity-70" />
                             )}
-                            {value && spec.verifiedNote && !confirmed && (
+                            {value && spec.contact && !confirmed && (
                               <Clock size={14} className="text-[var(--trigonum-warning)]" />
                             )}
                             {!value && spec.required && (
@@ -475,6 +686,29 @@ export function ProfilePage() {
               </div>
             </Card>
           </Reveal>
+
+          <Reveal delay={240}>
+            <Card title="Данные и доступ">
+              <div className="flex flex-col divide-y divide-[var(--trigonum-border)]">
+                <ActionRow
+                  icon={<Download size={16} />}
+                  label="Скачать мои данные"
+                  detail="Профиль, настройки и статус одним JSON-файлом"
+                  actionLabel="Скачать"
+                  onClick={exportData}
+                />
+                <ActionRow
+                  icon={<TriangleAlert size={16} />}
+                  label="Закрыть счёт"
+                  detail="Заявка уходит в поддержку, средства выводятся на подтверждённые реквизиты"
+                  actionLabel={closeRequested ? 'Заявка принята' : 'Закрыть'}
+                  danger
+                  disabled={closeRequested}
+                  onClick={() => setCloseOpen(true)}
+                />
+              </div>
+            </Card>
+          </Reveal>
         </div>
 
         {/* --- Правая колонка -------------------------------------------- */}
@@ -510,6 +744,20 @@ export function ProfilePage() {
                 <StatusRow label="Источник средств" detail="Документы приняты" />
                 <StatusRow label="Инвест-анкета" detail="Сбалансированный" />
               </div>
+
+              {fields.taxResidency.trim() && (
+                <Link
+                  to="/documents"
+                  className="mt-3 flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-[var(--trigonum-ink)] transition hover:brightness-95"
+                  style={{ background: soft }}
+                >
+                  <span className="flex items-center gap-2">
+                    <FileText size={15} style={{ color: ink }} />
+                    Налоговый отчёт за 2025
+                  </span>
+                  <ChevronRight size={14} className="text-[var(--trigonum-muted)]" />
+                </Link>
+              )}
             </Card>
           </Reveal>
 
@@ -532,9 +780,42 @@ export function ProfilePage() {
           </Reveal>
 
           <Reveal delay={240}>
-            <Card title="Персональный менеджер">
-              {hasManager ? (
-                <>
+            <Card title="Предпочтения">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <p className="mb-2 text-sm text-[var(--trigonum-muted)]">Язык кабинета</p>
+                  <SegmentedControl
+                    value={settings.language}
+                    onChange={(language) => updateSettings({ language })}
+                    options={[
+                      { value: 'ru', label: 'Русский' },
+                      { value: 'en', label: 'English' },
+                    ]}
+                  />
+                </div>
+                <div>
+                  <p className="mb-2 text-sm text-[var(--trigonum-muted)]">Валюта отчётности</p>
+                  <SegmentedControl
+                    value={settings.currency}
+                    onChange={(currency) => updateSettings({ currency })}
+                    options={[
+                      { value: 'USD', label: 'USD' },
+                      { value: 'EUR', label: 'EUR' },
+                      { value: 'KZT', label: 'KZT' },
+                    ]}
+                  />
+                  <p className="mt-2 text-xs text-[var(--trigonum-muted)]">
+                    Счёт остаётся в USD — меняется только валюта выписок и отчётов
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </Reveal>
+
+          <Reveal delay={300}>
+            <Card title="Private desk">
+              {hasPrivateDesk ? (
+                <div className="flex flex-col gap-4">
                   <div className="flex items-center gap-3">
                     <div
                       className="grid size-12 shrink-0 place-items-center rounded-full text-sm font-bold"
@@ -544,26 +825,47 @@ export function ProfilePage() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-[var(--trigonum-ink)]">Дарья Ковалёва</p>
-                      <p className="text-xs text-[var(--trigonum-muted)]">Private client manager</p>
+                      <p className="text-xs text-[var(--trigonum-muted)]">Персональный менеджер</p>
                     </div>
                   </div>
-                  <Link
-                    to="/support"
-                    className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-125"
-                  >
-                    <MessageCircle size={15} />
-                    Написать
-                  </Link>
-                </>
+
+                  <div className="flex flex-col divide-y divide-[var(--trigonum-border)]">
+                    <MetaRow label="Доверенное лицо" value="Не назначено" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link
+                      to="/support"
+                      className="flex items-center justify-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-3 py-2.5 text-sm font-semibold text-white transition hover:brightness-125"
+                    >
+                      <MessageCircle size={15} />
+                      Написать
+                    </Link>
+                    <button
+                      type="button"
+                      className="flex items-center justify-center gap-2 rounded-lg border border-[var(--trigonum-border)] px-3 py-2.5 text-sm font-semibold text-[var(--trigonum-ink)] transition hover:border-[var(--trigonum-ink)]"
+                    >
+                      <UserRoundCog size={15} />
+                      Назначить
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <>
-                  <div className="flex items-start gap-3">
-                    <Lock size={15} className="mt-0.5 shrink-0 text-[var(--trigonum-muted)]" />
-                    <p className="text-sm text-[var(--trigonum-muted)]">
-                      Откроется на Diamond — осталось{' '}
-                      <b className="tabular-nums text-[var(--trigonum-ink)]">{status.pointsToNext} pts</b>
-                    </p>
-                  </div>
+                  <p className="text-sm text-[var(--trigonum-muted)]">
+                    Персональный менеджер и доверенное лицо открываются на Diamond — осталось{' '}
+                    <b className="tabular-nums text-[var(--trigonum-ink)]">{status.pointsToNext} pts</b>
+                  </p>
+                  <ul className="mt-3 flex flex-col gap-1.5">
+                    <li className="flex items-center gap-2 text-xs text-[var(--trigonum-muted)]">
+                      <Lock size={12} className="shrink-0" />
+                      Персональный менеджер
+                    </li>
+                    <li className="flex items-center gap-2 text-xs text-[var(--trigonum-muted)]">
+                      <Lock size={12} className="shrink-0" />
+                      Доверенное лицо и наследование
+                    </li>
+                  </ul>
                   <Link to="/levels" className="mt-3 inline-flex text-xs font-semibold text-[var(--trigonum-blue)]">
                     Как получить Diamond →
                   </Link>
@@ -572,18 +874,113 @@ export function ProfilePage() {
             </Card>
           </Reveal>
 
-          <Reveal delay={300}>
+          <Reveal delay={360}>
             <Card title="Аккаунт">
               <div className="flex flex-col divide-y divide-[var(--trigonum-border)]">
                 <MetaRow label="Тип счёта" value={activeAccount.accountLabel} />
                 <MetaRow label="Номер" value={activeAccount.accountNumber} />
                 <MetaRow label="Юрисдикция" value="Кыргызская Республика" />
-                <MetaRow label="Валюта" value="USD" />
+                <MetaRow label="Валюта счёта" value="USD" />
               </div>
             </Card>
           </Reveal>
         </div>
       </div>
+
+      {/* Подтверждение изменённого контакта */}
+      <Modal
+        open={Boolean(pendingSpec)}
+        onClose={() => setPending([])}
+        title={`Подтвердите ${pendingSpec?.label.toLowerCase() ?? ''}`}
+        subtitle={pendingSpec ? `Код отправлен на ${fields[pendingSpec.key]}` : undefined}
+      >
+        <label className="block text-sm">
+          <span className="mb-1 block font-medium text-[var(--trigonum-text)]">Код из шести цифр</span>
+          <input
+            value={code}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            placeholder="000000"
+            onChange={(event) => {
+              setCode(event.target.value.replace(/\D/g, '').slice(0, 6))
+              setCodeError('')
+            }}
+            className={`w-full rounded-lg border px-3 py-2.5 text-center text-lg font-semibold tracking-[0.4em] tabular-nums text-[var(--trigonum-ink)] outline-none transition ${
+              codeError ? 'border-[var(--trigonum-danger)]' : 'border-[var(--trigonum-border)] focus:border-[var(--trigonum-ink)]'
+            }`}
+          />
+          {codeError && <span className="mt-1 block text-xs font-medium text-[var(--trigonum-danger)]">{codeError}</span>}
+        </label>
+
+        <p className="mt-3 text-xs text-[var(--trigonum-muted)]">
+          Пока контакт не подтверждён, он помечен как ожидающий проверки и не используется для уведомлений.
+        </p>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <OutlineButton type="button" onClick={() => setPending([])}>
+            Позже
+          </OutlineButton>
+          <PrimaryButton type="button" onClick={confirmCode}>
+            Подтвердить
+          </PrimaryButton>
+        </div>
+      </Modal>
+
+      {/* Закрытие счёта */}
+      <Modal
+        open={closeOpen}
+        onClose={() => {
+          setCloseOpen(false)
+          setCloseConfirm('')
+        }}
+        title="Закрыть счёт"
+        subtitle="Действие необратимо и потребует подтверждения от поддержки"
+      >
+        <div className="rounded-xl border border-[color-mix(in_srgb,var(--trigonum-danger)_35%,white)] bg-[color-mix(in_srgb,var(--trigonum-danger)_6%,white)] p-3.5">
+          <p className="text-sm text-[var(--trigonum-text)]">
+            Открытые инвест-контракты и позиции в Events должны быть закрыты до подачи заявки. Свободный остаток{' '}
+            <b className="text-[var(--trigonum-ink)]">{formatCurrency(totalCapital)}</b> выводится на подтверждённые
+            реквизиты.
+          </p>
+        </div>
+
+        <label className="mt-4 block text-sm">
+          <span className="mb-1 block font-medium text-[var(--trigonum-text)]">
+            Введите <b className="text-[var(--trigonum-ink)]">ЗАКРЫТЬ</b> для подтверждения
+          </span>
+          <input
+            value={closeConfirm}
+            onChange={(event) => setCloseConfirm(event.target.value)}
+            className="w-full rounded-lg border border-[var(--trigonum-border)] px-3 py-2.5 text-sm text-[var(--trigonum-ink)] outline-none focus:border-[var(--trigonum-danger)]"
+          />
+        </label>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <OutlineButton
+            type="button"
+            onClick={() => {
+              setCloseOpen(false)
+              setCloseConfirm('')
+            }}
+          >
+            Отмена
+          </OutlineButton>
+          <button
+            type="button"
+            disabled={closeConfirm.trim().toUpperCase() !== 'ЗАКРЫТЬ'}
+            onClick={() => {
+              setCloseRequested(true)
+              setCloseOpen(false)
+              setCloseConfirm('')
+            }}
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-danger)] px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Trash2 size={15} />
+            Подать заявку
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }
@@ -608,10 +1005,7 @@ function CompanyProfile() {
   return (
     <div className="pb-10">
       <Reveal>
-        <section
-          className="relative overflow-hidden rounded-[24px] p-7 text-white"
-          style={{ background: tierHero.Black }}
-        >
+        <section className="relative overflow-hidden rounded-[24px] p-7 text-white" style={{ background: tierHero.Black }}>
           <div className="flex flex-wrap items-center gap-5">
             <span className="grid size-[76px] shrink-0 place-items-center rounded-full bg-white/6 ring-1 ring-white/12">
               <Building2 size={26} />
@@ -705,6 +1099,50 @@ function MetaRow({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
       <span className="text-sm text-[var(--trigonum-muted)]">{label}</span>
       <span className="text-right text-sm font-semibold text-[var(--trigonum-ink)]">{value}</span>
+    </div>
+  )
+}
+
+function ActionRow({
+  icon,
+  label,
+  detail,
+  actionLabel,
+  onClick,
+  danger = false,
+  disabled = false,
+}: {
+  icon: ReactNode
+  label: string
+  detail: string
+  actionLabel: string
+  onClick: () => void
+  danger?: boolean
+  disabled?: boolean
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
+      <div className="flex min-w-0 items-start gap-3">
+        <span className={`mt-0.5 shrink-0 ${danger ? 'text-[var(--trigonum-danger)]' : 'text-[var(--trigonum-muted)]'}`}>
+          {icon}
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-[var(--trigonum-ink)]">{label}</p>
+          <p className="mt-0.5 text-xs text-[var(--trigonum-muted)]">{detail}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={`shrink-0 rounded-lg border px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+          danger
+            ? 'border-[color-mix(in_srgb,var(--trigonum-danger)_40%,white)] text-[var(--trigonum-danger)] hover:border-[var(--trigonum-danger)]'
+            : 'border-[var(--trigonum-border)] text-[var(--trigonum-ink)] hover:border-[var(--trigonum-ink)]'
+        }`}
+      >
+        {actionLabel}
+      </button>
     </div>
   )
 }

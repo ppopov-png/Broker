@@ -75,20 +75,6 @@ export const currentLocks: Record<SourceKey, CurrentLock> = {
   events: { amount: earningSources[2].principal, unlockDate: daysFromNow(eventHorizonDays) },
 }
 
-export interface InvestorLevel {
-  key: string
-  label: string
-  threshold: number
-  perks: string[]
-}
-
-export const investorLevels: InvestorLevel[] = [
-  { key: 'bronze', label: 'Bronze', threshold: 0, perks: ['Earn и базовые продукты', 'Поддержка 24/7'] },
-  { key: 'silver', label: 'Silver', threshold: 50_000, perks: ['Доступ к Strategies', 'Сниженная комиссия вывода'] },
-  { key: 'gold', label: 'Gold', threshold: 150_000, perks: ['Ранний доступ к Events', 'Приоритетная поддержка', 'Персональные отчёты'] },
-  { key: 'platinum', label: 'Platinum', threshold: 500_000, perks: ['Персональный менеджер', 'Индивидуальные условия', 'Закрытые Events'] },
-]
-
 export interface Achievement {
   id: string
   title: string

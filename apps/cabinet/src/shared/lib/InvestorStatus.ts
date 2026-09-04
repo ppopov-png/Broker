@@ -234,3 +234,40 @@ export const tierInk: Record<InvestorTier, string> = {
   Diamond: '#2f7fae',
   Black: '#1b1d22',
 }
+
+/* --- Производные от формулы -------------------------------------------
+ * Держим обратный пересчёт рядом с самой формулой, чтобы «сколько денег
+ * до следующего уровня» не разъезжалось с начислением баллов.
+ */
+
+const POINTS_PER_1K = 7.5
+const LONG_TERM_BONUS_PER_1K = 4
+
+/** Капитал, который нужно разместить ради указанного числа баллов. */
+export function capitalForPoints(points: number, longTerm = false): number {
+  if (points <= 0) return 0
+  const perThousand = POINTS_PER_1K + (longTerm ? LONG_TERM_BONUS_PER_1K : 0)
+  return Math.ceil(points / perThousand) * 1000
+}
+
+/** Даты получения уровней. В мок-слое зашиты, в проде придут из истории счёта. */
+export const tierAchievedAt: Partial<Record<InvestorTier, string>> = {
+  Member: '12.03.2024',
+  Silver: '26.08.2024',
+  Gold: '14.02.2025',
+}
+
+/**
+ * Ряд баллов за последние 12 месяцев для спарклайна. Детерминированный:
+ * одинаков между рендерами и заканчивается текущим значением.
+ */
+export function buildScoreHistory(current: number, months = 12): number[] {
+  const start = Math.max(0, Math.round(current * 0.52))
+  return Array.from({ length: months }, (_, index) => {
+    const progress = index / (months - 1)
+    const base = start + (current - start) * progress
+    // Лёгкая рябь, чтобы линия не выглядела нарисованной по линейке.
+    const ripple = Math.sin(index * 1.7) * (current - start) * 0.035
+    return index === months - 1 ? current : Math.round(base + ripple)
+  })
+}

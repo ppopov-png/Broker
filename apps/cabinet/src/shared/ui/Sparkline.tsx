@@ -39,9 +39,10 @@ export function Sparkline({
           <polygon points={`0,${height} ${points.join(' ')} ${width},${height}`} fill={`url(#${id}-fill)`} />
         </>
       )}
+      {/* Без dash-анимации: при preserveAspectRatio="none" пунктир считается в экранных
+          координатах, а pathLength — в пользовательских, и на широком контейнере линия
+          рассыпается на точки. Появление даёт родительский Reveal. */}
       <polyline
-        className="trg-draw"
-        pathLength={1}
         points={points.join(' ')}
         fill="none"
         stroke={color}
@@ -50,7 +51,6 @@ export function Sparkline({
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
       />
-      <circle className="trg-pop" style={{ animationDelay: '0.9s' }} cx={coords[coords.length - 1].x} cy={coords[coords.length - 1].y} r="2.5" fill={color} />
     </svg>
   )
 }

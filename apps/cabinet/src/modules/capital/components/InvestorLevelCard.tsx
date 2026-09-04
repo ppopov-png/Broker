@@ -1,69 +1,67 @@
-import { Check, Lock, Medal } from 'lucide-react'
+import { Check, Lock } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { formatCurrency } from '../../../shared/lib/format'
-import { capitalTotals } from '../../../shared/mock/data'
+import { capitalForPoints, tierInk, tierMetallic, tierPerks } from '../../../shared/lib/InvestorStatus'
+import { useInvestorStatus } from '../../../shared/lib/useInvestorStatus'
 import { Card } from '../../../shared/ui/Card'
-import { Pill } from '../../../shared/ui/Pill'
 import { ProgressBar } from '../../../shared/ui/ProgressBar'
-import { investorLevels } from '../model/capital-data'
 
 export function InvestorLevelCard() {
-  const capital = capitalTotals.total
-  const currentIndex = investorLevels.reduce((acc, level, i) => (capital >= level.threshold ? i : acc), 0)
-  const current = investorLevels[currentIndex]
-  const next = investorLevels[currentIndex + 1]
-
-  const progress = next
-    ? ((capital - current.threshold) / (next.threshold - current.threshold)) * 100
-    : 100
+  const { status } = useInvestorStatus()
+  const ink = tierInk[status.tier]
 
   return (
     <Card
       title="Уровень инвестора"
-      subtitle="Растёт вместе с капиталом и открывает новые условия"
       action={
-        <Pill tone="warning" icon={<Medal size={13} />}>
-          {current.label}
-        </Pill>
+        <Link to="/levels" className="text-xs font-semibold text-[var(--trigonum-blue)]">
+          Все уровни →
+        </Link>
       }
     >
-      <div className="flex items-center justify-between text-xs text-[var(--trigonum-muted)]">
-        <span>{current.label}</span>
-        {next && <span>{next.label}</span>}
+      <div className="flex items-center gap-3">
+        <span
+          className="rounded-lg px-3 py-1.5 text-sm font-bold"
+          style={{ background: tierMetallic[status.tier], color: status.tier === 'Black' ? '#f4f4f5' : '#1b1d22' }}
+        >
+          {status.tier}
+        </span>
+        <span className="text-sm font-semibold tabular-nums text-[var(--trigonum-muted)]">{status.score} pts</span>
       </div>
-      <div className="mt-1.5">
-        <ProgressBar value={progress} tone="green" />
+
+      <div className="mt-4">
+        <ProgressBar value={status.progress} tone="green" />
       </div>
-      {next ? (
+
+      {status.nextTier ? (
         <p className="mt-2 text-xs text-[var(--trigonum-muted)]">
-          До уровня {next.label} осталось{' '}
-          <b className="text-[var(--trigonum-ink)]">{formatCurrency(next.threshold - capital)}</b>
+          До {status.nextTier} — <b className="tabular-nums text-[var(--trigonum-ink)]">{status.pointsToNext} pts</b>, это{' '}
+          <b className="text-[var(--trigonum-ink)]">{formatCurrency(capitalForPoints(status.pointsToNext, true))}</b> на
+          12 месяцев
         </p>
       ) : (
-        <p className="mt-2 text-xs text-[var(--trigonum-success)]">Достигнут максимальный уровень</p>
+        <p className="mt-2 text-xs font-semibold text-[var(--trigonum-success)]">Достигнут максимальный уровень</p>
       )}
 
       <div className="mt-4 flex flex-col gap-3">
-        <div>
-          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--trigonum-muted)]">Уже доступно</p>
-          <ul className="flex flex-col gap-1.5">
-            {current.perks.map((perk) => (
-              <li key={perk} className="flex items-center gap-2 text-sm text-[var(--trigonum-text)]">
-                <Check size={14} className="shrink-0 text-[var(--trigonum-success)]" />
-                {perk}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ul className="flex flex-col gap-1.5">
+          {tierPerks[status.tier].map((perk) => (
+            <li key={perk} className="flex items-start gap-2 text-sm text-[var(--trigonum-text)]">
+              <Check size={14} className="mt-0.5 shrink-0" style={{ color: ink }} />
+              {perk}
+            </li>
+          ))}
+        </ul>
 
-        {next && (
+        {status.nextTier && (
           <div className="rounded-xl bg-[var(--trigonum-bg)] p-3">
             <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[var(--trigonum-muted)]">
-              Откроется на {next.label}
+              Откроется на {status.nextTier}
             </p>
             <ul className="flex flex-col gap-1.5">
-              {next.perks.map((perk) => (
-                <li key={perk} className="flex items-center gap-2 text-sm text-[var(--trigonum-muted)]">
-                  <Lock size={13} className="shrink-0" />
+              {tierPerks[status.nextTier].map((perk) => (
+                <li key={perk} className="flex items-start gap-2 text-sm text-[var(--trigonum-muted)]">
+                  <Lock size={13} className="mt-0.5 shrink-0" />
                   {perk}
                 </li>
               ))}

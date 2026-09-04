@@ -5,16 +5,34 @@ import { capitalTotals } from '../../../shared/mock/data'
 import { AnimatedNumber } from '../../../shared/ui/AnimatedNumber'
 import { Card } from '../../../shared/ui/Card'
 import { ProgressBar } from '../../../shared/ui/ProgressBar'
-import { capitalGoalDefault, earningsPerSecond, investorLevels } from '../model/capital-data'
+import { INVESTOR_TIERS, calculateInvestorStatus, capitalForPoints } from '../../../shared/lib/InvestorStatus'
+import { capitalGoalDefault, earningsPerSecond } from '../model/capital-data'
 
 const YEAR_SECONDS = 365 * 24 * 60 * 60
 const annualIncome = earningsPerSecond * YEAR_SECONDS
 const MILESTONES = [25, 50, 75, 100]
 
-const presets = [
-  ...investorLevels.filter((l) => l.threshold > capitalTotals.total).map((l) => ({ label: `${l.label} · ${formatCurrency(l.threshold)}`, value: l.threshold })),
-  { label: '$1,000,000', value: 1_000_000 },
-]
+/**
+ * Цели по уровням: сколько всего капитала нужно, чтобы добрать баллы
+ * до следующих тиров при размещении на 12 месяцев.
+ */
+const capitalPresets = (() => {
+  const score = calculateInvestorStatus({
+    qualifiedCapital: capitalTotals.inWork,
+    longTermCapital: capitalTotals.inWork,
+    completedEvents: 21,
+    activeEvents: 3,
+    tenureMonths: 11,
+    qualifiedReferrals: 4,
+  }).score
+
+  return INVESTOR_TIERS.filter((tier) => tier.threshold > score).map((tier) => ({
+    label: `${tier.tier} · ${formatCurrency(capitalTotals.total + capitalForPoints(tier.threshold - score, true))}`,
+    value: capitalTotals.total + capitalForPoints(tier.threshold - score, true),
+  }))
+})()
+
+const presets = [...capitalPresets, { label: '$1,000,000', value: 1_000_000 }]
 
 function formatEta(years: number): string {
   if (!Number.isFinite(years) || years <= 0) return 'цель уже достигнута'

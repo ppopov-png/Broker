@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatCurrency } from '../../../shared/lib/format'
 import {
+  buildScoreHistory,
   calculateInvestorStatus,
   INVESTOR_TIERS,
   SCORE_RULES,
@@ -11,12 +12,14 @@ import {
   tierHero,
   tierInk,
   tierMetallic,
+  tierAchievedAt,
   tierPerks,
   tierSummary,
 } from '../../../shared/lib/InvestorStatus'
 import { useInvestorStatus } from '../../../shared/lib/useInvestorStatus'
 import { Card } from '../../../shared/ui/Card'
 import { Reveal } from '../../../shared/ui/Reveal'
+import { Sparkline } from '../../../shared/ui/Sparkline'
 import { Switch } from '../../../shared/ui/Switch'
 
 export function LevelsPage() {
@@ -103,9 +106,45 @@ export function LevelsPage() {
               </div>
 
               <p className="mt-4 max-w-[52ch] text-sm text-white/50">{tierSummary[status.tier]}</p>
+
+              <div className="mt-5 border-t border-white/10 pt-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[.14em] text-white/35">Баллы за 12 месяцев</p>
+                <div className="mt-2 h-10">
+                  <Sparkline data={buildScoreHistory(status.score)} color={accent} height={40} area />
+                </div>
+              </div>
             </div>
           </div>
         </section>
+      </Reveal>
+
+      <Reveal delay={40}>
+        <Card className="mt-5" title="История статуса">
+          <ol className="grid gap-4 sm:grid-cols-3">
+            {INVESTOR_TIERS.filter((tier) => tierAchievedAt[tier.tier]).map((tier, index, list) => (
+              <li key={tier.tier} className="relative">
+                {index < list.length - 1 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-0 top-[5px] hidden h-px w-full bg-[var(--trigonum-border)] sm:block"
+                  />
+                )}
+                <span
+                  className="relative block size-2.5 rounded-full ring-4 ring-[var(--trigonum-surface)]"
+                  style={{ background: tierMetallic[tier.tier] }}
+                />
+                <p className="mt-3 text-sm font-semibold text-[var(--trigonum-ink)]">{tier.tier}</p>
+                <p className="text-xs tabular-nums text-[var(--trigonum-muted)]">{tierAchievedAt[tier.tier]}</p>
+              </li>
+            ))}
+          </ol>
+          {status.nextTier && (
+            <p className="mt-5 border-t border-[var(--trigonum-border)] pt-4 text-sm text-[var(--trigonum-muted)]">
+              Следующая отметка — <b className="text-[var(--trigonum-ink)]">{status.nextTier}</b>, осталось{' '}
+              <b className="tabular-nums text-[var(--trigonum-ink)]">{status.pointsToNext} pts</b>
+            </p>
+          )}
+        </Card>
       </Reveal>
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-start">
