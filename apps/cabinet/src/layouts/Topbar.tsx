@@ -1,13 +1,51 @@
 import { Bell, ChevronDown, HelpCircle, LogOut, User as UserIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useBrokerAccount } from '../shared/lib/AccountContext'
+import { useFunding } from '../shared/lib/FundingContext'
+import { calculateInvestorStatus, tierAccent } from '../shared/lib/InvestorStatus'
 import { notifications } from '../shared/mock/data'
+
+type StoredContract = { amount?: number; termMonths?: number }
+
+function loadContracts() {
+  try {
+    const raw = window.localStorage.getItem('trigonum-broker-invest-contracts-v1')
+    return raw ? JSON.parse(raw) as StoredContract[] : [
+      { amount: 14_000, termMonths: 12 },
+      { amount: 12_000, termMonths: 6 },
+      { amount: 5_000, termMonths: 12 },
+    ]
+  } catch {
+    return []
+  }
+}
 
 export function Topbar() {
   const { activeAccount } = useBrokerAccount()
+  const { getAccountState } = useFunding()
   const [notifOpen, setNotifOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
+  const funding = getAccountState(activeAccount.id)
+
+  const investorStatus = useMemo(() => {
+    const contracts = loadContracts()
+    const invested = contracts.reduce((sum, contract) => sum + Number(contract.amount || 0), 0)
+    const longTermCapital = contracts
+      .filter((contract) => Number(contract.termMonths || 0) >= 12)
+      .reduce((sum, contract) => sum + Number(contract.amount || 0), 0)
+
+    return calculateInvestorStatus({
+      qualifiedCapital: invested + funding.lockedEvents,
+      longTermCapital,
+      completedEvents: 21,
+      activeEvents: 3,
+      tenureMonths: 11,
+      qualifiedReferrals: 4,
+    })
+  }, [activeAccount.id, funding.lockedEvents, funding.brokerBalance])
+
+  const investorAccent = tierAccent[investorStatus.tier]
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-6">
@@ -48,7 +86,23 @@ export function Topbar() {
           }}
           className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-[var(--trigonum-bg)]"
         >
-          <span className={`grid size-8 place-items-center rounded-full text-xs font-bold ${activeAccount.type === 'company' ? 'bg-violet-50 text-violet-700' : 'bg-[color-mix(in_srgb,var(--trigonum-blue)_14%,white)] text-[var(--trigonum-blue)]'}`}>{activeAccount.initials}</span>
+          <span
+            className="relative grid size-9 place-items-center rounded-full"
+            title={activeAccount.type === 'individual' ? 'Статус инвестора' : undefined}
+          >
+            {activeAccount.type === 'individual' && (
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: `conic-gradient(${investorAccent} 0 72%, transparent 72% 100%)`,
+                  boxShadow: `0 0 0 1px ${investorAccent}33, 0 0 16px ${investorAccent}22`,
+                }}
+              />
+            )}
+            <span className={`relative grid size-7 place-items-center rounded-full text-[11px] font-bold ring-2 ring-white ${activeAccount.type === 'company' ? 'bg-violet-50 text-violet-700' : 'bg-[color-mix(in_srgb,var(--trigonum-blue)_14%,white)] text-[var(--trigonum-blue)]'}`}>{activeAccount.initials}</span>
+            {activeAccount.type === 'individual' && <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-white" style={{ background: investorAccent }} aria-hidden="true" />}
+          </span>
           <span className="max-w-48 text-left leading-tight">
             <span className="block truncate text-xs font-semibold text-[var(--trigonum-ink)]">{activeAccount.name}</span>
             <span className="block text-[11px] text-[var(--trigonum-muted)]">{activeAccount.accountLabel}</span>
