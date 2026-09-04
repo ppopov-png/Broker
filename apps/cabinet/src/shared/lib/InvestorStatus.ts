@@ -1,4 +1,4 @@
-export type InvestorTier = 'Member' | 'Silver' | 'Gold' | 'Platinum' | 'Black'
+export type InvestorTier = 'Member' | 'Silver' | 'Gold' | 'Diamond' | 'Black'
 
 export interface InvestorStatusInput {
   qualifiedCapital: number
@@ -31,7 +31,7 @@ export const INVESTOR_TIERS: { tier: InvestorTier; threshold: number }[] = [
   { tier: 'Member', threshold: 0 },
   { tier: 'Silver', threshold: 200 },
   { tier: 'Gold', threshold: 500 },
-  { tier: 'Platinum', threshold: 1000 },
+  { tier: 'Diamond', threshold: 1000 },
   { tier: 'Black', threshold: 2500 },
 ]
 
@@ -67,9 +67,17 @@ export function calculateInvestorStatus(input: InvestorStatusInput): InvestorSta
 }
 
 export const tierAccent: Record<InvestorTier, string> = {
-  Member: '#71719b',
-  Silver: '#a9afbd',
-  Gold: '#d7b24a',
-  Platinum: '#d7e4f4',
-  Black: '#11121d',
+  Member: '#7d8190',
+  Silver: '#b8bec9',
+  Gold: '#cda64a',
+  Diamond: '#9fd8f5',
+  Black: '#1b1d22',
+}
+
+export const tierMetallic: Record<InvestorTier, string> = {
+  Member: 'linear-gradient(135deg,#f3f4f6 0%,#d8dbe2 52%,#babfca 100%)',
+  Silver: 'linear-gradient(135deg,#f8f9fb 0%,#dfe3ea 34%,#aeb5c2 68%,#eceff4 100%)',
+  Gold: 'linear-gradient(135deg,#fff5cf 0%,#e9cf78 30%,#c89734 62%,#f2dc8a 100%)',
+  Diamond: 'linear-gradient(135deg,#f8fdff 0%,#d9f4ff 28%,#9fd8f5 58%,#c7b9f6 84%,#eef9ff 100%)',
+  Black: 'linear-gradient(135deg,#2c2f35 0%,#111317 46%,#30343d 72%,#0b0c0f 100%)',
 }
