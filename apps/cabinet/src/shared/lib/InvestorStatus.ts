@@ -81,3 +81,156 @@ export const tierMetallic: Record<InvestorTier, string> = {
   Diamond: 'linear-gradient(135deg,#f8fdff 0%,#d9f4ff 28%,#9fd8f5 58%,#c7b9f6 84%,#eef9ff 100%)',
   Black: 'linear-gradient(135deg,#2c2f35 0%,#111317 46%,#30343d 72%,#0b0c0f 100%)',
 }
+
+/* --- Привилегии уровней -----------------------------------------------
+ * Матрица — единственный источник правды для сравнения уровней, короткие
+ * списки ниже используются в карточках, где на таблицу нет места.
+ */
+
+export interface TierPerkRow {
+  label: string
+  /** Значение привилегии на каждом уровне; `null` — привилегия ещё не открыта. */
+  values: Record<InvestorTier, string | null>
+}
+
+export const TIER_PERK_MATRIX: TierPerkRow[] = [
+  {
+    label: 'Earn и базовые продукты',
+    values: { Member: 'Доступны', Silver: 'Доступны', Gold: 'Доступны', Diamond: 'Доступны', Black: 'Доступны' },
+  },
+  {
+    label: 'Strategies',
+    values: { Member: null, Silver: 'Доступны', Gold: 'Доступны', Diamond: 'Доступны', Black: 'Доступны' },
+  },
+  {
+    label: 'Доступ к Events',
+    values: { Member: 'Общий', Silver: 'Общий', Gold: 'За 24 часа до старта', Diamond: 'Закрытые Events', Black: 'Приватные сделки' },
+  },
+  {
+    label: 'Комиссия вывода',
+    values: { Member: '1.0%', Silver: '0.75%', Gold: '0.5%', Diamond: 'Без комиссии', Black: 'Без комиссии' },
+  },
+  {
+    label: 'Лимит вывода в сутки',
+    values: { Member: '$25,000', Silver: '$50,000', Gold: '$150,000', Diamond: 'Без лимита', Black: 'Без лимита' },
+  },
+  {
+    label: 'Ставка Earn',
+    values: { Member: 'Базовая', Silver: 'Базовая', Gold: '+0.3 п.п.', Diamond: 'Индивидуальная', Black: 'Индивидуальная' },
+  },
+  {
+    label: 'Поддержка',
+    values: { Member: '24/7', Silver: '24/7', Gold: 'Приоритетная', Diamond: 'Персональный менеджер', Black: 'Прямая линия с инвесткомитетом' },
+  },
+  {
+    label: 'Отчётность',
+    values: { Member: null, Silver: null, Gold: 'Раз в квартал', Diamond: 'Ежемесячно', Black: 'По запросу' },
+  },
+  {
+    label: 'Co-investment с фондом',
+    values: { Member: null, Silver: null, Gold: null, Diamond: null, Black: 'По приглашению' },
+  },
+]
+
+export const tierSummary: Record<InvestorTier, string> = {
+  Member: 'Стартовый уровень: Earn, базовые продукты и круглосуточная поддержка.',
+  Silver: 'Открываются Strategies и сниженная комиссия вывода.',
+  Gold: 'Ранний доступ к Events, приоритетная поддержка и повышенный лимит вывода.',
+  Diamond: 'Персональный менеджер, закрытые Events и вывод без комиссии.',
+  Black: 'Приватные сделки, co-investment с фондом и прямая линия с инвесткомитетом.',
+}
+
+/** Что появляется именно на этом уровне — для карточек «уже доступно» и «откроется». */
+export const tierPerks: Record<InvestorTier, string[]> = {
+  Member: ['Earn и базовые продукты', 'Поддержка 24/7', 'Лимит вывода $25,000 в сутки'],
+  Silver: ['Доступ к Strategies', 'Комиссия вывода 0.75%', 'Лимит вывода $50,000 в сутки'],
+  Gold: ['Ранний доступ к Events за 24 часа', 'Приоритетная поддержка', 'Ставка Earn +0.3 п.п.', 'Отчёт раз в квартал'],
+  Diamond: ['Персональный менеджер', 'Закрытые Events', 'Вывод без комиссии и без лимита', 'Индивидуальная ставка Earn'],
+  Black: ['Приватные сделки вне платформы', 'Co-investment с фондом', 'Прямая линия с инвесткомитетом'],
+}
+
+/* --- Правила начисления баллов ----------------------------------------
+ * Держим формулу и её описание рядом: страница уровней объясняет ровно то,
+ * что считает calculateInvestorStatus, и не расходится с ней при правках.
+ */
+
+export interface ScoreRule {
+  key: keyof InvestorStatusBreakdown
+  label: string
+  rule: string
+  /** Текущее значение показателя человекочитаемо. */
+  describe: (input: InvestorStatusInput) => string
+  hint: string
+}
+
+const usd = (value: number) => `$${Math.round(value).toLocaleString('en-US')}`
+
+export const SCORE_RULES: ScoreRule[] = [
+  {
+    key: 'capital',
+    label: 'Капитал в продуктах',
+    rule: '7.5 баллов за каждые $1,000',
+    describe: (input) => usd(input.qualifiedCapital),
+    hint: 'Свободный остаток на счёте не считается — баллы даёт только размещённый капитал.',
+  },
+  {
+    key: 'longTerm',
+    label: 'Долгосрочный капитал',
+    rule: '+4 балла за каждые $1,000 на срок от 12 месяцев',
+    describe: (input) => usd(input.longTermCapital),
+    hint: 'Контракт на 12 месяцев вместо 6 даёт те же деньги, но вдвое больше баллов.',
+  },
+  {
+    key: 'events',
+    label: 'Участие в Events',
+    rule: '4 балла за завершённый, 8 за активный',
+    describe: (input) => `${input.completedEvents} завершённых · ${input.activeEvents} активных`,
+    hint: 'Активные Events весят вдвое больше — статус реагирует сразу после входа в сделку.',
+  },
+  {
+    key: 'tenure',
+    label: 'Срок отношений',
+    rule: '5 баллов за месяц, максимум 100',
+    describe: (input) => `${input.tenureMonths} мес.`,
+    hint: 'Начисляется автоматически и достигает потолка через 20 месяцев.',
+  },
+  {
+    key: 'referrals',
+    label: 'Рекомендации',
+    rule: '15 баллов за квалифицированного реферала',
+    describe: (input) => `${input.qualifiedReferrals} квалифицированных`,
+    hint: 'Реферал считается квалифицированным после KYC и первого размещения капитала.',
+  },
+]
+
+/* --- Тема уровня -------------------------------------------------------
+ * Уровень окрашивает интерфейс: тёмная шапка профиля, подложки карточек
+ * и акценты берут тон отсюда, а не из общей палитры.
+ */
+
+/** Тёмная подложка шапки профиля. */
+export const tierHero: Record<InvestorTier, string> = {
+  Member: 'linear-gradient(135deg,#16181d 0%,#1d2027 54%,#272b34 100%)',
+  Silver: 'linear-gradient(135deg,#14171c 0%,#1c2129 52%,#2c333d 100%)',
+  Gold: 'linear-gradient(135deg,#15140f 0%,#201c12 50%,#302818 100%)',
+  Diamond: 'linear-gradient(135deg,#0f1820 0%,#142430 52%,#1b3444 100%)',
+  Black: 'linear-gradient(135deg,#08080a 0%,#131315 55%,#1f1f22 100%)',
+}
+
+/** Мягкая подложка светлых блоков в тон уровню. */
+export const tierSoft: Record<InvestorTier, string> = {
+  Member: '#f4f5f7',
+  Silver: '#f3f5f8',
+  Gold: '#faf5e9',
+  Diamond: '#eff7fc',
+  Black: '#f2f2f3',
+}
+
+/** Акцент уровня, читаемый на светлом фоне. */
+export const tierInk: Record<InvestorTier, string> = {
+  Member: '#5c616e',
+  Silver: '#6b7686',
+  Gold: '#9a7c25',
+  Diamond: '#2f7fae',
+  Black: '#1b1d22',
+}

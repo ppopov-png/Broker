@@ -1,50 +1,16 @@
 import { Bell, ChevronDown, HelpCircle, LogOut, User as UserIcon } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useBrokerAccount } from '../shared/lib/AccountContext'
-import { useFunding } from '../shared/lib/FundingContext'
-import { calculateInvestorStatus, tierAccent } from '../shared/lib/InvestorStatus'
+import { tierAccent } from '../shared/lib/InvestorStatus'
+import { useInvestorStatus } from '../shared/lib/useInvestorStatus'
 import { notifications } from '../shared/mock/data'
-
-type StoredContract = { amount?: number; termMonths?: number }
-
-function loadContracts() {
-  try {
-    const raw = window.localStorage.getItem('trigonum-broker-invest-contracts-v1')
-    return raw ? JSON.parse(raw) as StoredContract[] : [
-      { amount: 14_000, termMonths: 12 },
-      { amount: 12_000, termMonths: 6 },
-      { amount: 5_000, termMonths: 12 },
-    ]
-  } catch {
-    return []
-  }
-}
 
 export function Topbar() {
   const { activeAccount } = useBrokerAccount()
-  const { getAccountState } = useFunding()
   const [notifOpen, setNotifOpen] = useState(false)
   const [userOpen, setUserOpen] = useState(false)
-  const funding = getAccountState(activeAccount.id)
-
-  const investorStatus = useMemo(() => {
-    const contracts = loadContracts()
-    const invested = contracts.reduce((sum, contract) => sum + Number(contract.amount || 0), 0)
-    const longTermCapital = contracts
-      .filter((contract) => Number(contract.termMonths || 0) >= 12)
-      .reduce((sum, contract) => sum + Number(contract.amount || 0), 0)
-
-    return calculateInvestorStatus({
-      qualifiedCapital: invested + funding.lockedEvents,
-      longTermCapital,
-      completedEvents: 21,
-      activeEvents: 3,
-      tenureMonths: 11,
-      qualifiedReferrals: 4,
-    })
-  }, [activeAccount.id, funding.lockedEvents, funding.brokerBalance])
-
+  const { status: investorStatus } = useInvestorStatus()
   const investorAccent = tierAccent[investorStatus.tier]
 
   return (
@@ -95,7 +61,7 @@ export function Topbar() {
                 aria-hidden="true"
                 className="absolute inset-0 rounded-full"
                 style={{
-                  background: `conic-gradient(${investorAccent} 0 72%, transparent 72% 100%)`,
+                  background: `conic-gradient(${investorAccent} 0 ${investorStatus.progress}%, transparent ${investorStatus.progress}% 100%)`,
                   boxShadow: `0 0 0 1px ${investorAccent}33, 0 0 16px ${investorAccent}22`,
                 }}
               />
