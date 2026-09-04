@@ -387,22 +387,23 @@ export function ProfilePage() {
                       <div key={spec.key} className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
                         <span className="text-sm text-[var(--trigonum-muted)]">{spec.label}</span>
                         <span className="flex min-w-0 items-center gap-2">
-                          {value ? (
-                            <span className="truncate text-sm font-semibold text-[var(--trigonum-ink)]">{value}</span>
-                          ) : (
-                            <span className="text-sm text-[var(--trigonum-muted)]">
-                              {spec.required ? 'Требуется' : '—'}
-                            </span>
-                          )}
-                          {value && confirmed && (
-                            <Check size={14} strokeWidth={2.5} className="shrink-0 text-[var(--trigonum-success)] opacity-70" />
-                          )}
-                          {value && spec.verifiedNote && !confirmed && (
-                            <Clock size={14} className="shrink-0 text-[var(--trigonum-warning)]" />
-                          )}
-                          {!value && spec.required && (
-                            <span className="size-1.5 shrink-0 rounded-full bg-[var(--trigonum-warning)]" />
-                          )}
+                          <span
+                            className={`truncate text-sm ${value ? 'font-semibold text-[var(--trigonum-ink)]' : 'text-[var(--trigonum-muted)]'}`}
+                          >
+                            {value || (spec.required ? 'Требуется' : '—')}
+                          </span>
+                          {/* Слот фиксированной ширины держит правый край значений ровным */}
+                          <span className="grid w-4 shrink-0 place-items-center">
+                            {value && confirmed && (
+                              <Check size={14} strokeWidth={2.5} className="text-[var(--trigonum-success)] opacity-70" />
+                            )}
+                            {value && spec.verifiedNote && !confirmed && (
+                              <Clock size={14} className="text-[var(--trigonum-warning)]" />
+                            )}
+                            {!value && spec.required && (
+                              <span className="size-1.5 rounded-full bg-[var(--trigonum-warning)]" />
+                            )}
+                          </span>
                         </span>
                       </div>
                     )
@@ -678,7 +679,7 @@ function QuietChip({ children }: { children: ReactNode }) {
 
 function HeroMetric({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
-    <div className="px-6 py-4" style={{ background: 'rgb(0 0 0 / 18%)' }}>
+    <div className="px-7 py-4" style={{ background: 'rgb(0 0 0 / 18%)' }}>
       <p className="text-[10px] font-semibold uppercase tracking-[.14em] text-white/35">{label}</p>
       <p className="mt-1.5 text-lg font-semibold tabular-nums" style={{ color: accent ?? 'rgb(255 255 255 / 90%)' }}>
         {value}
