@@ -2,7 +2,7 @@ import { useBrokerAccount } from '../../../shared/lib/AccountContext'
 import { fundingHistory } from '../../../shared/mock/data'
 import type { FundingMethod, TransactionItem } from '../../../shared/mock/types'
 import { FundingPage } from '../../../shared/ui/FundingPage'
-import { PersonalFundingPage } from '../../../shared/ui/PersonalFundingPage'
+import { PersonalDepositV2 } from './PersonalDepositV2'
 
 const companyDepositMethods: FundingMethod[] = [
   {
@@ -31,7 +31,7 @@ export function DepositPage() {
   const { activeAccount } = useBrokerAccount()
 
   if (activeAccount.type === 'individual') {
-    return <PersonalFundingPage mode="deposit" />
+    return <PersonalDepositV2 />
   }
 
   const history = companyDeposits.length > 0 ? companyDeposits : fundingHistory.deposits
