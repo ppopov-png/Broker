@@ -3,10 +3,12 @@ import {
   allocationOrder,
   allocationProfile,
   currentAllocation,
+  currentLocks,
+  earningSources,
   eventHorizonDays,
-  realizedPnl,
-  unrealizedPnl,
+  lockDays,
   type AllocationKey,
+  type SourceKey,
 } from './capital-data'
 
 export type Allocation = Record<AllocationKey, number>
@@ -146,27 +148,124 @@ export function solveAllocation(targetIncome: number, maxRisk: number): SolveRes
   }
 }
 
-export interface PnlBreakdown {
-  alreadyRealized: number
-  lockingNow: number
-  remainingUnrealized: number
+/**
+ * Тело Earn/Strategies/Events заблокировано (лок ~3 месяца, Events — до закрытия окна).
+ * Уменьшить долю сейчас можно только на уже начисленную и ликвидную прибыль (`earned`) —
+ * остаток уходит в очередь до даты разлока. Увеличение доли — это довнесение новых денег:
+ * для Earn/Strategies оно открывает отдельный параллельный лок и не трогает старый;
+ * для Events довнесённое просто присоединяется к сроку того же события.
+ */
+export interface BucketPlan {
+  key: AllocationKey
+  fromAmount: number
+  toAmount: number
+  deltaAmount: number
+  /** Сколько по факту сдвинется прямо сейчас (вывод ликвидной прибыли, переброс кэша или довложение из пула). */
+  liquidNow: number
+  /** Сколько не удастся сдвинуть немедленно. */
+  queued: number
+  /** Причина: тело в локе (есть дата) или просто не хватило высвобожденного кэша на все довложения сразу. */
+  queuedReason?: 'lock' | 'funding'
+  queuedUntil?: string
+  newLock?: { amount: number; unlockDate: string; parallel: boolean }
 }
 
-/** Сколько прибыли фиксируется при переходе к новому распределению. */
-export function pnlOnApply(next: Allocation): PnlBreakdown {
-  const cutShare = (key: 'strategies' | 'events') => {
-    const current = currentAllocation[key]
-    if (current === 0) return 0
-    return Math.max(0, current - next[key]) / current
+export function bucketAmount(allocation: Allocation, key: AllocationKey): number {
+  return (capitalTotals.total * allocation[key]) / 100
+}
+
+function unlockDateFor(sourceKey: SourceKey): string {
+  return sourceKey === 'events' ? currentLocks.events.unlockDate : new Date(Date.now() + lockDays[sourceKey] * 86_400_000).toISOString().slice(0, 10)
+}
+
+/**
+ * Считаем план в два прохода: сначала — сколько кэша реально высвобождается прямо сейчас
+ * (уменьшение Available + ликвидная прибыль по сокращаемым локам), потом этим пулом
+ * покрываем довложения по порядку. Если пула не хватает на все увеличения — остаток
+ * помечается как «ждёт поступления средств», без даты (это не лок, а нехватка кэша).
+ */
+export function buildExecutionPlan(next: Allocation): BucketPlan[] {
+  const raw = allocationOrder.map((key) => {
+    const fromAmount = bucketAmount(currentAllocation, key)
+    const toAmount = bucketAmount(next, key)
+    return { key, fromAmount, toAmount, deltaAmount: toAmount - fromAmount }
+  })
+
+  const decreaseInfo = new Map<AllocationKey, { claimable: number; queued: number; queuedUntil: string }>()
+  let pool = 0
+
+  for (const r of raw) {
+    if (r.deltaAmount >= 0) continue
+    if (r.key === 'available') {
+      pool += -r.deltaAmount
+      continue
+    }
+    const sourceKey = r.key as SourceKey
+    const source = earningSources.find((s) => s.key === sourceKey)!
+    const reduceBy = -r.deltaAmount
+    const claimable = Math.min(reduceBy, source.earned)
+    pool += claimable
+    decreaseInfo.set(r.key, { claimable, queued: reduceBy - claimable, queuedUntil: currentLocks[sourceKey].unlockDate })
   }
 
-  const lockingNow = unrealizedPnl.strategies * cutShare('strategies') + unrealizedPnl.events * cutShare('events')
-  const totalUnrealized = unrealizedPnl.strategies + unrealizedPnl.events
+  return raw.map((r): BucketPlan => {
+    if (r.deltaAmount < 0) {
+      if (r.key === 'available') return { ...r, liquidNow: r.deltaAmount, queued: 0 }
+      const info = decreaseInfo.get(r.key)!
+      return {
+        ...r,
+        liquidNow: -info.claimable,
+        queued: info.queued,
+        queuedReason: info.queued > 0 ? 'lock' : undefined,
+        queuedUntil: info.queued > 0 ? info.queuedUntil : undefined,
+      }
+    }
 
+    // Увеличение доли покрываем из пула высвобожденного кэша — по порядку, пока пул не кончится.
+    const funded = Math.min(r.deltaAmount, pool)
+    pool -= funded
+    const shortfall = r.deltaAmount - funded
+
+    if (r.key === 'available') {
+      return { ...r, liquidNow: funded, queued: shortfall, queuedReason: shortfall > 0 ? 'funding' : undefined }
+    }
+
+    const sourceKey = r.key as SourceKey
+    return {
+      ...r,
+      liquidNow: funded,
+      queued: shortfall,
+      queuedReason: shortfall > 0 ? 'funding' : undefined,
+      newLock: funded > 0 ? { amount: funded, unlockDate: unlockDateFor(sourceKey), parallel: sourceKey !== 'events' } : undefined,
+    }
+  })
+}
+
+export interface ExecutionSummary {
+  plans: BucketPlan[]
+  liquidNow: number
+  queued: number
+  /** Часть очереди из-за лока тела капитала (Earn/Strategies/Events). */
+  queuedLock: number
+  /** Часть очереди из-за того, что от сокращений освободилось меньше кэша, чем нужно на довложения. */
+  queuedFunding: number
+  hasLockQueue: boolean
+  hasFundingQueue: boolean
+  hasNewLock: boolean
+}
+
+export function summarizePlan(next: Allocation): ExecutionSummary {
+  const plans = buildExecutionPlan(next)
+  const queuedBy = (reason: 'lock' | 'funding') => plans.reduce((sum, p) => sum + (p.queuedReason === reason ? p.queued : 0), 0)
   return {
-    alreadyRealized: realizedPnl,
-    lockingNow,
-    remainingUnrealized: totalUnrealized - lockingNow,
+    plans,
+    liquidNow: plans.reduce((sum, p) => sum + Math.max(0, p.liquidNow), 0),
+    queued: plans.reduce((sum, p) => sum + p.queued, 0),
+    queuedLock: queuedBy('lock'),
+    queuedFunding: queuedBy('funding'),
+    hasLockQueue: plans.some((p) => p.queuedReason === 'lock'),
+    hasFundingQueue: plans.some((p) => p.queuedReason === 'funding'),
+    hasNewLock: plans.some((p) => p.newLock),
   }
 }
 

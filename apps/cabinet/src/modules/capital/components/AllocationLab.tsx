@@ -1,4 +1,4 @@
-import { AlertTriangle, Check, RotateCcw, Sparkles, Target } from 'lucide-react'
+import { AlertTriangle, Check, Clock3, Lock, RotateCcw, Sparkles, Target, Zap } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
 import { formatCurrency, formatSigned } from '../../../shared/lib/format'
@@ -12,13 +12,13 @@ import { allocationOrder, allocationProfile, currentAllocation } from '../model/
 import {
   constraints,
   maxIncomeAtRisk,
-  pnlOnApply,
   projectedIncome,
   rebalance,
   riskLabel,
   riskPresets,
   riskScore,
   solveAllocation,
+  summarizePlan,
   yearForecast,
   type Allocation,
   type RiskPresetKey,
@@ -52,7 +52,7 @@ export function AllocationLab() {
   const { label: riskName, tone: riskTone } = riskLabel(risk)
   const delta = income - baseIncome
   const forecast = yearForecast(allocation)
-  const pnl = pnlOnApply(allocation)
+  const plan = useMemo(() => summarizePlan(allocation), [allocation])
   const touched = allocationOrder.some((key) => Math.abs(allocation[key] - currentAllocation[key]) > 0.5)
   const sliderMax = useMemo(() => Math.ceil(maxIncomeAtRisk(100) / 500) * 500, [])
 
@@ -166,6 +166,11 @@ export function AllocationLab() {
                   )}
                 </span>
               </div>
+
+              <p className="text-[11px] leading-snug text-[var(--trigonum-muted)]">
+                Это целевой план. Часть тела Earn/Strategies/Events может быть в локе — при применении система покажет, что исполнится
+                сразу, а что встанет в очередь.
+              </p>
 
               <div className="flex flex-col gap-2.5">
                 <p className="text-xs font-semibold uppercase tracking-wide text-[var(--trigonum-muted)]">Подобранное распределение</p>
@@ -291,22 +296,52 @@ export function AllocationLab() {
               />
             </div>
 
-            <div className="mt-3 border-t border-[var(--trigonum-border)] pt-3">
-              <div className="flex items-baseline justify-between gap-2">
-                <p className="text-xs text-[var(--trigonum-muted)]">Зафиксируется при применении</p>
+            <div className="mt-3 flex flex-col gap-2 border-t border-[var(--trigonum-border)] pt-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="flex items-center gap-1.5 text-xs text-[var(--trigonum-muted)]">
+                  <Zap size={12} className="text-[var(--trigonum-success)]" /> Исполнится сейчас
+                </p>
                 <AnimatedNumber
-                  value={pnl.lockingNow}
-                  format={(v) => (v < 1 ? '$0' : `+${formatCurrency(v)}`)}
+                  value={plan.liquidNow}
+                  format={(v) => formatCurrency(v)}
                   duration={350}
-                  className={`text-base font-bold ${pnl.lockingNow >= 1 ? 'text-[var(--trigonum-success)]' : 'text-[var(--trigonum-muted)]'}`}
+                  className="text-sm font-bold text-[var(--trigonum-success)]"
                 />
               </div>
-              <p className="mt-1 text-[11px] leading-snug text-[var(--trigonum-muted)]">
-                {pnl.lockingNow < 1
-                  ? 'Ни одна позиция не сокращается — прибыль не фиксируется'
-                  : 'Прибыль по сокращаемым позициям станет реальной'}
-                . Уже зафиксировано {formatCurrency(pnl.alreadyRealized)}, нереализованными останутся{' '}
-                {formatCurrency(pnl.remainingUnrealized)}.
+
+              {plan.hasLockQueue && (
+                <div className="flex items-center justify-between gap-2">
+                  <p className="flex items-center gap-1.5 text-xs text-[var(--trigonum-muted)]">
+                    <Lock size={12} className="text-[var(--trigonum-warning)]" /> Ждёт разлока тела
+                  </p>
+                  <AnimatedNumber
+                    value={plan.queuedLock}
+                    format={(v) => formatCurrency(v)}
+                    duration={350}
+                    className="text-sm font-bold text-[var(--trigonum-warning)]"
+                  />
+                </div>
+              )}
+
+              {plan.hasFundingQueue && (
+                <div className="flex items-center justify-between gap-2">
+                  <p className="flex items-center gap-1.5 text-xs text-[var(--trigonum-muted)]">
+                    <Clock3 size={12} className="text-[var(--trigonum-muted)]" /> Ждёт свободных денег
+                  </p>
+                  <AnimatedNumber
+                    value={plan.queuedFunding}
+                    format={(v) => formatCurrency(v)}
+                    duration={350}
+                    className="text-sm font-bold text-[var(--trigonum-text)]"
+                  />
+                </div>
+              )}
+
+              <p className="text-[11px] leading-snug text-[var(--trigonum-muted)]">
+                {plan.hasLockQueue && 'Тело Earn/Strategies/Events заблокировано ~3 месяца (Events — до закрытия окна): доступна только уже начисленная прибыль. '}
+                {plan.hasFundingQueue && 'Часть довложений ждёт денег, которые сами ещё в локе где-то ещё, — досрочно их не получить. '}
+                {!plan.hasLockQueue && !plan.hasFundingQueue && plan.hasNewLock && 'Довнесённые деньги откроют отдельный лок и не тронут действующий.'}
+                {!plan.hasLockQueue && !plan.hasFundingQueue && !plan.hasNewLock && 'Никаких блокировок это распределение не задевает.'}
               </p>
             </div>
           </div>

@@ -1,9 +1,9 @@
-import { Activity, TrendingUp } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Activity, TrendingUp, Wallet } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { formatCurrency, formatPercent } from '../../../shared/lib/format'
 import { Card } from '../../../shared/ui/Card'
 import { ProgressBar } from '../../../shared/ui/ProgressBar'
-import { earningSources, earningsPerSecond, totalEarned } from '../model/capital-data'
+import { earningSources, earningsPerSecond, monthlyAccruals, totalEarned } from '../model/capital-data'
 
 const TICK_MS = 100
 
@@ -20,9 +20,17 @@ export function LiveEarnings() {
   const perDay = earningsPerSecond * 86_400
   const perHour = earningsPerSecond * 3_600
 
+  const { avgMonth, bestMonth } = useMemo(() => {
+    const finished = monthlyAccruals.slice(0, -1)
+    const list = finished.length ? finished : monthlyAccruals
+    const avg = list.reduce((sum, m) => sum + m.amount, 0) / list.length
+    const best = list.reduce((max, m) => (m.amount > max.amount ? m : max), list[0])
+    return { avgMonth: avg, bestMonth: best }
+  }, [])
+
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_2fr] lg:items-start">
-      <Card className="bg-[linear-gradient(140deg,var(--trigonum-ink),#123a6b)] text-white">
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_2fr] lg:items-stretch">
+      <Card className="flex flex-col bg-[linear-gradient(140deg,var(--trigonum-ink),#123a6b)] text-white">
         <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/70">
           <Activity size={13} /> Заработано всего
         </p>
@@ -43,6 +51,25 @@ export function LiveEarnings() {
           <div className="rounded-lg bg-white/10 px-3 py-2">
             <p className="text-[11px] text-white/70">В сутки</p>
             <p className="text-sm font-semibold tabular-nums">{formatCurrency(perDay, true)}</p>
+          </div>
+          <div className="rounded-lg bg-white/10 px-3 py-2">
+            <p className="text-[11px] text-white/70">Средний месяц</p>
+            <p className="text-sm font-semibold tabular-nums">{formatCurrency(avgMonth, true)}</p>
+          </div>
+          <div className="rounded-lg bg-white/10 px-3 py-2">
+            <p className="text-[11px] text-white/70">Лучший месяц</p>
+            <p className="text-sm font-semibold tabular-nums">
+              {bestMonth.label} · {formatCurrency(bestMonth.amount, true)}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-1 items-end">
+          <div className="flex w-full items-center justify-between rounded-lg bg-white/10 px-3 py-2.5">
+            <span className="flex items-center gap-1.5 text-xs text-white/70">
+              <Wallet size={13} /> Доступно к выводу сейчас
+            </span>
+            <span className="text-sm font-bold tabular-nums text-[#7ee2b8]">{formatCurrency(totalEarned)}</span>
           </div>
         </div>
       </Card>

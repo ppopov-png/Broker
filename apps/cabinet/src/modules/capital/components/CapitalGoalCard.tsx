@@ -1,14 +1,20 @@
-import { Flag, Lightbulb } from 'lucide-react'
-import { useState } from 'react'
+import { Flag, Lightbulb, Rocket } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { formatCurrency } from '../../../shared/lib/format'
 import { capitalTotals } from '../../../shared/mock/data'
 import { AnimatedNumber } from '../../../shared/ui/AnimatedNumber'
 import { Card } from '../../../shared/ui/Card'
 import { ProgressBar } from '../../../shared/ui/ProgressBar'
-import { capitalGoalDefault, earningsPerSecond } from '../model/capital-data'
+import { capitalGoalDefault, earningsPerSecond, investorLevels } from '../model/capital-data'
 
 const YEAR_SECONDS = 365 * 24 * 60 * 60
 const annualIncome = earningsPerSecond * YEAR_SECONDS
+const MILESTONES = [25, 50, 75, 100]
+
+const presets = [
+  ...investorLevels.filter((l) => l.threshold > capitalTotals.total).map((l) => ({ label: `${l.label} · ${formatCurrency(l.threshold)}`, value: l.threshold })),
+  { label: '$1,000,000', value: 1_000_000 },
+]
 
 function formatEta(years: number): string {
   if (!Number.isFinite(years) || years <= 0) return 'цель уже достигнута'
@@ -20,6 +26,7 @@ function formatEta(years: number): string {
 
 export function CapitalGoalCard() {
   const [goal, setGoal] = useState(capitalGoalDefault)
+  const [targetYears, setTargetYears] = useState(5)
   const capital = capitalTotals.total
   const progress = Math.min(100, (capital / goal) * 100)
   const remaining = Math.max(0, goal - capital)
@@ -30,6 +37,17 @@ export function CapitalGoalCard() {
   const boostedRate = (annualIncome + capitalTotals.available * 0.07) / capital
   const boostedEta = Math.log(goal / capital) / Math.log(1 + boostedRate)
   const monthsSaved = Math.max(0, Math.round((eta - boostedEta) * 12))
+
+  // Сколько докладывать в месяц сверх органического роста, чтобы уложиться в targetYears.
+  const requiredMonthly = useMemo(() => {
+    const monthlyRate = rate / 12
+    const months = targetYears * 12
+    const compoundedCapital = capital * Math.pow(1 + monthlyRate, months)
+    const need = goal - compoundedCapital
+    if (need <= 0) return 0
+    const annuityFactor = monthlyRate === 0 ? months : (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate
+    return need / annuityFactor
+  }, [capital, goal, rate, targetYears])
 
   return (
     <Card
@@ -55,8 +73,38 @@ export function CapitalGoalCard() {
         </label>
       </div>
 
-      <div className="mt-3">
-        <ProgressBar value={progress} tone="green" />
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {presets.map((p) => (
+          <button
+            key={p.label}
+            type="button"
+            onClick={() => setGoal(p.value)}
+            className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
+              goal === p.value
+                ? 'border-[var(--trigonum-blue)] bg-[color-mix(in_srgb,var(--trigonum-blue)_8%,white)] text-[var(--trigonum-blue)]'
+                : 'border-[var(--trigonum-border)] text-[var(--trigonum-muted)] hover:border-[var(--trigonum-blue)]'
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4">
+        <div className="relative py-1">
+          <ProgressBar value={progress} tone="green" />
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2">
+            {MILESTONES.map((m) => (
+              <span
+                key={m}
+                className={`absolute size-3 -translate-x-1/2 rounded-full border-2 border-[var(--trigonum-surface)] ${
+                  progress >= m ? 'bg-[var(--trigonum-success)]' : 'bg-[var(--trigonum-border)]'
+                }`}
+                style={{ left: `${m}%` }}
+              />
+            ))}
+          </div>
+        </div>
         <div className="mt-1.5 flex items-center justify-between text-xs text-[var(--trigonum-muted)]">
           <span>
             <AnimatedNumber value={progress} format={(v) => v.toFixed(1)} duration={400} /> % пути пройдено
@@ -84,6 +132,34 @@ export function CapitalGoalCard() {
           Переведите {formatCurrency(capitalTotals.available)} из Available в Earn — цель приблизится примерно на {monthsSaved} мес.
         </p>
       )}
+
+      <div className="mt-3 rounded-xl border border-[var(--trigonum-border)] p-3">
+        <div className="mb-1.5 flex items-center justify-between">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--trigonum-text)]">
+            <Rocket size={13} className="text-[var(--trigonum-blue)]" /> Хочу уложиться за {targetYears} {targetYears === 1 ? 'год' : targetYears < 5 ? 'года' : 'лет'}
+          </p>
+        </div>
+        <input
+          type="range"
+          min={1}
+          max={15}
+          step={1}
+          value={targetYears}
+          onChange={(e) => setTargetYears(Number(e.target.value))}
+          className="w-full accent-[var(--trigonum-blue)]"
+          aria-label="Срок достижения цели"
+        />
+        <p className="mt-2 text-xs text-[var(--trigonum-muted)]">
+          {requiredMonthly <= 1 ? (
+            <>Органического роста уже достаточно — доплачивать не нужно</>
+          ) : (
+            <>
+              Нужно докладывать ещё <b className="text-[var(--trigonum-ink)]">{formatCurrency(requiredMonthly, true)}</b> в месяц сверх текущей
+              доходности
+            </>
+          )}
+        </p>
+      </div>
     </Card>
   )
 }
