@@ -5,7 +5,6 @@ import './styles/index.css'
 import './styles/interactions.css'
 import './styles/localization.css'
 import './styles/brand-fix.css'
-import './styles/performance.css'
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
