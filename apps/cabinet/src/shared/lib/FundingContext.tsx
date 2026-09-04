@@ -51,6 +51,7 @@ interface FundingContextValue {
   removeSource: (accountId: string, sourceId: string) => void
   recordDeposit: (accountId: string, transaction: FundingTransactionInput) => void
   recordWithdrawal: (accountId: string, transaction: FundingTransactionInput) => void
+  reserveInvestment: (accountId: string, amount: number) => void
 }
 
 const now = new Date().toISOString()
@@ -164,7 +165,22 @@ export function FundingProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const value = useMemo(() => ({ getAccountState, addSource, removeSource, recordDeposit, recordWithdrawal }), [states])
+  const reserveInvestment = (accountId: string, amount: number) => {
+    const current = states[accountId] ?? emptyState()
+    const normalizedAmount = Math.max(0, Number(amount) || 0)
+    persist({
+      ...states,
+      [accountId]: {
+        ...current,
+        brokerBalance: Math.max(0, current.brokerBalance - normalizedAmount),
+      },
+    })
+  }
+
+  const value = useMemo(
+    () => ({ getAccountState, addSource, removeSource, recordDeposit, recordWithdrawal, reserveInvestment }),
+    [states],
+  )
 
   return <FundingContext.Provider value={value}>{children}</FundingContext.Provider>
 }
