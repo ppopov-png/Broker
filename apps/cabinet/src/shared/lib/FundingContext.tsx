@@ -32,6 +32,7 @@ export interface FundingTransactionRecord {
   amount: number
   status: FundingTransactionStatus
   txHash?: string
+  hash?: never
 }
 
 type FundingTransactionInput = Omit<FundingTransactionRecord, 'type'> & { type: string }
