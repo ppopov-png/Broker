@@ -30,7 +30,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --no-fund
 
       - name: Build public site
         run: npm run build --workspace=@trigonum/site -- --base /${{ github.event.repository.name }}/
