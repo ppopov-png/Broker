@@ -4,7 +4,7 @@ import worldMap from '../assets/world-map.svg'
 import { useI18n } from '../i18n/I18nProvider'
 import { onboardingUrl } from '../lib/appLinks'
 
-type Stream = { angle: number; color: [number, number, number] }
+type Stream = { angle: number; color: string }
 
 type Particle = {
   stream: number
@@ -18,9 +18,9 @@ type Particle = {
 }
 
 const streams: Stream[] = [
-  { angle: Math.PI, color: [146, 242, 34] },
-  { angle: -Math.PI / 4, color: [175, 71, 255] },
-  { angle: Math.PI / 2, color: [18, 204, 255] },
+  { angle: Math.PI, color: 'rgb(146 242 34)' },
+  { angle: -Math.PI / 4, color: 'rgb(175 71 255)' },
+  { angle: Math.PI / 2, color: 'rgb(18 204 255)' },
 ]
 
 export function HeroSection() {
@@ -38,7 +38,8 @@ export function HeroSection() {
     const canvas = canvasRef.current
     const host = canvas?.closest('.hero') as HTMLElement | null
     if (!canvas || !host) return
-    const ctx = canvas.getContext('2d')
+
+    const ctx = canvas.getContext('2d', { alpha: true })
     if (!ctx) return
 
     let width = 0
@@ -47,31 +48,57 @@ export function HeroSection() {
     let centerY = 0
     let raf = 0
     let hovered = false
+    let visible = true
     let lastTime = performance.now()
+    let spawnAccumulator = 0
+    let spawnCursor = 0
     let pointer: { x: number; y: number } | null = null
+    let leftFade: CanvasGradient | null = null
+    let rightFade: CanvasGradient | null = null
+
     const focus = { x: 0, y: 0 }
     const particles: Particle[] = []
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     const resize = () => {
       const rect = canvas.getBoundingClientRect()
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.35)
       width = rect.width
       height = rect.height
-      canvas.width = Math.round(width * dpr)
-      canvas.height = Math.round(height * dpr)
+      canvas.width = Math.max(1, Math.round(width * dpr))
+      canvas.height = Math.max(1, Math.round(height * dpr))
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
       centerX = width * 0.585
       centerY = height * 0.5
+
       if (!pointer) {
         focus.x = centerX
         focus.y = centerY
       }
+
+      leftFade = ctx.createLinearGradient(0, 0, width * 0.38, 0)
+      leftFade.addColorStop(0, 'rgba(247,248,251,.97)')
+      leftFade.addColorStop(0.58, 'rgba(247,248,251,.54)')
+      leftFade.addColorStop(1, 'rgba(247,248,251,0)')
+
+      rightFade = ctx.createLinearGradient(width * 0.79, 0, width, 0)
+      rightFade.addColorStop(0, 'rgba(247,248,251,0)')
+      rightFade.addColorStop(1, 'rgba(247,248,251,.9)')
     }
 
-    const observer = new ResizeObserver(resize)
-    observer.observe(canvas)
+    const resizeObserver = new ResizeObserver(resize)
+    resizeObserver.observe(canvas)
     resize()
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting
+        lastTime = performance.now()
+      },
+      { threshold: 0.02 },
+    )
+    visibilityObserver.observe(host)
 
     const setPointer = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect()
@@ -82,49 +109,148 @@ export function HeroSection() {
     }
 
     const spawn = (stream: number, warm = false) => {
-      const depth = 0.35 + Math.random() * 0.95
+      const depth = 0.42 + Math.random() * 0.78
       const jitter = (Math.random() + Math.random() - 1) * 0.72
+
       particles.push({
         stream,
         angle: streams[stream].angle + jitter,
-        t: warm ? Math.random() * 0.78 : 0,
-        speed: (0.0038 + Math.random() * 0.0044) * (0.62 + depth * 0.72),
-        length: (170 + Math.random() * 260) * (0.7 + depth * 0.72),
-        width: (0.7 + Math.random() * 1.8) * (0.72 + depth * 0.8),
+        t: warm ? Math.random() * 0.72 : 0,
+        speed: 0.5 + Math.random() * 0.38 + depth * 0.12,
+        length: (185 + Math.random() * 260) * (0.72 + depth * 0.55),
+        width: (0.72 + Math.random() * 1.45) * (0.7 + depth * 0.65),
         depth,
-        offset: (Math.random() - 0.5) * 0.16,
+        offset: (Math.random() - 0.5) * 0.15,
       })
     }
 
     const burst = (perStream: number) => {
+      const hardLimit = hovered ? 205 : 55
       streams.forEach((_, streamIndex) => {
-        for (let i = 0; i < perStream; i += 1) spawn(streamIndex, true)
+        for (let i = 0; i < perStream && particles.length < hardLimit; i += 1) {
+          spawn(streamIndex, true)
+        }
       })
     }
 
     const enter = (event: PointerEvent) => {
       hovered = true
       setPointer(event)
-      if (!reduced) burst(42)
+      spawnAccumulator = 0
+      if (!reduced) burst(18)
     }
 
     const move = (event: PointerEvent) => {
-      hovered = true
       setPointer(event)
     }
 
     const leave = () => {
       hovered = false
       pointer = null
+      spawnAccumulator = 0
     }
 
     host.addEventListener('pointerenter', enter)
-    host.addEventListener('pointermove', move)
+    host.addEventListener('pointermove', move, { passive: true })
     host.addEventListener('pointerleave', leave)
 
+    const drawParticles = (dt: number) => {
+      const maxParticles = hovered ? 205 : 55
+      const spawnRate = hovered ? 76 : 10
+
+      if (!reduced && particles.length < maxParticles) {
+        spawnAccumulator += dt * spawnRate
+        while (spawnAccumulator >= 1 && particles.length < maxParticles) {
+          spawn(spawnCursor % streams.length)
+          spawnCursor += 1
+          spawnAccumulator -= 1
+        }
+      }
+
+      const reach = Math.max(width, height) * 1.08
+      let writeIndex = 0
+
+      for (let index = 0; index < particles.length; index += 1) {
+        const particle = particles[index]
+        if (!reduced) particle.t += particle.speed * dt * (hovered ? 1 : 0.68)
+        if (particle.t >= 1) continue
+
+        particles[writeIndex] = particle
+        writeIndex += 1
+
+        const perspectiveAngle = particle.angle + particle.offset * (1 - particle.t)
+        const nx = Math.cos(perspectiveAngle)
+        const ny = Math.sin(perspectiveAngle)
+        const perspective = Math.pow(Math.max(0, 1 - particle.t), 1.16)
+        const distance = reach * perspective
+        const headX = focus.x + nx * distance
+        const headY = focus.y + ny * distance
+        const apparentLength = particle.length * (0.43 + particle.t * 1.12) * particle.depth
+        const tailDistance = distance + apparentLength
+        const tailX = focus.x + nx * tailDistance
+        const tailY = focus.y + ny * tailDistance
+
+        const fadeIn = Math.min(1, particle.t * 5)
+        const fadeOut = Math.max(0, 1 - particle.t * particle.t)
+        const alpha = fadeIn * fadeOut * (0.26 + particle.depth * 0.52) * (hovered ? 1 : 0.46)
+
+        ctx.globalAlpha = alpha * 0.3
+        ctx.strokeStyle = streams[particle.stream].color
+        ctx.lineWidth = particle.width * (0.62 + particle.t * 1.02)
+        ctx.lineCap = 'round'
+        ctx.beginPath()
+        ctx.moveTo(tailX, tailY)
+        ctx.lineTo(headX, headY)
+        ctx.stroke()
+
+        const highlightStart = 0.54
+        const brightX = tailX + (headX - tailX) * highlightStart
+        const brightY = tailY + (headY - tailY) * highlightStart
+        ctx.globalAlpha = alpha * 0.72
+        ctx.lineWidth = Math.max(0.6, particle.width * (0.42 + particle.t * 0.74))
+        ctx.beginPath()
+        ctx.moveTo(brightX, brightY)
+        ctx.lineTo(headX, headY)
+        ctx.stroke()
+      }
+
+      particles.length = writeIndex
+      ctx.globalAlpha = 1
+    }
+
+    const drawFocus = (time: number) => {
+      const pulse = reduced ? 0.6 : 0.5 + 0.5 * Math.sin(time / (hovered ? 560 : 850))
+      const radius = hovered ? 112 : 88
+
+      ctx.globalAlpha = hovered ? 0.08 + pulse * 0.04 : 0.05 + pulse * 0.025
+      ctx.fillStyle = '#7575ff'
+      ctx.beginPath()
+      ctx.arc(focus.x, focus.y, radius, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.globalAlpha = hovered ? 0.12 + pulse * 0.05 : 0.07
+      ctx.fillStyle = '#af47ff'
+      ctx.beginPath()
+      ctx.arc(focus.x, focus.y, radius * 0.48, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.globalAlpha = 1
+      ctx.strokeStyle = `rgba(90,90,196,${hovered ? 0.5 + pulse * 0.28 : 0.3 + pulse * 0.2})`
+      ctx.lineWidth = hovered ? 1.5 : 1.2
+      ctx.beginPath()
+      ctx.arc(focus.x, focus.y, (hovered ? 25 : 22) + pulse * (hovered ? 9 : 6), 0, Math.PI * 2)
+      ctx.stroke()
+    }
+
     const draw = (time: number) => {
-      const delta = Math.min(2.2, Math.max(0.45, (time - lastTime) / 16.667))
+      const rawDt = (time - lastTime) / 1000
+      const dt = Math.min(0.034, Math.max(0.001, rawDt))
       lastTime = time
+
+      if (!visible || document.hidden) {
+        raf = requestAnimationFrame(draw)
+        return
+      }
 
       ctx.clearRect(0, 0, width, height)
 
@@ -135,110 +261,39 @@ export function HeroSection() {
           }
         : { x: centerX, y: centerY }
 
-      focus.x += (target.x - focus.x) * (hovered ? 0.14 : 0.075)
-      focus.y += (target.y - focus.y) * (hovered ? 0.14 : 0.075)
+      const easing = hovered ? 0.15 : 0.075
+      focus.x += (target.x - focus.x) * easing
+      focus.y += (target.y - focus.y) * easing
 
-      if (!reduced) {
-        const maxParticles = hovered ? 520 : 95
-        const spawnChance = hovered ? 0.96 : 0.2
-        const perStream = hovered ? 3 : 1
+      drawParticles(dt)
+      drawFocus(time)
 
-        if (particles.length < maxParticles) {
-          streams.forEach((_, streamIndex) => {
-            for (let i = 0; i < perStream; i += 1) {
-              if (Math.random() < spawnChance) spawn(streamIndex)
-            }
-          })
-        }
+      if (leftFade) {
+        ctx.fillStyle = leftFade
+        ctx.fillRect(0, 0, width * 0.38, height)
       }
-
-      const reach = Math.max(width, height) * 1.08
-      for (let index = particles.length - 1; index >= 0; index -= 1) {
-        const particle = particles[index]
-        if (!reduced) particle.t += particle.speed * delta * (hovered ? 1.18 : 0.62)
-
-        const stream = streams[particle.stream]
-        const perspectiveAngle = particle.angle + particle.offset * (1 - particle.t)
-        const nx = Math.cos(perspectiveAngle)
-        const ny = Math.sin(perspectiveAngle)
-
-        const perspective = Math.pow(Math.max(0, 1 - particle.t), 1.18)
-        const distance = reach * perspective
-        const headX = focus.x + nx * distance
-        const headY = focus.y + ny * distance
-
-        const apparentLength = particle.length * (0.42 + particle.t * 1.18) * particle.depth
-        const tailDistance = distance + apparentLength
-        const tailX = focus.x + nx * tailDistance
-        const tailY = focus.y + ny * tailDistance
-
-        const fadeIn = Math.min(1, particle.t * 5)
-        const fadeOut = Math.max(0, 1 - Math.pow(particle.t, 2.5))
-        const alpha = fadeIn * fadeOut * (0.28 + particle.depth * 0.53) * (hovered ? 1 : 0.56)
-
-        const gradient = ctx.createLinearGradient(tailX, tailY, headX, headY)
-        gradient.addColorStop(0, `rgba(${stream.color.join(',')},0)`)
-        gradient.addColorStop(0.28, `rgba(${stream.color.join(',')},${alpha * 0.2})`)
-        gradient.addColorStop(0.72, `rgba(${stream.color.join(',')},${alpha * 0.7})`)
-        gradient.addColorStop(1, `rgba(${stream.color.join(',')},${alpha})`)
-
-        ctx.strokeStyle = gradient
-        ctx.lineWidth = particle.width * (0.62 + particle.t * 1.16)
-        ctx.lineCap = 'round'
-        ctx.beginPath()
-        ctx.moveTo(tailX, tailY)
-        ctx.lineTo(headX, headY)
-        ctx.stroke()
-
-        if (particle.t >= 1) particles.splice(index, 1)
+      if (rightFade) {
+        ctx.fillStyle = rightFade
+        ctx.fillRect(width * 0.79, 0, width * 0.21, height)
       }
-
-      const pulse = reduced ? 0.6 : 0.5 + 0.5 * Math.sin(time / (hovered ? 560 : 850))
-      const haloRadius = hovered ? 118 : 92
-      const halo = ctx.createRadialGradient(focus.x, focus.y, 0, focus.x, focus.y, haloRadius)
-      halo.addColorStop(0, `rgba(117,117,255,${hovered ? 0.32 + pulse * 0.22 : 0.2 + pulse * 0.13})`)
-      halo.addColorStop(0.38, `rgba(175,71,255,${hovered ? 0.12 + pulse * 0.08 : 0.05})`)
-      halo.addColorStop(1, 'rgba(117,117,255,0)')
-      ctx.fillStyle = halo
-      ctx.beginPath()
-      ctx.arc(focus.x, focus.y, haloRadius, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.strokeStyle = `rgba(90,90,196,${hovered ? 0.52 + pulse * 0.34 : 0.32 + pulse * 0.25})`
-      ctx.lineWidth = hovered ? 1.6 : 1.25
-      ctx.beginPath()
-      ctx.arc(focus.x, focus.y, (hovered ? 25 : 22) + pulse * (hovered ? 10 : 7), 0, Math.PI * 2)
-      ctx.stroke()
-
-      const leftFade = ctx.createLinearGradient(0, 0, width * 0.38, 0)
-      leftFade.addColorStop(0, 'rgba(247,248,251,.97)')
-      leftFade.addColorStop(0.58, 'rgba(247,248,251,.54)')
-      leftFade.addColorStop(1, 'rgba(247,248,251,0)')
-      ctx.fillStyle = leftFade
-      ctx.fillRect(0, 0, width * 0.38, height)
-
-      const rightFade = ctx.createLinearGradient(width * 0.79, 0, width, 0)
-      rightFade.addColorStop(0, 'rgba(247,248,251,0)')
-      rightFade.addColorStop(1, 'rgba(247,248,251,.9)')
-      ctx.fillStyle = rightFade
-      ctx.fillRect(width * 0.79, 0, width * 0.21, height)
 
       raf = requestAnimationFrame(draw)
     }
 
     if (reduced) {
       streams.forEach((_, streamIndex) => {
-        for (let i = 0; i < 8; i += 1) spawn(streamIndex, true)
+        for (let i = 0; i < 6; i += 1) spawn(streamIndex, true)
       })
     } else {
-      burst(12)
+      burst(8)
     }
 
     raf = requestAnimationFrame(draw)
 
     return () => {
       cancelAnimationFrame(raf)
-      observer.disconnect()
+      resizeObserver.disconnect()
+      visibilityObserver.disconnect()
       host.removeEventListener('pointerenter', enter)
       host.removeEventListener('pointermove', move)
       host.removeEventListener('pointerleave', leave)
