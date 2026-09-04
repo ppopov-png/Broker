@@ -1,0 +1,1033 @@
+<title>Профиль клиента Trigonum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ── Обвязка макета (следует теме читателя) ───────────────────────── */
+:root {
+  --page-bg: #eaeef4;
+  --page-fg: #17233f;
+  --page-muted: #64708a;
+  --page-panel: #ffffff;
+  --page-line: #d5dde8;
+  --page-accent: #0f5fe8;
+  --page-shadow: 0 30px 80px rgb(8 27 58 / 14%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page-bg: #0a0d13;
+    --page-fg: #e7ecf5;
+    --page-muted: #8b97ad;
+    --page-panel: #121721;
+    --page-line: #222a38;
+    --page-accent: #5b9bff;
+    --page-shadow: 0 30px 80px rgb(0 0 0 / 55%);
+  }
+}
+:root[data-theme="dark"] {
+  --page-bg: #0a0d13;
+  --page-fg: #e7ecf5;
+  --page-muted: #8b97ad;
+  --page-panel: #121721;
+  --page-line: #222a38;
+  --page-accent: #5b9bff;
+  --page-shadow: 0 30px 80px rgb(0 0 0 / 55%);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--page-fg);
+  font-family: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 44px 28px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.brief { display: flex; flex-direction: column; gap: 12px; max-width: 66ch; }
+.eyebrow {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--page-muted);
+  margin: 0;
+}
+.brief h1 {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 600;
+  letter-spacing: -.035em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.brief p { margin: 0; color: var(--page-muted); font-size: 15px; }
+
+.tokenbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.token {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--page-line);
+  border-radius: 999px;
+  padding: 5px 11px 5px 6px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--page-muted);
+  background: var(--page-panel);
+}
+.token i { width: 13px; height: 13px; border-radius: 4px; display: block; }
+
+/* ── Рамка устройства ─────────────────────────────────────────────── */
+.device {
+  border: 1px solid var(--page-line);
+  border-radius: 16px;
+  background: var(--page-panel);
+  box-shadow: var(--page-shadow);
+  overflow: hidden;
+}
+.device-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--page-line);
+}
+.dots { display: flex; gap: 6px; }
+.dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--page-line); }
+.addr {
+  flex: 1;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  color: var(--page-muted);
+  background: var(--page-bg);
+  border-radius: 7px;
+  padding: 5px 11px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.addr b { color: var(--page-fg); font-weight: 500; }
+.viewport { overflow-x: auto; }
+
+/* ── Продуктовые токены (packages/brand/src/tokens.css) ───────────── */
+.screen {
+  --blue: #0f5fe8;
+  --cyan: #0ea5c6;
+  --green: #24b768;
+  --violet: #7c3aed;
+  --ink: #081b3a;
+  --text: #17233f;
+  --muted: #667085;
+  --bg: #f6f8fb;
+  --surface: #ffffff;
+  --border: #dbe2ea;
+  --success: #22a447;
+  --warning: #f59e0b;
+  --hairline: #eef1f6;
+  --gold-1: #f2e6bd;
+  --gold-2: #c9a53f;
+  --gold-3: #8f6d18;
+
+  min-width: 1240px;
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.screen .mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+/* ── Сайдбар ──────────────────────────────────────────────────────── */
+.side {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.logo { display: flex; align-items: center; gap: 9px; padding: 0 8px; }
+.logo-mark {
+  width: 28px; height: 28px; border-radius: 9px;
+  background: linear-gradient(140deg, var(--blue), var(--cyan) 58%, var(--green));
+  display: grid; place-items: center;
+}
+.logo-mark svg { width: 15px; height: 15px; color: #fff; }
+.logo-text { font-size: 15px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); }
+
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13.5px; font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
+}
+.nav a svg { width: 18px; height: 18px; flex: none; opacity: .78; }
+.nav a span { flex: 1; }
+.nav a.on {
+  background: color-mix(in srgb, var(--blue) 10%, white);
+  color: var(--blue);
+}
+.nav a.on svg { opacity: 1; }
+.nav .tag {
+  background: var(--green); color: #fff;
+  font-size: 9.5px; font-weight: 700; letter-spacing: .04em;
+  border-radius: 999px; padding: 2px 6px;
+}
+.nav-sep { height: 1px; background: var(--border); margin: 10px 0; }
+
+.side-promo { border-radius: 12px; background: var(--bg); padding: 14px; }
+.side-promo p { margin: 0; font-size: 12px; }
+.side-promo p:first-child { font-weight: 600; color: var(--ink); }
+.side-promo p:nth-child(2) { color: var(--muted); margin-top: 2px; }
+.side-promo span { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--blue); }
+
+.acct {
+  margin-top: auto;
+  display: flex; align-items: flex-start; gap: 10px;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--surface); padding: 10px;
+}
+.acct-ico {
+  width: 36px; height: 36px; border-radius: 9px; flex: none;
+  background: #e7efff; color: #1554c0; display: grid; place-items: center;
+}
+.acct-ico svg { width: 17px; height: 17px; }
+.acct b { display: block; font-size: 12px; font-weight: 700; color: var(--ink); line-height: 1.35; }
+.acct em { display: block; font-style: normal; font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+.acct > svg { width: 14px; height: 14px; color: var(--muted); margin-top: 4px; flex: none; }
+.copyright { font-size: 10.5px; color: var(--muted); padding: 0 8px; }
+
+/* ── Топбар ───────────────────────────────────────────────────────── */
+.main { display: flex; flex-direction: column; min-width: 0; }
+.top {
+  height: 64px; flex: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 10px; padding: 0 24px;
+}
+.crumb { margin-right: auto; font-size: 13px; color: var(--muted); }
+.crumb b { color: var(--text); font-weight: 600; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center; color: var(--muted); position: relative;
+}
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn .dot {
+  position: absolute; top: 7px; right: 7px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--warning); border: 2px solid var(--surface);
+}
+.top-tier {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 5px 12px 5px 6px; font-size: 12px; font-weight: 600; color: var(--text);
+}
+.top-tier i { width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(140deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3)); display: block; }
+.top-user {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 10px 4px 4px; border-radius: 999px; border: 1px solid var(--border);
+}
+.top-user i {
+  width: 30px; height: 30px; border-radius: 50%; background: #e7efff; color: #1554c0;
+  display: grid; place-items: center; font-size: 11.5px; font-weight: 700; font-style: normal;
+}
+.top-user span { font-size: 12.5px; font-weight: 600; }
+.top-user svg { width: 14px; height: 14px; color: var(--muted); }
+
+/* ── Полотно страницы ─────────────────────────────────────────────── */
+.canvas { padding: 22px 24px 34px; display: flex; flex-direction: column; gap: 18px; }
+
+/* Шапка-идентичность */
+.hero {
+  position: relative; overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid #292b38;
+  background: linear-gradient(145deg, #101116 0%, #171922 48%, #232632 100%);
+  color: #fff;
+  padding: 30px;
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  gap: 30px; align-items: center;
+}
+.hero::before, .hero::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; }
+.hero::before { width: 480px; height: 480px; right: -110px; top: -190px; background: radial-gradient(circle, rgb(255 255 255 / 7%) 0%, transparent 68%); }
+.hero::after { width: 360px; height: 360px; right: 26%; bottom: -200px; background: radial-gradient(circle, rgb(201 165 63 / 16%) 0%, transparent 70%); }
+.hero > * { position: relative; }
+
+.identity { display: flex; align-items: center; gap: 20px; min-width: 0; }
+.avatar { position: relative; flex: none; }
+.avatar > b {
+  width: 84px; height: 84px; border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 5.5%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 7%);
+  display: grid; place-items: center;
+  font-size: 25px; font-weight: 600; letter-spacing: -.03em;
+}
+.avatar .verified {
+  position: absolute; right: -4px; bottom: -4px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #2d9a58; border: 4px solid #171922;
+  display: grid; place-items: center;
+}
+.avatar .verified svg { width: 13px; height: 13px; stroke-width: 3; }
+
+.identity .kicker {
+  margin: 0; font-size: 10px; font-weight: 600;
+  letter-spacing: .18em; text-transform: uppercase; color: rgb(255 255 255 / 38%);
+}
+.identity h2 { margin: 8px 0 0; font-size: 35px; font-weight: 500; letter-spacing: -.04em; line-height: 1; }
+.identity .sub { margin: 10px 0 0; font-size: 13.5px; color: rgb(255 255 255 / 42%); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.chip {
+  border: 1px solid rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 3.5%);
+  border-radius: 999px; padding: 4px 10px;
+  font-size: 10.5px; font-weight: 500; color: rgb(255 255 255 / 50%);
+}
+
+.hero-right { display: grid; grid-template-columns: 1.05fr .95fr; gap: 12px; }
+.tier {
+  position: relative; overflow: hidden;
+  border-radius: 20px; border: 1px solid rgb(255 255 255 / 10%);
+  padding: 1px; box-shadow: 0 16px 38px rgb(0 0 0 / 20%);
+  background: linear-gradient(150deg, var(--gold-1) 0%, #d9c079 28%, var(--gold-2) 55%, var(--gold-3) 82%, #d7bd72 100%);
+}
+.tier-in {
+  border-radius: 19px; padding: 18px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 13%), rgb(255 255 255 / 4%));
+  backdrop-filter: blur(12px);
+  min-height: 150px;
+  display: flex; flex-direction: column;
+}
+.tier .lbl { font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: rgb(0 0 0 / 45%); margin: 0; }
+.tier .name { margin: 6px 0 0; font-size: 25px; font-weight: 600; letter-spacing: -.03em; color: #1c1e25; }
+.tier .info { width: 16px; height: 16px; color: rgb(0 0 0 / 40%); }
+.tier .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.tier .track { margin-top: auto; height: 5px; border-radius: 999px; background: rgb(0 0 0 / 14%); overflow: hidden; }
+.tier .track i { display: block; height: 100%; width: 34.8%; border-radius: 999px; background: #201f18; }
+.tier .foot { display: flex; justify-content: space-between; gap: 10px; margin-top: 9px; font-size: 10px; font-weight: 600; color: rgb(0 0 0 / 48%); }
+
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.metric { border: 1px solid rgb(255 255 255 / 8%); background: rgb(255 255 255 / 3.5%); border-radius: 16px; padding: 13px; }
+.metric p { margin: 0; font-size: 8.5px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: rgb(255 255 255 / 30%); }
+.metric b { display: block; margin-top: 7px; font-size: 15px; font-weight: 600; color: rgb(255 255 255 / 88%); }
+
+/* Полоса заполненности */
+.complete {
+  display: grid; grid-template-columns: minmax(300px, 1fr) auto; gap: 22px; align-items: center;
+  border: 1px solid var(--border); border-radius: 18px;
+  background: var(--surface); padding: 16px 18px;
+  box-shadow: 0 12px 38px rgb(8 27 58 / 5%);
+}
+.complete .row { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+.complete .row p { margin: 0; font-size: 13px; font-weight: 600; color: var(--ink); }
+.complete .row em { font-style: normal; font-size: 12px; color: var(--muted); }
+.complete .bar { margin-top: 10px; height: 6px; border-radius: 999px; background: var(--hairline); overflow: hidden; }
+.complete .bar i { display: block; height: 100%; width: 85%; border-radius: 999px; background: linear-gradient(90deg, var(--blue), var(--cyan) 58%, var(--green)); }
+.todo { display: flex; gap: 8px; }
+.todo a {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 8px 12px; font-size: 12px; font-weight: 600; color: var(--text); text-decoration: none;
+  background: var(--surface); white-space: nowrap;
+}
+.todo a svg { width: 13px; height: 13px; color: var(--muted); }
+.todo a .warn { width: 6px; height: 6px; border-radius: 50%; background: var(--warning); }
+
+/* Сетка карточек */
+.grid { display: grid; grid-template-columns: 1.18fr .82fr; gap: 18px; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 18px; }
+
+.card {
+  position: relative;
+  border: 1px solid var(--border); border-radius: 20px;
+  background: var(--surface); padding: 20px;
+  box-shadow: 0 12px 38px rgb(8 27 58 / 5%);
+}
+.card > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.card h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: -.01em; }
+.card header p { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
+.ghost-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--border); border-radius: 9px;
+  background: var(--surface); padding: 7px 11px;
+  font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap;
+}
+.ghost-btn svg { width: 14px; height: 14px; }
+
+/* Личные данные */
+.fields > div {
+  display: grid; grid-template-columns: 200px 1fr auto; gap: 14px; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--hairline);
+}
+.fields > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.fields .k { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12.5px; font-weight: 500; }
+.fields .k span { width: 32px; height: 32px; border-radius: 9px; background: var(--bg); color: #5d606a; display: grid; place-items: center; flex: none; }
+.fields .k svg { width: 16px; height: 16px; }
+.fields .v { font-size: 13.5px; font-weight: 600; color: var(--ink); text-align: right; }
+.verified-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10.5px; font-weight: 600; color: #2f8050;
+  background: #eaf6ee; border-radius: 999px; padding: 3px 9px; white-space: nowrap;
+}
+.verified-tag i { width: 5px; height: 5px; border-radius: 50%; background: #3b9c60; }
+.pending-tag { background: #fef4e4; color: #99680d; }
+.pending-tag i { background: var(--warning); }
+.slot { width: 96px; }
+
+/* Реферальная программа */
+.ref { display: grid; grid-template-columns: 1.08fr .92fr; gap: 16px; }
+.ref-card {
+  position: relative; overflow: hidden;
+  border-radius: 18px; border: 1px solid #2a2c34;
+  background: linear-gradient(145deg, #15171c, #20232b);
+  color: #fff; padding: 18px;
+}
+.ref-card::after {
+  content: ""; position: absolute; right: -80px; top: -96px;
+  width: 256px; height: 256px; border-radius: 50%;
+  background: radial-gradient(circle, rgb(201 165 63 / 14%), transparent 70%);
+}
+.ref-card > * { position: relative; }
+.ref-card .lbl { margin: 0; font-size: 9px; font-weight: 600; letter-spacing: .17em; text-transform: uppercase; color: rgb(255 255 255 / 35%); }
+.ref-card .code { margin: 8px 0 0; font-size: 25px; font-weight: 500; letter-spacing: .08em; }
+.ref-link {
+  display: flex; align-items: center; gap: 10px; margin-top: 14px;
+  border: 1px solid rgb(255 255 255 / 10%); background: rgb(255 255 255 / 4%);
+  border-radius: 12px; padding: 8px 8px 8px 12px;
+}
+.ref-link span { flex: 1; min-width: 0; font-size: 12px; color: rgb(255 255 255 / 45%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ref-link b {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #fff; color: #1d1f26; border-radius: 9px;
+  padding: 6px 10px; font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.ref-link b svg { width: 13px; height: 13px; }
+.ref-money { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+.ref-money p { margin: 0; font-size: 8.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: rgb(255 255 255 / 30%); }
+.ref-money b { display: block; margin-top: 6px; font-size: 15px; font-weight: 600; color: rgb(255 255 255 / 82%); }
+.ref-money div:first-child b { color: #d7b86a; }
+
+.funnel { border: 1px solid var(--border); border-radius: 18px; background: #fbfcfd; padding: 16px; }
+.funnel header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.funnel header p { margin: 0; font-size: 10px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); }
+.funnel header b { font-size: 12px; font-weight: 600; color: var(--ink); }
+.funnel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 13px; }
+.funnel .top-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.funnel .top-line span { font-size: 12.5px; color: var(--muted); }
+.funnel .top-line b { font-size: 12.5px; color: var(--ink); }
+.funnel .top-line b em { font-style: normal; font-weight: 500; color: var(--muted); margin-left: 6px; font-size: 11px; }
+.funnel .bar { margin-top: 6px; height: 6px; border-radius: 999px; background: #e7eaef; overflow: hidden; }
+.funnel .bar i { display: block; height: 100%; border-radius: 999px; background: #4d5059; }
+.funnel li:first-child .bar i { background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+
+/* Уведомления */
+.prefs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pref {
+  display: flex; align-items: center; gap: 12px;
+  border: 1px solid var(--border); border-radius: 12px; padding: 11px 12px;
+}
+.pref div { flex: 1; min-width: 0; }
+.pref b { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.pref em { display: block; font-style: normal; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.sw { width: 36px; height: 20px; border-radius: 999px; background: #d9dae0; position: relative; flex: none; }
+.sw i { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 18%); }
+.sw.on { background: var(--ink); }
+.sw.on i { left: 19px; }
+.channels { margin-top: 18px; border-top: 1px solid var(--hairline); padding-top: 16px; }
+.channels p { margin: 0 0 11px; font-size: 9px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.channels div { display: flex; flex-wrap: wrap; gap: 8px; }
+.channels span { border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px; font-size: 11.5px; font-weight: 500; color: var(--muted); background: var(--surface); }
+.channels span.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+/* Статусные строки */
+.rows { display: flex; flex-direction: column; gap: 9px; }
+.row-item {
+  display: flex; align-items: center; gap: 12px;
+  border: 1px solid var(--border); border-radius: 12px; padding: 11px 12px;
+}
+.row-item > span.ico { width: 34px; height: 34px; border-radius: 9px; background: #f1f5f2; color: #39433c; display: grid; place-items: center; flex: none; }
+.row-item > span.ico svg { width: 16px; height: 16px; }
+.row-item .body { flex: 1; min-width: 0; }
+.row-item .body b { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.row-item .body em { display: block; font-style: normal; font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.row-item .state { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 600; color: #2f8050; white-space: nowrap; }
+.row-item .state i { width: 6px; height: 6px; border-radius: 50%; background: #3b9c60; }
+.row-item .val { font-size: 11.5px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+.row-item > svg.chev { width: 14px; height: 14px; color: #a3a6af; flex: none; }
+
+/* Уровень защиты */
+.shield {
+  border: 1px solid var(--border); border-radius: 16px;
+  background: linear-gradient(145deg, #f9fafb, #eff2f6);
+  padding: 14px 16px; margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+}
+.shield p { margin: 0; font-size: 9px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); }
+.shield b { display: block; margin-top: 3px; font-size: 18px; font-weight: 600; color: var(--ink); }
+.shield .bars { display: flex; align-items: flex-end; gap: 4px; }
+.shield .bars i { width: 6px; border-radius: 2px; background: var(--ink); display: block; }
+
+.link-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 14px; border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 12px; font-size: 12px; font-weight: 600; color: var(--text); text-decoration: none;
+}
+.link-row svg { width: 14px; height: 14px; color: var(--muted); }
+
+/* Персональный менеджер */
+.manager { display: flex; align-items: center; gap: 14px; }
+.manager .photo {
+  width: 52px; height: 52px; border-radius: 50%; flex: none;
+  background: linear-gradient(140deg, #dfe7f5, #c3d3ec);
+  color: #24406e; display: grid; place-items: center;
+  font-size: 15px; font-weight: 700;
+}
+.manager .who b { display: block; font-size: 14px; font-weight: 600; color: var(--ink); }
+.manager .who em { display: block; font-style: normal; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.manager .who .online { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; font-size: 10.5px; font-weight: 600; color: #2f8050; }
+.manager .who .online i { width: 6px; height: 6px; border-radius: 50%; background: #3b9c60; }
+.manager-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 14px; }
+.btn-solid {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  background: var(--ink); color: #fff; border-radius: 11px;
+  padding: 10px; font-size: 12px; font-weight: 600; text-decoration: none;
+}
+.btn-solid svg { width: 14px; height: 14px; }
+.btn-outline {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  border: 1px solid var(--border); border-radius: 11px;
+  padding: 10px; font-size: 12px; font-weight: 600; color: var(--text); text-decoration: none;
+}
+.btn-outline svg { width: 14px; height: 14px; color: var(--muted); }
+
+/* Служебные строки */
+.meta { display: flex; flex-direction: column; }
+.meta div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--hairline); }
+.meta div:last-child { border-bottom: 0; padding-bottom: 0; }
+.meta span { font-size: 12.5px; color: var(--muted); }
+.meta b { font-size: 12.5px; font-weight: 600; color: var(--ink); text-align: right; }
+
+/* ── Выноски ──────────────────────────────────────────────────────── */
+.pin {
+  position: absolute; z-index: 5;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #0f5fe8; color: #fff;
+  display: grid; place-items: center;
+  font-size: 11.5px; font-weight: 700;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  box-shadow: 0 0 0 4px rgb(15 95 232 / 18%);
+}
+.pin-hero { top: -10px; left: -10px; }
+
+/* ── Легенда изменений ────────────────────────────────────────────── */
+.changes { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: 14px; }
+.change {
+  display: flex; gap: 12px;
+  border-top: 2px solid var(--page-accent);
+  padding-top: 13px;
+}
+.change > b {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--page-accent); color: #fff;
+  display: grid; place-items: center;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px; font-weight: 700;
+}
+.change p { margin: 0; font-size: 13.5px; }
+.change p b { display: block; font-weight: 600; margin-bottom: 3px; }
+.change p span { color: var(--page-muted); }
+
+.section-head { display: flex; flex-direction: column; gap: 6px; }
+.section-head h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+.section-head p { margin: 0; color: var(--page-muted); font-size: 14px; }
+
+.note {
+  border: 1px dashed var(--page-line); border-radius: 12px;
+  padding: 14px 16px; font-size: 13px; color: var(--page-muted);
+}
+.note b { color: var(--page-fg); font-weight: 600; }
+.note code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px; background: var(--page-panel);
+  border: 1px solid var(--page-line); border-radius: 5px; padding: 1px 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9 21v-6h6v6"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M17 13h.01"/></symbol>
+    <symbol id="i-cards" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M6 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2M3 12h18"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 10v8M10 10v8M14 10v8M19 10v8M12 3l9 5H3Z"/></symbol>
+    <symbol id="i-trend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7.5 3v6c0 5-3.2 8.3-7.5 9.5C7.7 20.3 4.5 17 4.5 12V6Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-headset" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/></symbol>
+    <symbol id="i-updown" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 6"/></symbol>
+    <symbol id="i-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5h3.5l2 5-2.5 1.8a13.5 13.5 0 0 0 5.7 5.7l1.8-2.5 5 2V18a3 3 0 0 1-3 3A17.5 17.5 0 0 1 3 5.5a3 3 0 0 1 3-3Z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10.5c0 5.8-8 11.5-8 11.5s-8-5.7-8-11.5a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10.5" r="3"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="4"/><path d="m10.9 12.6 8-8M16.9 4.6 20 7.7M14.4 7.1l2.6 2.6"/></symbol>
+    <symbol id="i-mobile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 9a6.5 6.5 0 1 0-13 0c0 5.5-2 7-2 7h17s-2-1.5-2-7"/><path d="M10.4 20a2 2 0 0 0 3.2 0"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.1 2.4c-.6.2-.7.7-.7 1.2v.4M12 16.8h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11.2v5M12 8h.01"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4.2L20 8.2 15.8 4 4 15.8Z"/><path d="m14 6 4 4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+    <symbol id="i-tri" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 21 20H3Z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12Z"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+
+  <header class="brief">
+    <p class="eyebrow">Trigonum Broker 2.0 · apps/cabinet · /app/profile</p>
+    <h1>Профиль клиента</h1>
+    <p>UI-мокап страницы профиля в личном кабинете. Собран на существующих токенах <code style="font-family:'JetBrains Mono',monospace;font-size:13px">packages/brand</code> и шрифте Golos Text, с данными частного счёта <span class="mono">IND-02418</span> — теми же, что отдаёт мок-слой кабинета.</p>
+  </header>
+
+  <div class="tokenbar">
+    <span class="token"><i style="background:#0f5fe8"></i>--trigonum-blue</span>
+    <span class="token"><i style="background:#0ea5c6"></i>--trigonum-cyan</span>
+    <span class="token"><i style="background:#24b768"></i>--trigonum-green</span>
+    <span class="token"><i style="background:#081b3a"></i>--trigonum-ink</span>
+    <span class="token"><i style="background:#f6f8fb;border:1px solid #dbe2ea"></i>--trigonum-bg</span>
+    <span class="token"><i style="background:linear-gradient(140deg,#f2e6bd,#c9a53f 60%,#8f6d18)"></i>tier: Gold</span>
+  </div>
+
+  <section class="device">
+    <div class="device-bar">
+      <span class="dots"><span></span><span></span><span></span></span>
+      <span class="addr">trigonum.ae<b>/app/profile</b></span>
+    </div>
+
+    <div class="viewport">
+      <div class="screen">
+
+        <!-- Сайдбар -->
+        <aside class="side">
+          <div class="logo">
+            <span class="logo-mark"><svg><use href="#i-tri"/></svg></span>
+            <span class="logo-text">Trigonum</span>
+          </div>
+
+          <nav class="nav">
+            <a href="#"><svg><use href="#i-home"/></svg><span>Главная</span></a>
+            <a href="#"><svg><use href="#i-wallet"/></svg><span>Капитал</span></a>
+            <a href="#"><svg><use href="#i-cards"/></svg><span>Пополнить</span></a>
+            <a href="#"><svg><use href="#i-bank"/></svg><span>Вывести</span></a>
+            <a href="#"><svg><use href="#i-trend"/></svg><span>Инвестировать</span></a>
+            <a href="#"><svg><use href="#i-calendar"/></svg><span>Events</span><span class="tag">NEW</span></a>
+            <a href="#"><svg><use href="#i-repeat"/></svg><span>Транзакции</span></a>
+            <a href="#"><svg><use href="#i-file"/></svg><span>Документы</span></a>
+            <div class="nav-sep"></div>
+            <a href="#" class="on"><svg><use href="#i-user"/></svg><span>Профиль</span></a>
+            <a href="#"><svg><use href="#i-shield"/></svg><span>Безопасность</span></a>
+            <a href="#"><svg><use href="#i-headset"/></svg><span>Поддержка</span></a>
+          </nav>
+
+          <div class="side-promo">
+            <p>AI находит возможности.</p>
+            <p>Вы получаете результат.</p>
+            <span>Как это работает →</span>
+          </div>
+
+          <div class="acct">
+            <span class="acct-ico"><svg><use href="#i-user"/></svg></span>
+            <span style="flex:1;min-width:0">
+              <b>Артём Дробков</b>
+              <em>Личный счёт · <span class="mono">IND-02418</span></em>
+            </span>
+            <svg><use href="#i-updown"/></svg>
+          </div>
+          <p class="copyright">© 2026 Trigonum Broker</p>
+        </aside>
+
+        <!-- Основная область -->
+        <div class="main">
+          <div class="top">
+            <p class="crumb">Личный кабинет · <b>Профиль</b></p>
+            <span class="top-tier"><i></i>Gold · <span class="mono">674 pts</span></span>
+            <span class="icon-btn"><svg><use href="#i-bell"/></svg><span class="dot"></span></span>
+            <span class="icon-btn"><svg><use href="#i-help"/></svg></span>
+            <span class="top-user"><i>АД</i><span>Артём</span><svg><use href="#i-down"/></svg></span>
+          </div>
+
+          <div class="canvas">
+
+            <!-- Шапка-идентичность -->
+            <section class="hero">
+              <span class="pin pin-hero" style="left:auto;right:22px;top:22px">2</span>
+
+              <div class="identity">
+                <div class="avatar">
+                  <b>АД</b>
+                  <span class="verified"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span>
+                </div>
+                <div style="min-width:0">
+                  <p class="kicker">Private client · <span class="mono">IND-02418</span></p>
+                  <h2>Артём Дробков</h2>
+                  <p class="sub">Клиент с 12.03.2024 · KYC подтверждён · Кыргызская Республика</p>
+                  <div class="chips">
+                    <span class="chip">KYC verified</span>
+                    <span class="chip">2FA active</span>
+                    <span class="chip">Withdrawal protected</span>
+                    <span class="chip">Passkey · 2 устройства</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hero-right">
+                <div class="tier">
+                  <div class="tier-in">
+                    <div class="head">
+                      <div>
+                        <p class="lbl">Investor tier</p>
+                        <p class="name">Gold</p>
+                      </div>
+                      <svg class="info" viewBox="0 0 24 24"><use href="#i-info"/></svg>
+                    </div>
+                    <div class="track"><i></i></div>
+                    <div class="foot">
+                      <span class="mono">674 pts</span>
+                      <span class="mono">326 до Diamond</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metrics">
+                  <div class="metric"><p>Invested</p><b class="mono">$31,000</b></div>
+                  <div class="metric"><p>Events</p><b class="mono">$19,000</b></div>
+                  <div class="metric"><p>Total capital</p><b class="mono">$100,000</b></div>
+                  <div class="metric"><p>Completed</p><b class="mono">21 Events</b></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Заполненность профиля -->
+            <section class="complete">
+              <span class="pin" style="left:-10px;top:-10px">1</span>
+              <div>
+                <div class="row">
+                  <p>Профиль заполнен на 85%</p>
+                  <em>Полный профиль снимает лимит на вывод в $25,000 в сутки</em>
+                </div>
+                <div class="bar"><i></i></div>
+              </div>
+              <div class="todo">
+                <a href="#"><span class="warn"></span>Налоговое резидентство (TIN)<svg><use href="#i-right"/></svg></a>
+                <a href="#"><span class="warn"></span>Резервный контакт<svg><use href="#i-right"/></svg></a>
+              </div>
+            </section>
+
+            <!-- Сетка -->
+            <div class="grid">
+
+              <div class="col">
+                <!-- Личные данные -->
+                <section class="card">
+                  <span class="pin" style="left:-10px;top:-10px">3</span>
+                  <header>
+                    <div>
+                      <h3>Личные данные</h3>
+                      <p>Основная информация владельца счёта</p>
+                    </div>
+                    <span class="ghost-btn"><svg><use href="#i-pencil"/></svg>Редактировать</span>
+                  </header>
+                  <div class="fields">
+                    <div>
+                      <span class="k"><span><svg><use href="#i-user"/></svg></span>ФИО</span>
+                      <span class="v">Артём Дробков</span>
+                      <span class="slot"><span class="verified-tag"><i></i>по документу</span></span>
+                    </div>
+                    <div>
+                      <span class="k"><span><svg><use href="#i-mail"/></svg></span>Email</span>
+                      <span class="v">artem.drobkov@example.com</span>
+                      <span class="slot"><span class="verified-tag"><i></i>подтверждён</span></span>
+                    </div>
+                    <div>
+                      <span class="k"><span><svg><use href="#i-phone"/></svg></span>Телефон</span>
+                      <span class="v mono">+7 (700) 123-45-67</span>
+                      <span class="slot"><span class="verified-tag"><i></i>подтверждён</span></span>
+                    </div>
+                    <div>
+                      <span class="k"><span><svg><use href="#i-calendar"/></svg></span>Дата рождения</span>
+                      <span class="v mono">14.06.1990</span>
+                      <span class="slot"></span>
+                    </div>
+                    <div>
+                      <span class="k"><span><svg><use href="#i-globe"/></svg></span>Гражданство</span>
+                      <span class="v">Республика Казахстан</span>
+                      <span class="slot"></span>
+                    </div>
+                    <div>
+                      <span class="k"><span><svg><use href="#i-pin"/></svg></span>Адрес</span>
+                      <span class="v">Казахстан · г. Алматы, ул. Абая, 15</span>
+                      <span class="slot"></span>
+                    </div>
+                    <div>
+                      <span class="k"><span><svg><use href="#i-file"/></svg></span>Налоговое резидентство</span>
+                      <span class="v" style="color:#99680d">Не указано</span>
+                      <span class="slot"><span class="verified-tag pending-tag"><i></i>требуется</span></span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Реферальная программа -->
+                <section class="card">
+                  <span class="pin" style="left:-10px;top:-10px">4</span>
+                  <header>
+                    <div>
+                      <h3>Реферальная программа</h3>
+                      <p>Прямые рекомендации и вознаграждения</p>
+                    </div>
+                    <span class="ghost-btn">Условия<svg><use href="#i-right"/></svg></span>
+                  </header>
+                  <div class="ref">
+                    <div class="ref-card">
+                      <p class="lbl">Referral code</p>
+                      <p class="code mono">ARTEM-7K4P</p>
+                      <div class="ref-link">
+                        <span class="mono">trigonum.ae/ref/ARTEM-7K4P</span>
+                        <b><svg><use href="#i-copy"/></svg>Копировать</b>
+                      </div>
+                      <div class="ref-money">
+                        <div><p>Available</p><b class="mono">$340</b></div>
+                        <div><p>Pending</p><b class="mono">$180</b></div>
+                        <div><p>Paid</p><b class="mono">$720</b></div>
+                      </div>
+                    </div>
+                    <div class="funnel">
+                      <header>
+                        <p>Воронка сети</p>
+                        <b class="mono">$84k активного капитала</b>
+                      </header>
+                      <ul>
+                        <li>
+                          <div class="top-line"><span>Приглашено</span><b class="mono">8</b></div>
+                          <div class="bar"><i style="width:100%"></i></div>
+                        </li>
+                        <li>
+                          <div class="top-line"><span>Прошли KYC</span><b class="mono">6<em>75%</em></b></div>
+                          <div class="bar"><i style="width:75%"></i></div>
+                        </li>
+                        <li>
+                          <div class="top-line"><span>Инвестируют</span><b class="mono">4<em>50%</em></b></div>
+                          <div class="bar"><i style="width:50%"></i></div>
+                        </li>
+                        <li>
+                          <div class="top-line"><span>Активны сейчас</span><b class="mono">3<em>38%</em></b></div>
+                          <div class="bar"><i style="width:38%"></i></div>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Уведомления -->
+                <section class="card">
+                  <header>
+                    <div>
+                      <h3>Уведомления</h3>
+                      <p>События, о которых стоит сообщать, и каналы доставки</p>
+                    </div>
+                  </header>
+                  <div class="prefs">
+                    <div class="pref"><div><b>Новые Events</b><em>Новые инвестиционные возможности</em></div><span class="sw on"><i></i></span></div>
+                    <div class="pref"><div><b>Выплаты</b><em>Начисления и расчёты по контрактам</em></div><span class="sw on"><i></i></span></div>
+                    <div class="pref"><div><b>Движение средств</b><em>Пополнения и выводы</em></div><span class="sw on"><i></i></span></div>
+                    <div class="pref"><div><b>Новые продукты</b><em>Earn и Strategies</em></div><span class="sw on"><i></i></span></div>
+                  </div>
+                  <div class="channels">
+                    <p>Каналы</p>
+                    <div>
+                      <span class="on">Email</span>
+                      <span class="on">Push</span>
+                      <span>Telegram</span>
+                      <span>SMS</span>
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <div class="col">
+                <!-- Персональный менеджер -->
+                <section class="card">
+                  <span class="pin" style="left:-10px;top:-10px">5</span>
+                  <header>
+                    <div>
+                      <h3>Персональный менеджер</h3>
+                      <p>Закреплён за счётом Gold</p>
+                    </div>
+                  </header>
+                  <div class="manager">
+                    <span class="photo">ДК</span>
+                    <div class="who">
+                      <b>Дарья Ковалёва</b>
+                      <em>Private client manager · GMT+6</em>
+                      <span class="online"><i></i>Отвечает в среднем за 12 минут</span>
+                    </div>
+                  </div>
+                  <div class="manager-actions">
+                    <a class="btn-solid" href="#"><svg><use href="#i-chat"/></svg>Написать</a>
+                    <a class="btn-outline" href="#"><svg><use href="#i-calendar"/></svg>Созвон</a>
+                  </div>
+                </section>
+
+                <!-- Верификация -->
+                <section class="card">
+                  <header>
+                    <div>
+                      <h3>Верификация</h3>
+                      <p>Identity &amp; Compliance</p>
+                    </div>
+                  </header>
+                  <div class="rows">
+                    <div class="row-item">
+                      <span class="ico"><svg><use href="#i-badge"/></svg></span>
+                      <div class="body"><b>KYC</b><em>Личность подтверждена · 12.03.2024</em></div>
+                      <span class="state"><i></i>Verified</span>
+                    </div>
+                    <div class="row-item">
+                      <span class="ico"><svg><use href="#i-shield"/></svg></span>
+                      <div class="body"><b>AML screening</b><em>Ограничений нет</em></div>
+                      <span class="state"><i></i>Passed</span>
+                    </div>
+                    <div class="row-item">
+                      <span class="ico"><svg><use href="#i-wallet"/></svg></span>
+                      <div class="body"><b>Источник средств</b><em>Документы приняты</em></div>
+                      <span class="state"><i></i>Verified</span>
+                    </div>
+                    <div class="row-item">
+                      <span class="ico"><svg><use href="#i-user"/></svg></span>
+                      <div class="body"><b>Инвест-анкета</b><em>Профиль риска: сбалансированный</em></div>
+                      <span class="state"><i></i>Completed</span>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Безопасность -->
+                <section class="card">
+                  <span class="pin" style="left:-10px;top:-10px">6</span>
+                  <header>
+                    <div>
+                      <h3>Безопасность</h3>
+                      <p>Защита доступа и операций</p>
+                    </div>
+                  </header>
+                  <div class="shield">
+                    <div>
+                      <p>Уровень защиты</p>
+                      <b>Высокий</b>
+                    </div>
+                    <div class="bars">
+                      <i style="height:9px"></i><i style="height:12px"></i><i style="height:15px"></i><i style="height:18px"></i><i style="height:21px"></i>
+                    </div>
+                  </div>
+                  <div class="rows">
+                    <div class="row-item">
+                      <span class="ico" style="background:var(--bg);color:#5a5d66"><svg><use href="#i-shield"/></svg></span>
+                      <div class="body"><b>Двухфакторная аутентификация</b></div>
+                      <span class="val">Включена</span>
+                    </div>
+                    <div class="row-item">
+                      <span class="ico" style="background:var(--bg);color:#5a5d66"><svg><use href="#i-key"/></svg></span>
+                      <div class="body"><b>Passkey</b></div>
+                      <span class="val">2 устройства</span>
+                    </div>
+                    <div class="row-item">
+                      <span class="ico" style="background:var(--bg);color:#5a5d66"><svg><use href="#i-mobile"/></svg></span>
+                      <div class="body"><b>Активные сессии</b><em>MacBook Pro · Алматы · сейчас</em></div>
+                      <span class="val">2</span>
+                      <svg class="chev"><use href="#i-right"/></svg>
+                    </div>
+                  </div>
+                  <a class="link-row" href="#"><span>Управление безопасностью</span><svg><use href="#i-right"/></svg></a>
+                </section>
+
+                <!-- Аккаунт -->
+                <section class="card">
+                  <header>
+                    <div>
+                      <h3>Аккаунт</h3>
+                      <p>Служебная информация</p>
+                    </div>
+                  </header>
+                  <div class="meta">
+                    <div><span>Тип счёта</span><b>Физическое лицо</b></div>
+                    <div><span>Номер счёта</span><b class="mono">IND-02418</b></div>
+                    <div><span>Дата верификации</span><b class="mono">12.03.2024</b></div>
+                    <div><span>Юрисдикция</span><b>Кыргызская Республика</b></div>
+                    <div><span>Базовая валюта</span><b class="mono">USD</b></div>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-head">
+    <h2>Что меняется относительно текущей страницы</h2>
+    <p>Шесть отмеченных мест — единственные структурные правки. Остальное сохраняет вёрстку и компоненты, которые уже стоят в <code>apps/cabinet/src/modules/profile/pages/ProfilePage.tsx</code>.</p>
+  </section>
+
+  <div class="changes">
+    <div class="change">
+      <b>1</b>
+      <p><b>Полоса заполненности профиля</b><span>Новый блок. Показывает, что именно осталось заполнить, и связывает это с лимитом на вывод — то есть даёт причину дозаполнить, а не просто процент.</span></p>
+    </div>
+    <div class="change">
+      <b>2</b>
+      <p><b>Прогресс до следующего уровня в самой карточке</b><span>Сейчас шкала и «326 pts до Diamond» видны только после открытия модалки. В макете они на карточке Gold; модалка остаётся для разбора баллов.</span></p>
+    </div>
+    <div class="change">
+      <b>3</b>
+      <p><b>Статус подтверждения у каждого поля</b><span>Email, телефон и ФИО получают отметку «подтверждён / по документу», а незаполненное налоговое резидентство — жёлтую метку «требуется» вместо тишины.</span></p>
+    </div>
+    <div class="change">
+      <b>4</b>
+      <p><b>Конверсия в реферальной воронке</b><span>К абсолютным числам добавлен процент перехода между шагами: 8 → 6 → 4 → 3 читается как воронка, а не как четыре независимые полоски.</span></p>
+    </div>
+    <div class="change">
+      <b>5</b>
+      <p><b>Персональный менеджер</b><span>Новая карточка для private-client счетов от Gold и выше: имя, часовой пояс, среднее время ответа и два действия — написать или назначить созвон.</span></p>
+    </div>
+    <div class="change">
+      <b>6</b>
+      <p><b>Сессии показывают устройство</b><span>Строка «Активные сессии: 2» дополнена последней сессией (устройство, город, время) — самое частое, ради чего в неё заходят.</span></p>
+    </div>
+  </div>
+
+  <p class="note"><b>Реализация.</b> Макет не требует новых зависимостей: цвета берутся из <code>packages/brand/src/tokens.css</code>, иконки уже есть в <code>lucide-react</code>, значения (Gold, 674 pts, $31,000 / $19,000 / $100,000) совпадают с тем, что сейчас считает <code>calculateInvestorStatus</code> на мок-данных <code>FundingContext</code>. Новых полей в модели данных два: налоговое резидентство и закреплённый менеджер.</p>
+
+</div>
