@@ -1,0 +1,17 @@
+/* Personal deposit source cards: keep every action footer on the same baseline
+   even when exchange cards contain extra permission badges. */
+article.group:has(> button .lucide-arrow-down-to-line) {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+article.group:has(> button .lucide-arrow-down-to-line) > div:first-child {
+  flex: 1 1 auto;
+}
+
+article.group:has(> button .lucide-arrow-down-to-line) > button:last-child {
+  flex: 0 0 auto;
+  min-height: 50px;
+  margin-top: auto;
+}
