@@ -2,7 +2,7 @@ import { useBrokerAccount } from '../../../shared/lib/AccountContext'
 import { fundingHistory } from '../../../shared/mock/data'
 import type { FundingMethod, TransactionItem } from '../../../shared/mock/types'
 import { FundingPage } from '../../../shared/ui/FundingPage'
-import { PersonalFundingPage } from '../../../shared/ui/PersonalFundingPage'
+import { PersonalWithdrawV2 } from './PersonalWithdrawV2'
 
 const companyWithdrawalMethods: FundingMethod[] = [
   {
@@ -31,7 +31,7 @@ export function WithdrawPage() {
   const { activeAccount } = useBrokerAccount()
 
   if (activeAccount.type === 'individual') {
-    return <PersonalFundingPage mode="withdraw" />
+    return <PersonalWithdrawV2 />
   }
 
   const history = companyWithdrawals.length > 0 ? companyWithdrawals : fundingHistory.withdrawals
