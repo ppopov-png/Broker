@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 export type FundingSourceKind = 'wallet' | 'exchange' | 'address'
 export type FundingConnection = 'walletconnect' | 'browser-wallet' | 'exchange-api' | 'manual'
 export type FundingTransactionStatus = 'completed' | 'processing'
+export type FundingTransactionType = 'deposit' | 'withdrawal' | 'investment'
 
 export interface FundingSource {
   id: string
@@ -25,13 +26,16 @@ export interface FundingSource {
 export interface FundingTransactionRecord {
   id: string
   date: string
-  type: 'deposit' | 'withdrawal'
+  type: FundingTransactionType
   source: string
   asset: string
   network: string
   amount: number
   status: FundingTransactionStatus
   txHash?: string
+  title?: string
+  meta?: string
+  contractId?: string
   hash?: never
 }
 
@@ -51,6 +55,7 @@ interface FundingContextValue {
   removeSource: (accountId: string, sourceId: string) => void
   recordDeposit: (accountId: string, transaction: FundingTransactionInput) => void
   recordWithdrawal: (accountId: string, transaction: FundingTransactionInput) => void
+  recordInvestment: (accountId: string, transaction: FundingTransactionInput) => void
   reserveInvestment: (accountId: string, amount: number) => void
 }
 
@@ -165,6 +170,27 @@ export function FundingProvider({ children }: { children: ReactNode }) {
     })
   }
 
+  const recordInvestment = (accountId: string, transaction: FundingTransactionInput) => {
+    const current = states[accountId] ?? emptyState()
+    const normalizedAmount = Math.abs(transaction.amount)
+    const normalized: FundingTransactionRecord = {
+      ...transaction,
+      type: 'investment',
+      amount: -normalizedAmount,
+      asset: transaction.asset || 'USD',
+      network: transaction.network || 'internal',
+      status: transaction.status || 'completed',
+    }
+    persist({
+      ...states,
+      [accountId]: {
+        ...current,
+        brokerBalance: Math.max(0, current.brokerBalance - normalizedAmount),
+        transactions: [normalized, ...current.transactions],
+      },
+    })
+  }
+
   const reserveInvestment = (accountId: string, amount: number) => {
     const current = states[accountId] ?? emptyState()
     const normalizedAmount = Math.max(0, Number(amount) || 0)
@@ -178,7 +204,7 @@ export function FundingProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo(
-    () => ({ getAccountState, addSource, removeSource, recordDeposit, recordWithdrawal, reserveInvestment }),
+    () => ({ getAccountState, addSource, removeSource, recordDeposit, recordWithdrawal, recordInvestment, reserveInvestment }),
     [states],
   )
 
