@@ -1,9 +1,7 @@
-import { Building2, Check, ChevronsUpDown, Crown, UserRound } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Building2, Check, ChevronsUpDown, UserRound } from 'lucide-react'
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useBrokerAccount } from '../shared/lib/AccountContext'
-import { useFunding } from '../shared/lib/FundingContext'
-import { calculateInvestorStatus, tierAccent } from '../shared/lib/InvestorStatus'
 import { Logo } from '../shared/ui/Logo'
 import { primaryNav, secondaryNav } from './nav'
 
@@ -14,40 +12,14 @@ const navItemClass = (active: boolean) =>
       : 'text-[var(--trigonum-text)] hover:bg-[var(--trigonum-bg)]'
   }`
 
-type StoredContract = { amount?: number; termMonths?: number }
-
-function loadInvestorContracts() {
-  try {
-    const raw = window.localStorage.getItem('trigonum-broker-invest-contracts-v1')
-    return raw ? (JSON.parse(raw) as StoredContract[]) : [
-      { amount: 14_000, termMonths: 12 },
-      { amount: 12_000, termMonths: 6 },
-      { amount: 5_000, termMonths: 12 },
-    ]
-  } catch {
-    return []
-  }
-}
-
 export function Sidebar() {
   const { accounts, activeAccount, setActiveAccountId } = useBrokerAccount()
-  const { getAccountState } = useFunding()
   const [accountOpen, setAccountOpen] = useState(false)
   const ActiveIcon = activeAccount.type === 'company' ? Building2 : UserRound
-  const funding = getAccountState(activeAccount.id)
-  const investorStatus = useMemo(() => {
-    const contracts = loadInvestorContracts()
-    const invested = contracts.reduce((sum, contract) => sum + Number(contract.amount || 0), 0)
-    const longTerm = contracts.filter((contract) => Number(contract.termMonths || 0) >= 12).reduce((sum, contract) => sum + Number(contract.amount || 0), 0)
-    return calculateInvestorStatus({ qualifiedCapital: invested + funding.lockedEvents, longTermCapital: longTerm, completedEvents: 21, activeEvents: 3, tenureMonths: 11, qualifiedReferrals: 4 })
-  }, [activeAccount.id, funding.brokerBalance, funding.lockedEvents])
-  const statusAccent = tierAccent[investorStatus.tier]
 
   return (
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 self-start flex-col border-r border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-4 py-5">
-      <div className="px-2">
-        <Logo />
-      </div>
+      <div className="px-2"><Logo /></div>
 
       <nav className="mt-6 flex flex-col gap-1 overflow-y-auto">
         {primaryNav.map(({ to, label, icon: Icon, badge }) => (
@@ -68,15 +40,11 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {activeAccount.type === 'individual' ? (
-        <NavLink to="/profile" className="mt-5 block rounded-xl border border-[#e4e4f0] bg-[linear-gradient(145deg,#25254f,#17172f)] p-3.5 text-white shadow-[0_8px_24px_rgb(8_27_58/12%)]">
-          <div className="flex items-center justify-between gap-2"><span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[.12em]" style={{ color: statusAccent }}><Crown size={13} />{investorStatus.tier}</span><span className="text-[10px] font-bold tabular-nums text-white/65">{investorStatus.score} pts</span></div>
-          <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-white/12"><div className="h-full rounded-full" style={{ width: `${investorStatus.progress}%`, background: `linear-gradient(90deg,#92f222,${statusAccent})` }} /></div>
-          <p className="mt-2 text-[10px] text-white/55">{investorStatus.nextTier ? `${investorStatus.pointsToNext} до ${investorStatus.nextTier}` : 'Максимальный уровень'}</p>
-        </NavLink>
-      ) : (
-        <div className="mt-5 rounded-xl bg-[var(--trigonum-bg)] p-4"><p className="text-xs font-semibold text-[var(--trigonum-ink)]">Корпоративный аккаунт</p><p className="mt-1 text-xs text-[var(--trigonum-muted)]">KYB и реквизиты ведутся отдельно.</p></div>
-      )}
+      <div className="mt-6 rounded-xl bg-[var(--trigonum-bg)] p-4">
+        <p className="text-xs font-semibold text-[var(--trigonum-ink)]">AI находит возможности.</p>
+        <p className="mt-1 text-xs text-[var(--trigonum-muted)]">Вы получаете результат.</p>
+        <button type="button" className="mt-2 text-xs font-semibold text-[var(--trigonum-blue)]">Как это работает →</button>
+      </div>
 
       <div className="relative mt-auto pt-4">
         {accountOpen && (
