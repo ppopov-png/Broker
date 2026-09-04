@@ -2,6 +2,7 @@ import '@fontsource/golos-text/400.css'
 import '@fontsource/golos-text/600.css'
 import '@fontsource/golos-text/700.css'
 import './styles/index.css'
+import './styles/funding-alignment.css'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { StrictMode } from 'react'
