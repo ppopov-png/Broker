@@ -65,7 +65,7 @@ export function LevelsPage() {
         >
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute -right-20 -top-36 size-[420px] rounded-full"
+            className="pointer-events-none absolute -right-20 -top-36 size-[240px] sm:size-[420px] rounded-full"
             style={{ background: `radial-gradient(circle, ${accent}26 0%, transparent 68%)` }}
           />
 

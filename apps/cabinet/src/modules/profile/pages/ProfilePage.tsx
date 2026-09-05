@@ -380,7 +380,7 @@ export function ProfilePage() {
         >
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute -right-24 -top-40 size-[460px] rounded-full"
+            className="pointer-events-none absolute -right-24 -top-40 size-[260px] sm:size-[460px] rounded-full"
             style={{ background: `radial-gradient(circle, ${accent}26 0%, transparent 68%)` }}
           />
 

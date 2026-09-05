@@ -2,6 +2,7 @@
 @import "@trigonum/brand/tokens.css";
 
 html {
+  overflow-x: clip;
   font-family: "Golos Text", sans-serif;
   background: var(--trigonum-bg);
   color: var(--trigonum-text);
@@ -11,6 +12,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  /* Декоративные блики не должны расширять область прокрутки на телефоне. */
+  overflow-x: clip;
 }
 
 /* --- Анимации интерфейса --------------------------------------------- */

@@ -272,3 +272,24 @@ export function buildScoreHistory(current: number, months = 12): number[] {
     return index === months - 1 ? current : Math.round(base + ripple)
   })
 }
+
+/**
+ * Насыщенная обложка уровня — в языке карточек Events: тёмный цветной
+ * градиент, поверх которого читаются белый текст и водяной знак.
+ */
+export const tierCover: Record<InvestorTier, string> = {
+  Member: 'linear-gradient(140deg,#141c28 0%,#2b3949 45%,#4a5a72 100%)',
+  Silver: 'linear-gradient(140deg,#161d27 0%,#39465a 45%,#7f8da3 100%)',
+  Gold: 'linear-gradient(140deg,#1d1706 0%,#6b4f11 48%,#c9a53f 100%)',
+  Diamond: 'linear-gradient(140deg,#08202f 0%,#115e75 48%,#3b82f6 100%)',
+  Black: 'linear-gradient(140deg,#070708 0%,#1d1d21 52%,#3f3f46 100%)',
+}
+
+/** Свечение поверх обложки — тот же приём, что на карточках Events. */
+export const tierGlow: Record<InvestorTier, string> = {
+  Member: '#94a3b8',
+  Silver: '#cbd5e1',
+  Gold: '#f2d98b',
+  Diamond: '#7dd3fc',
+  Black: '#a1a1aa',
+}

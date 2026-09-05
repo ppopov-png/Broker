@@ -15,10 +15,9 @@ import { useBrokerAccount } from '../../../shared/lib/AccountContext'
 import { formatCurrency, formatPercent, formatSigned } from '../../../shared/lib/format'
 import {
   calculateInvestorStatus,
-  tierAccent,
-  tierHero,
+  tierCover,
+  tierGlow,
   tierInk,
-  tierMetallic,
   tierSoft,
 } from '../../../shared/lib/InvestorStatus'
 import { useCountdown } from '../../../shared/lib/useCountdown'
@@ -33,17 +32,31 @@ import { EARN_APY, nextEventWindow, upcomingPayouts } from '../model/dashboard-d
 
 const SECONDS_PER_YEAR = 365 * 24 * 60 * 60
 
+/** Тот же приём, что в шапке Events: тёмная база уходит из синего в фиолетовый. */
+const HERO_GRADIENT = 'linear-gradient(150deg,#0b1c3f 0%,#132250 38%,#1b1b4d 70%,#251a4f 100%)'
+
 export function DashboardPage() {
   const { activeAccount } = useBrokerAccount()
   const { status, input, invested, lockedEvents, available, totalCapital } = useInvestorStatus()
 
-  const accent = tierAccent[status.tier]
   const ink = tierInk[status.tier]
   const soft = tierSoft[status.tier]
-  const onMetal = status.tier === 'Black' ? '#f4f4f5' : '#1b1d22'
-  const onMetalMuted = status.tier === 'Black' ? 'rgb(255 255 255 / 50%)' : 'rgb(0 0 0 / 48%)'
+  const glow = tierGlow[status.tier]
 
   const payouts = useMemo(() => upcomingPayouts(), [invested])
+
+  // Доли считаем от тех же позиций, что показывает «Капитал».
+  const allocation = useMemo(() => {
+    const earn = positions.filter((item) => item.kind === 'earn').reduce((sum, item) => sum + item.invested, 0)
+    const strategies = positions.filter((item) => item.kind === 'strategies').reduce((sum, item) => sum + item.invested, 0)
+    const total = Math.max(1, available + earn + strategies + lockedEvents)
+    return [
+      { label: 'Earn', share: Math.round((earn / total) * 100), color: 'var(--trigonum-blue)' },
+      { label: 'Strategies', share: Math.round((strategies / total) * 100), color: 'var(--trigonum-violet)' },
+      { label: 'Events', share: Math.round((lockedEvents / total) * 100), color: 'var(--trigonum-green)' },
+      { label: 'Свободно', share: Math.round((available / total) * 100), color: 'rgb(255 255 255 / 35%)' },
+    ]
+  }, [available, lockedEvents])
   const event = useMemo(() => nextEventWindow(), [])
   const remaining = useCountdown(event.closesAt)
 
@@ -62,74 +75,65 @@ export function DashboardPage() {
         </p>
       </header>
 
-      {/* Шапка: капитал, живой счёт и уровень */}
+      {/* Шапка в языке Events: глубокий градиент, полоса-акцент и свечение */}
       <Reveal>
-        <section className="relative overflow-hidden rounded-[24px] text-white" style={{ background: tierHero[status.tier] }}>
+        <section className="relative overflow-hidden rounded-[24px] text-white" style={{ background: HERO_GRADIENT }}>
+          <span aria-hidden="true" className="absolute inset-x-0 top-0 h-[3px]" style={{ background: 'var(--trigonum-gradient-cta)' }} />
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute -right-24 -top-40 size-[460px] rounded-full"
-            style={{ background: `radial-gradient(circle, ${accent}26 0%, transparent 68%)` }}
+            className="pointer-events-none absolute -right-16 -top-28 size-[260px] rounded-full sm:size-[420px]"
+            style={{ background: `radial-gradient(circle, ${glow}33 0%, transparent 68%)` }}
           />
-
-          <div className="relative grid gap-8 p-7 xl:grid-cols-[minmax(0,1fr)_minmax(0,380px)] xl:items-center">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[.18em] text-white/35">Общий капитал</p>
-              <p className="mt-2 text-[44px] font-medium leading-none tracking-[-.04em] tabular-nums">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-32 left-[38%] size-[300px] rounded-full"
+            style={{ background: 'radial-gradient(circle, rgb(124 58 237 / 26%) 0%, transparent 70%)' }}
+          />
+          <div className="relative grid gap-7 p-6 sm:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,300px)] lg:items-end">
+            <div className="relative min-w-0 overflow-hidden">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-6 -top-8 hidden select-none text-[120px] font-bold leading-none text-white/[.05] sm:block"
+              >
+                {status.tier}
+              </span>
+              <p className="relative text-[10px] font-bold uppercase tracking-[.18em] text-white/40">Общий капитал</p>
+              <p className="relative mt-2 text-[38px] font-medium leading-none tracking-[-.04em] tabular-nums sm:text-[44px]">
                 {formatCurrency(totalCapital)}
               </p>
-
-              <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-                <span className="text-sm font-semibold text-[#7ee2b8] tabular-nums">
+              <div className="relative mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+                <span className="text-sm font-semibold tabular-nums text-[#7ee2b8]">
                   {formatSigned(capitalTotals.ytdProfit)} · {formatPercent(capitalTotals.ytdProfitPct)} за 30 дней
                 </span>
                 <LiveTicker perSecond={perSecond} />
               </div>
             </div>
 
-            <Link
-              to="/levels"
-              className="group block rounded-[20px] p-px transition hover:brightness-110"
-              style={{ background: tierMetallic[status.tier] }}
-            >
-              <div className="rounded-[19px] bg-black/8 p-5 backdrop-blur-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[.18em]" style={{ color: onMetalMuted }}>
-                      Уровень
-                    </p>
-                    <p className="mt-1.5 text-[28px] font-semibold leading-none tracking-[-.03em]" style={{ color: onMetal }}>
-                      {status.tier}
-                    </p>
-                  </div>
-                  <ChevronRight size={17} className="mt-1 transition group-hover:translate-x-0.5" style={{ color: onMetalMuted }} />
-                </div>
-
-                <div
-                  className="mt-5 h-1.5 overflow-hidden rounded-full"
-                  style={{ background: status.tier === 'Black' ? 'rgb(255 255 255 / 18%)' : 'rgb(0 0 0 / 14%)' }}
-                >
-                  <div className="h-full rounded-full" style={{ width: `${status.progress}%`, background: onMetal }} />
-                </div>
-
-                <div
-                  className="mt-2.5 flex items-center justify-between gap-3 text-[11px] font-semibold tabular-nums"
-                  style={{ color: onMetalMuted }}
-                >
-                  <span>{status.score} pts</span>
-                  <span>{status.nextTier ? `${status.pointsToNext} до ${status.nextTier}` : 'Максимум'}</span>
-                </div>
+            {/* Как распределён капитал — вместо пустого поля справа */}
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[.18em] text-white/40">Распределение</p>
+              <div className="mt-3 flex h-2 w-full overflow-hidden rounded-full bg-white/10">
+                {allocation.map((slice) => (
+                  <span key={slice.label} style={{ width: `${slice.share}%`, background: slice.color }} />
+                ))}
               </div>
-            </Link>
+              <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                {allocation.map((slice) => (
+                  <span key={slice.label} className="flex items-center gap-1.5 text-[11px] text-white/55">
+                    <span className="size-1.5 shrink-0 rounded-full" style={{ background: slice.color }} />
+                    {slice.label}
+                    <b className="ml-auto font-semibold tabular-nums text-white/85">{slice.share}%</b>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="relative grid grid-cols-2 gap-px border-t border-white/8 bg-white/8 lg:grid-cols-4">
-            <HeroMetric label="Свободно" value={formatCurrency(available)} accent={available > 0 ? accent : undefined} />
+          <div className="relative grid grid-cols-2 gap-px border-t border-white/10 bg-white/10 lg:grid-cols-4">
+            <HeroMetric label="Свободно" value={formatCurrency(available)} accent={available > 0 ? glow : undefined} />
             <HeroMetric label="В продуктах" value={formatCurrency(invested)} />
             <HeroMetric label="В Events" value={formatCurrency(lockedEvents)} />
-            <HeroMetric
-              label="Ближайшая выплата"
-              value={payouts.length ? formatCurrency(payouts[0].amount) : '—'}
-            />
+            <HeroMetric label="Ближайшая выплата" value={payouts.length ? formatCurrency(payouts[0].amount) : '—'} />
           </div>
         </section>
       </Reveal>
@@ -204,6 +208,51 @@ export function DashboardPage() {
         </div>
 
         <div className="flex flex-col gap-5">
+          <Reveal delay={100}>
+            <Link
+              to="/levels"
+              className="group block overflow-hidden rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] shadow-[var(--trigonum-shadow-card)] transition hover:-translate-y-0.5"
+            >
+              <div className="relative overflow-hidden px-5 py-6 text-white" style={{ background: tierCover[status.tier] }}>
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -right-10 -top-14 size-[190px] rounded-full"
+                  style={{ background: `radial-gradient(circle, ${glow}44 0%, transparent 68%)` }}
+                />
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute -bottom-9 right-1 select-none text-[92px] font-bold leading-none text-white/[.08]"
+                >
+                  {status.tier.slice(0, 1)}
+                </span>
+
+                <div className="relative flex items-start justify-between gap-3">
+                  <span className="rounded-full border border-white/25 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.1em] text-white/80">
+                    Уровень инвестора
+                  </span>
+                  <ChevronRight size={16} className="mt-1 text-white/60 transition group-hover:translate-x-0.5" />
+                </div>
+
+                <p className="relative mt-4 text-[30px] font-bold leading-none tracking-[-.02em]">{status.tier}</p>
+                <p className="relative mt-2 text-xs font-semibold tabular-nums text-white/60">{status.score} pts</p>
+              </div>
+
+              <div className="p-5">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-xs text-[var(--trigonum-muted)]">
+                    {status.nextTier ? `До ${status.nextTier}` : 'Максимальный уровень'}
+                  </span>
+                  <span className="text-sm font-bold tabular-nums text-[var(--trigonum-ink)]">
+                    {status.nextTier ? `${status.pointsToNext} pts` : '—'}
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--trigonum-bg)]">
+                  <div className="h-full rounded-full" style={{ width: `${status.progress}%`, background: ink }} />
+                </div>
+              </div>
+            </Link>
+          </Reveal>
+
           {/* Окно Event закрывается — единственное место с обратным отсчётом */}
           <Reveal delay={120}>
             <Card
@@ -509,13 +558,13 @@ function QuickAction({
   return (
     <Link
       to={to}
-      className="flex items-center gap-3 rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-4 py-3.5 shadow-[var(--trigonum-shadow-card)] transition hover:-translate-y-0.5 hover:border-[var(--trigonum-ink)]"
+      className="flex items-center gap-2.5 rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-3.5 py-3.5 sm:gap-3 sm:px-4 shadow-[var(--trigonum-shadow-card)] transition hover:-translate-y-0.5 hover:border-[var(--trigonum-ink)]"
     >
       <span className="grid size-9 shrink-0 place-items-center rounded-xl" style={{ background: soft, color: ink }}>
         {icon}
       </span>
-      <span className="text-sm font-semibold text-[var(--trigonum-ink)]">{label}</span>
-      <ChevronRight size={15} className="ml-auto shrink-0 text-[var(--trigonum-muted)]" />
+      <span className="min-w-0 truncate text-sm font-semibold text-[var(--trigonum-ink)]">{label}</span>
+      <ChevronRight size={15} className="ml-auto hidden shrink-0 text-[var(--trigonum-muted)] sm:block" />
     </Link>
   )
 }

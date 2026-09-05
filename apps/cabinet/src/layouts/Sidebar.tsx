@@ -18,7 +18,7 @@ export function Sidebar() {
   const ActiveIcon = activeAccount.type === 'company' ? Building2 : UserRound
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 self-start flex-col border-r border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-4 py-5">
+    <aside className="sticky top-0 hidden h-screen lg:flex w-64 shrink-0 self-start flex-col border-r border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-4 py-5">
       <div className="px-2"><Logo /></div>
 
       <nav className="mt-6 flex flex-col gap-1 overflow-y-auto">

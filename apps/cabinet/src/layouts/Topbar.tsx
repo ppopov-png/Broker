@@ -14,7 +14,7 @@ export function Topbar() {
   const investorAccent = tierAccent[investorStatus.tier]
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-6">
+    <header className="hidden h-16 shrink-0 lg:flex items-center justify-end gap-2 border-b border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] px-6">
       <div className="relative">
         <button
           type="button"
