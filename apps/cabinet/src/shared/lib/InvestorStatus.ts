@@ -255,6 +255,7 @@ export const tierAchievedAt: Partial<Record<InvestorTier, string>> = {
   Member: '12.03.2024',
   Silver: '26.08.2024',
   Gold: '14.02.2025',
+  Diamond: '30.09.2025',
 }
 
 /**

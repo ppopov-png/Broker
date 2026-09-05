@@ -135,12 +135,12 @@ export function EventMarketChart({
     return [min - pad, max + pad] as const
   }, [points])
 
-  const line = tone === 'down' ? '#e5484d' : '#5a5ac4'
-  const fill = tone === 'down' ? '#fdecec' : '#eeeef8'
+  const line = tone === 'down' ? '#e5484d' : 'var(--trigonum-violet)'
+  const fill = tone === 'down' ? '#fdecec' : 'var(--trigonum-violet-soft)'
 
   return (
     <div className="relative w-full" style={{ height }}>
-      <span className={`absolute right-2 top-1 z-10 text-[10px] font-bold uppercase tracking-[0.06em] ${live ? 'text-[#71719b]' : 'text-[#b3383c]'}`}>
+      <span className={`absolute right-2 top-1 z-10 text-[10px] font-bold uppercase tracking-[0.06em] ${live ? 'text-[var(--trigonum-muted)]' : 'text-[var(--trigonum-danger)]'}`}>
         {live ? `Bybit · ${symbol}` : `${symbol} · локальные данные`}
       </span>
       <ResponsiveContainer width="100%" height="100%">
@@ -151,13 +151,13 @@ export function EventMarketChart({
               <stop offset="100%" stopColor={line} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid vertical={false} stroke="#f0f0f7" />
+          <CartesianGrid vertical={false} stroke="var(--trigonum-border)" />
           <XAxis
             dataKey="time"
             type="number"
             domain={['dataMin', 'dataMax']}
             tickFormatter={(value) => new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: 'short' }).format(new Date(Number(value) * 1000))}
-            tick={{ fill: '#71719b', fontSize: 10 }}
+            tick={{ fill: 'var(--trigonum-muted)', fontSize: 10 }}
             axisLine={false}
             tickLine={false}
             minTickGap={28}
@@ -165,19 +165,19 @@ export function EventMarketChart({
           <YAxis
             domain={domain}
             orientation="right"
-            tick={{ fill: '#71719b', fontSize: 10 }}
+            tick={{ fill: 'var(--trigonum-muted)', fontSize: 10 }}
             axisLine={false}
             tickLine={false}
             width={48}
           />
           {eventStart && eventEnd ? (
-            <ReferenceArea x1={eventStart} x2={eventEnd} fill="#5a5ac4" fillOpacity={0.1} strokeOpacity={0} />
+            <ReferenceArea x1={eventStart} x2={eventEnd} fill="var(--trigonum-violet)" fillOpacity={0.1} strokeOpacity={0} />
           ) : null}
           <Tooltip
             cursor={{ stroke: '#b0b0c8', strokeDasharray: '3 3' }}
             labelFormatter={(value) => formatTime(Number(value))}
             formatter={(value) => [Number(value).toLocaleString('en-US', { maximumFractionDigits: symbol === 'ETHBTC' ? 5 : 2 }), symbol]}
-            contentStyle={{ border: '1px solid #e4e4f0', borderRadius: 10, fontSize: 12, boxShadow: '0 10px 28px rgb(8 27 58 / 10%)' }}
+            contentStyle={{ border: '1px solid var(--trigonum-border)', borderRadius: 10, fontSize: 12, boxShadow: '0 10px 28px rgb(8 27 58 / 10%)' }}
           />
           <Area
             type="monotone"

@@ -64,7 +64,7 @@ const now = new Date().toISOString()
 const initialStates: Record<string, AccountFundingState> = {
   'artem-personal': {
     brokerBalance: 50_000,
-    lockedEvents: 19_000,
+    lockedEvents: 25_000,
     pendingSettlement: 8_000,
     sources: [
       {

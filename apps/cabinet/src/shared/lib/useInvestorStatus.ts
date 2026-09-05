@@ -1,26 +1,9 @@
 import { useMemo } from 'react'
+import { loadContracts } from '../mock/contracts'
 import { useBrokerAccount } from './AccountContext'
 import { useFunding } from './FundingContext'
 import { calculateInvestorStatus, type InvestorStatusInput, type InvestorStatusResult } from './InvestorStatus'
 
-const CONTRACTS_STORAGE_KEY = 'trigonum-broker-invest-contracts-v1'
-
-type StoredContract = { amount?: number; termMonths?: number }
-
-const fallbackContracts: StoredContract[] = [
-  { amount: 14_000, termMonths: 12 },
-  { amount: 12_000, termMonths: 6 },
-  { amount: 5_000, termMonths: 12 },
-]
-
-function loadContracts(): StoredContract[] {
-  try {
-    const raw = window.localStorage.getItem(CONTRACTS_STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as StoredContract[]) : fallbackContracts
-  } catch {
-    return fallbackContracts
-  }
-}
 
 /** Часть входных данных статуса, которой пока нет в мок-слое кабинета. */
 const activityInput = {
