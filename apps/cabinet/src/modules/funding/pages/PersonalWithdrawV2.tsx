@@ -1,6 +1,5 @@
 import {
   ArrowUpFromLine,
-  BadgeCheck,
   Building2,
   CheckCircle2,
   ChevronLeft,

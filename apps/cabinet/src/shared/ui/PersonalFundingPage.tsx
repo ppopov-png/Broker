@@ -6,8 +6,6 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleDollarSign,
-  Copy,
-  ExternalLink,
   KeyRound,
   Link2,
   Plus,
@@ -15,7 +13,6 @@ import {
   ShieldCheck,
   Unplug,
   Wallet,
-  X,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useBrokerAccount } from '../lib/AccountContext'
