@@ -54,7 +54,6 @@ interface SecurityState {
   withdrawalConfirm: boolean
   loginAlerts: boolean
   whitelistOnly: boolean
-  antiPhishing: string
   passkeys: Passkey[]
   payouts: Payout[]
   backupCodesLeft: number
@@ -65,7 +64,6 @@ const initialState: SecurityState = {
   withdrawalConfirm: true,
   loginAlerts: true,
   whitelistOnly: true,
-  antiPhishing: '',
   passkeys: [
     { id: 'pk-mac', name: 'MacBook Pro · Touch ID', addedAt: '18.02.2026' },
     { id: 'pk-iphone', name: 'iPhone 15 · Face ID', addedAt: '02.05.2026' },
@@ -125,8 +123,6 @@ export function SecurityPage() {
   const [passwordSaved, setPasswordSaved] = useState(false)
   const [addPayoutOpen, setAddPayoutOpen] = useState(false)
   const [payoutDraft, setPayoutDraft] = useState({ label: '', detail: '' })
-  const [phishingOpen, setPhishingOpen] = useState(false)
-  const [phishingDraft, setPhishingDraft] = useState('')
   const [backupCodes, setBackupCodes] = useState<string[] | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -144,12 +140,11 @@ export function SecurityPage() {
 
   // Оценка складывается из реально включённых мер, а не из фиксированного числа.
   const factors = [
-    { key: '2fa', label: 'Двухфакторная аутентификация', weight: 25, done: state.twoFa },
+    { key: '2fa', label: 'Двухфакторная аутентификация', weight: 30, done: state.twoFa },
     { key: 'passkey', label: 'Passkey хотя бы на одном устройстве', weight: 20, done: state.passkeys.length > 0 },
     { key: 'confirm', label: 'Подтверждение каждого вывода', weight: 20, done: state.withdrawalConfirm },
-    { key: 'whitelist', label: 'Вывод только на проверенные реквизиты', weight: 15, done: state.whitelistOnly },
+    { key: 'whitelist', label: 'Вывод только на проверенные реквизиты', weight: 20, done: state.whitelistOnly },
     { key: 'alerts', label: 'Оповещения о входах', weight: 10, done: state.loginAlerts },
-    { key: 'phishing', label: 'Антифишинг-код в письмах', weight: 10, done: Boolean(state.antiPhishing) },
   ]
   const score = factors.reduce((sum, factor) => sum + (factor.done ? factor.weight : 0), 0)
   const weakSpots = factors.filter((factor) => !factor.done)
@@ -473,47 +468,6 @@ export function SecurityPage() {
             </div>
           </Card>
 
-          <Card title="Антифишинг-код">
-            {state.antiPhishing ? (
-              <>
-                <p className="text-sm text-[var(--trigonum-muted)]">
-                  Код показывается в каждом письме Trigonum. Письма без него — подделка.
-                </p>
-                <div className="mt-3 flex items-center justify-between gap-3 rounded-xl px-3.5 py-3" style={{ background: soft }}>
-                  <span className="text-lg font-bold tracking-[0.2em]" style={{ color: ink }}>
-                    {state.antiPhishing}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPhishingDraft(state.antiPhishing)
-                      setPhishingOpen(true)
-                    }}
-                    className="text-xs font-semibold text-[var(--trigonum-blue)]"
-                  >
-                    Изменить
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-[var(--trigonum-muted)]">
-                  Своё слово в письмах Trigonum: если его нет — письмо не от нас.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPhishingDraft('')
-                    setPhishingOpen(true)
-                  }}
-                  className="mt-3 w-full rounded-lg bg-[var(--trigonum-ink)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-125"
-                >
-                  Задать код
-                </button>
-              </>
-            )}
-          </Card>
-
           <Card title="Резервные коды">
             <p className="text-sm text-[var(--trigonum-muted)]">
               Одноразовые коды на случай потери телефона. Осталось{' '}
@@ -595,35 +549,6 @@ export function SecurityPage() {
         </div>
       </Modal>
 
-      <Modal
-        open={phishingOpen}
-        onClose={() => setPhishingOpen(false)}
-        title="Антифишинг-код"
-        subtitle="От 4 до 12 символов — слово, которое узнаете только вы"
-      >
-        <input
-          value={phishingDraft}
-          maxLength={12}
-          onChange={(event) => setPhishingDraft(event.target.value.toUpperCase().replace(/\s/g, ''))}
-          placeholder="НАПРИМЕР, ALMATY26"
-          className="w-full rounded-lg border border-[var(--trigonum-border)] px-3 py-2.5 text-center text-lg font-bold tracking-[0.2em] outline-none focus:border-[var(--trigonum-ink)]"
-        />
-        <div className="mt-5 flex justify-end gap-2">
-          <OutlineButton type="button" onClick={() => setPhishingOpen(false)}>
-            Отмена
-          </OutlineButton>
-          <PrimaryButton
-            type="button"
-            disabled={phishingDraft.trim().length < 4}
-            onClick={() => {
-              update({ antiPhishing: phishingDraft.trim() })
-              setPhishingOpen(false)
-            }}
-          >
-            Сохранить
-          </PrimaryButton>
-        </div>
-      </Modal>
     </div>
   )
 }

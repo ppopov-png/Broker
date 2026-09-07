@@ -1,4 +1,5 @@
 import {
+  BellRing,
   Building2,
   Check,
   ChevronRight,
@@ -7,8 +8,10 @@ import {
   Download,
   FileText,
   Lock,
+  Mail,
   MessageCircle,
   Pencil,
+  Send,
   Trash2,
   TriangleAlert,
   UserRoundCog,
@@ -75,6 +78,8 @@ interface StoredProfile {
   settings: Settings
   verified: Verified
   avatar: string | null
+  /** Ник привязанного Telegram или null, если канал не подключён. */
+  telegramAccount: string | null
 }
 
 interface FieldSpec {
@@ -137,6 +142,7 @@ function loadProfile(): StoredProfile {
     settings: initialSettings,
     verified: { email: initialFields.email, phone: initialFields.phone },
     avatar: null,
+    telegramAccount: null,
   }
 
   try {
@@ -149,6 +155,7 @@ function loadProfile(): StoredProfile {
       settings: { ...initialSettings, ...parsed.settings },
       verified: { ...fallback.verified, ...parsed.verified },
       avatar: parsed.avatar ?? null,
+      telegramAccount: parsed.telegramAccount ?? null,
     }
   } catch {
     return fallback
@@ -216,6 +223,13 @@ export function ProfilePage() {
   const [settings, setSettings] = useState(stored.settings)
   const [verified, setVerified] = useState(stored.verified)
   const [avatar, setAvatar] = useState(stored.avatar)
+  const [telegramAccount, setTelegramAccount] = useState(stored.telegramAccount)
+  const [telegramOpen, setTelegramOpen] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  // Разрешение на push спрашиваем у самого браузера, а не выдумываем состояние.
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | 'unsupported'>(
+    typeof Notification === 'undefined' ? 'unsupported' : Notification.permission,
+  )
 
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(stored.fields)
@@ -243,7 +257,7 @@ export function ProfilePage() {
   }, [saved])
 
   const persist = (patch: Partial<StoredProfile>) => {
-    const next: StoredProfile = { fields, preferences, settings, verified, avatar, ...patch }
+    const next: StoredProfile = { fields, preferences, settings, verified, avatar, telegramAccount, ...patch }
     window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(next))
   }
 
@@ -325,6 +339,34 @@ export function ProfilePage() {
   const removeAvatar = () => {
     setAvatar(null)
     persist({ avatar: null })
+  }
+
+  // Одноразовый код привязки: клиент отправляет его боту, бот связывает счёт.
+  const telegramCode = useMemo(
+    () => `TG-${activeAccount.accountNumber.replace(/\D/g, '').slice(-4)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+    [activeAccount.accountNumber],
+  )
+  const telegramLink = `https://t.me/TrigonumBot?start=${telegramCode}`
+
+  const connectTelegram = () => {
+    const account = '@artem_drobkov'
+    setTelegramAccount(account)
+    persist({ telegramAccount: account, preferences: { ...preferences, telegram: true } })
+    setPreferences((current) => ({ ...current, telegram: true }))
+    setTelegramOpen(false)
+  }
+
+  const disconnectTelegram = () => {
+    setTelegramAccount(null)
+    setPreferences((current) => ({ ...current, telegram: false }))
+    persist({ telegramAccount: null, preferences: { ...preferences, telegram: false } })
+  }
+
+  const requestPush = async () => {
+    if (typeof Notification === 'undefined') return
+    const result = await Notification.requestPermission()
+    setPushPermission(result)
+    if (result === 'granted' && !preferences.push) togglePreference('push')
   }
 
   const exportData = () => {
@@ -679,10 +721,77 @@ export function ProfilePage() {
                 <PreferenceRow label="Новые продукты" checked={preferences.products} onChange={() => togglePreference('products')} />
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--trigonum-border)] pt-4">
-                <ChannelChip label="Email" on={preferences.email} onClick={() => togglePreference('email')} />
-                <ChannelChip label="Push" on={preferences.push} onClick={() => togglePreference('push')} />
-                <ChannelChip label="Telegram" on={preferences.telegram} onClick={() => togglePreference('telegram')} />
+              <div className="mt-4 border-t border-[var(--trigonum-border)] pt-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--trigonum-muted)]">
+                  Куда доставлять
+                </p>
+
+                <div className="flex flex-col divide-y divide-[var(--trigonum-border)]">
+                  <ChannelRow
+                    icon={<Mail size={16} />}
+                    label="Email"
+                    detail={fields.email || 'Адрес не указан'}
+                    connected
+                    checked={preferences.email}
+                    onChange={() => togglePreference('email')}
+                  />
+
+                  <ChannelRow
+                    icon={<BellRing size={16} />}
+                    label="Push"
+                    detail={
+                      pushPermission === 'granted'
+                        ? 'Этот браузер · разрешено'
+                        : pushPermission === 'denied'
+                          ? 'Браузер блокирует уведомления — снимите запрет в настройках сайта'
+                          : pushPermission === 'unsupported'
+                            ? 'Браузер не поддерживает уведомления'
+                            : 'Нужно разрешение браузера'
+                    }
+                    connected={pushPermission === 'granted'}
+                    checked={preferences.push && pushPermission === 'granted'}
+                    onChange={() => togglePreference('push')}
+                    action={
+                      pushPermission === 'default' ? (
+                        <button
+                          type="button"
+                          onClick={() => void requestPush()}
+                          className="shrink-0 rounded-lg border border-[var(--trigonum-border)] px-3 py-1.5 text-xs font-semibold text-[var(--trigonum-ink)] transition hover:border-[var(--trigonum-ink)]"
+                        >
+                          Разрешить
+                        </button>
+                      ) : undefined
+                    }
+                  />
+
+                  <ChannelRow
+                    icon={<Send size={16} />}
+                    label="Telegram"
+                    detail={telegramAccount ? `${telegramAccount} · подключён` : 'Не подключён'}
+                    connected={Boolean(telegramAccount)}
+                    checked={preferences.telegram && Boolean(telegramAccount)}
+                    onChange={() => togglePreference('telegram')}
+                    action={
+                      telegramAccount ? (
+                        <button
+                          type="button"
+                          onClick={disconnectTelegram}
+                          className="shrink-0 text-xs font-semibold text-[var(--trigonum-muted)] transition hover:text-[var(--trigonum-danger)]"
+                        >
+                          Отключить
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setTelegramOpen(true)}
+                          className="shrink-0 rounded-lg bg-[var(--trigonum-ink)] px-3 py-1.5 text-xs font-semibold text-white transition hover:brightness-125"
+                        >
+                          Подключить
+                        </button>
+                      )
+                    }
+                  />
+                </div>
               </div>
             </Card>
           </Reveal>
@@ -923,6 +1032,78 @@ export function ProfilePage() {
           </OutlineButton>
           <PrimaryButton type="button" onClick={confirmCode}>
             Подтвердить
+          </PrimaryButton>
+        </div>
+      </Modal>
+
+      {/* Привязка Telegram */}
+      <Modal
+        open={telegramOpen}
+        onClose={() => setTelegramOpen(false)}
+        title="Подключить Telegram"
+        subtitle="Уведомления придут в чат с ботом Trigonum"
+      >
+        <ol className="flex flex-col gap-4">
+          <li className="flex gap-3">
+            <StepMark>1</StepMark>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[var(--trigonum-ink)]">Откройте бота</p>
+              <a
+                href={telegramLink}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-3.5 py-2 text-sm font-semibold text-white transition hover:brightness-125"
+              >
+                <Send size={14} />
+                @TrigonumBot
+              </a>
+            </div>
+          </li>
+
+          <li className="flex gap-3">
+            <StepMark>2</StepMark>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[var(--trigonum-ink)]">Отправьте код привязки</p>
+              <p className="mt-0.5 text-xs text-[var(--trigonum-muted)]">
+                Код одноразовый и действует 15 минут
+              </p>
+              <div className="mt-2 flex items-center gap-2 rounded-lg border border-[var(--trigonum-border)] px-3 py-2">
+                <span className="min-w-0 flex-1 truncate text-sm font-bold tracking-[0.1em] text-[var(--trigonum-ink)]">
+                  {telegramCode}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(telegramCode)
+                    setLinkCopied(true)
+                    window.setTimeout(() => setLinkCopied(false), 2000)
+                  }}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[var(--trigonum-border)] px-2.5 py-1.5 text-xs font-semibold text-[var(--trigonum-ink)]"
+                >
+                  {linkCopied ? <Check size={12} /> : <Copy size={12} />}
+                  {linkCopied ? 'Скопирован' : 'Копировать'}
+                </button>
+              </div>
+            </div>
+          </li>
+
+          <li className="flex gap-3">
+            <StepMark>3</StepMark>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[var(--trigonum-ink)]">Вернитесь и проверьте</p>
+              <p className="mt-0.5 text-xs text-[var(--trigonum-muted)]">
+                Бот свяжет чат со счётом {activeAccount.accountNumber}
+              </p>
+            </div>
+          </li>
+        </ol>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <OutlineButton type="button" onClick={() => setTelegramOpen(false)}>
+            Позже
+          </OutlineButton>
+          <PrimaryButton type="button" onClick={connectTelegram}>
+            Проверить подключение
           </PrimaryButton>
         </div>
       </Modal>
@@ -1187,19 +1368,41 @@ function PreferenceRow({ label, checked, onChange }: { label: string; checked: b
   )
 }
 
-function ChannelChip({ label, on, onClick }: { label: string; on: boolean; onClick: () => void }) {
+function ChannelRow({
+  icon,
+  label,
+  detail,
+  connected,
+  checked,
+  onChange,
+  action,
+}: {
+  icon: ReactNode
+  label: string
+  detail: string
+  connected: boolean
+  checked: boolean
+  onChange: () => void
+  action?: ReactNode
+}) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={on}
-      className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
-        on
-          ? 'border-[var(--trigonum-ink)] bg-[var(--trigonum-ink)] text-white'
-          : 'border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] text-[var(--trigonum-muted)] hover:border-[var(--trigonum-muted)]'
-      }`}
-    >
-      {label}
-    </button>
+    <div className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+      <span className="shrink-0 text-[var(--trigonum-muted)]">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-[var(--trigonum-ink)]">{label}</p>
+        <p className="truncate text-xs text-[var(--trigonum-muted)]">{detail}</p>
+      </div>
+      {action}
+      {/* Переключатель имеет смысл только у подключённого канала. */}
+      {connected && <Switch checked={checked} onChange={onChange} label={label} tone="ink" />}
+    </div>
+  )
+}
+
+function StepMark({ children }: { children: ReactNode }) {
+  return (
+    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[var(--trigonum-bg)] text-xs font-bold text-[var(--trigonum-ink)]">
+      {children}
+    </span>
   )
 }

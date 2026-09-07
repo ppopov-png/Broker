@@ -17,7 +17,9 @@ export function Switch({
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition ${
+      // p-0 обязателен: у кнопки есть браузерный padding, и бегунок без left
+      // отсчитывался бы от него, вылезая за правый край.
+      className={`relative h-6 w-11 shrink-0 rounded-full p-0 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--trigonum-blue)] focus-visible:ring-offset-2 ${
         checked
           ? tone === 'ink'
             ? 'bg-[var(--trigonum-ink)]'
@@ -26,7 +28,9 @@ export function Switch({
       }`}
     >
       <span
-        className={`absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[22px]' : 'translate-x-0.5'}`}
+        className={`absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow transition-transform duration-200 ${
+          checked ? 'translate-x-5' : 'translate-x-0'
+        }`}
       />
     </button>
   )
