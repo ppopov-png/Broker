@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Clock, Mail, RefreshCw } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Check, Clock, Mail, RefreshCw, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getMessageThreads } from '../../../shared/lib/onboarding/api'
@@ -6,11 +6,18 @@ import type { MessageThread, OnboardingHistoryEntry, OnboardingState } from '../
 import { useOnboardingState } from '../../../shared/lib/onboarding/useOnboarding'
 import { Card } from '../../../shared/ui/Card'
 import { CenteredSpinner, PageHeader } from '../../../shared/ui/PageHeader'
-import { Pill } from '../../../shared/ui/Pill'
+import { Pill, type PillTone } from '../../../shared/ui/Pill'
 import { OutlineButton } from '../../../shared/ui/buttons'
-import { ONBOARDING_STEPS, resolveStepStatuses, type StepStatus } from '../model/steps'
+import { ONBOARDING_STEPS, resolveCurrentStep, resolveStepStatuses, type StepStatus } from '../model/steps'
 
-type Banner = { tone: 'warning' | 'error' | 'info' | 'success'; title: string; text: string; reasonLabel?: string }
+type Banner = {
+  tone: 'warning' | 'error' | 'info' | 'success'
+  title: string
+  text: string
+  reasonLabel?: string
+  /** Подпись кнопки, ведущей на шаг-якорь баннера. Без неё кнопки нет. */
+  cta?: string
+}
 
 function bannerFor(state: OnboardingState): Banner | null {
   switch (state) {
@@ -18,8 +25,25 @@ function bannerFor(state: OnboardingState): Banner | null {
       return {
         tone: 'warning',
         title: 'Запрошены уточнения',
-        text: 'Комплаенс просит дополнить анкету. Откройте углублённую проверку и отправьте её ещё раз.',
+        text: 'Анкету приняли, но комплаенсу не хватает данных. Дополните ответы и отправьте анкету ещё раз — заявка вернётся на рассмотрение.',
         reasonLabel: 'Комментарий проверяющего',
+        cta: 'Дополнить анкету',
+      }
+    case 'REVERIFICATION_REQUIRED':
+      return {
+        tone: 'warning',
+        title: 'Нужна повторная проверка личности',
+        text: 'Срок действия документа или самой проверки истёк. Пройдите её заново — остальные шаги останутся в силе.',
+        reasonLabel: 'Причина',
+        cta: 'Пройти проверку',
+      }
+    case 'IDENTITY_FAILED':
+      return {
+        tone: 'error',
+        title: 'Проверка личности не пройдена',
+        text: 'Провайдер не подтвердил документы. Проверку можно пройти заново — остальные шаги при этом сохранятся.',
+        reasonLabel: 'Причина',
+        cta: 'Пройти заново',
       }
     case 'REJECTED':
       return {
@@ -79,7 +103,47 @@ const statusLabel: Record<StepStatus, string> = {
   completed: 'Пройден',
   current: 'Текущий шаг',
   pending: 'Ожидает',
-  'in-progress': 'В процессе',
+  'action-required': 'Нужны уточнения',
+  failed: 'Не пройден',
+  rejected: 'Отказано',
+  blocked: 'Приостановлен',
+}
+
+const statusTone: Record<StepStatus, PillTone> = {
+  completed: 'success',
+  current: 'info',
+  pending: 'neutral',
+  'action-required': 'warning',
+  failed: 'danger',
+  rejected: 'danger',
+  blocked: 'danger',
+}
+
+/** Цвет кружка с номером шага — тот же язык, что и у плашки статуса. */
+const markerClass: Record<StepStatus, string> = {
+  completed: 'bg-[var(--trigonum-success)] text-white',
+  current: 'bg-[var(--trigonum-ink)] text-white',
+  pending: 'bg-[var(--trigonum-bg)] text-[var(--trigonum-muted)]',
+  'action-required': 'bg-[var(--trigonum-warning)] text-white',
+  failed: 'bg-[var(--trigonum-danger)] text-white',
+  rejected: 'bg-[var(--trigonum-danger)] text-white',
+  blocked: 'bg-[var(--trigonum-danger)] text-white',
+}
+
+/** Подпись кнопки зависит от того, почему шаг требует внимания. */
+const actionLabel: Partial<Record<StepStatus, string>> = {
+  current: 'Перейти',
+  'action-required': 'Дополнить анкету',
+  failed: 'Пройти заново',
+}
+
+/**
+ * Один и тот же шаг может требовать внимания по разным причинам, и слова тогда
+ * нужны разные: истёкшую проверку личности не «дополняют анкетой». Переопределение
+ * применяется только к шагу-якорю — тому, на котором заявка стоит сейчас.
+ */
+const anchorOverride: Partial<Record<OnboardingState, { status?: string; action?: string }>> = {
+  REVERIFICATION_REQUIRED: { status: 'Нужна повторная проверка', action: 'Пройти проверку' },
 }
 
 /** Дата завершения этапа — последний по времени переход в одно из его состояний. */
@@ -131,7 +195,9 @@ export function OnboardingStatusPage() {
   }
 
   const banner = bannerFor(status.currentState)
-  const statuses = resolveStepStatuses(status.currentState)
+  const statuses = resolveStepStatuses(status.currentState, history)
+  const currentStep = resolveCurrentStep(status.currentState)
+  const stepNumber = currentStep ? ONBOARDING_STEPS.indexOf(currentStep) + 1 : 0
   const blockedFlow = status.currentState === 'REJECTED' || status.currentState === 'SUSPENDED'
 
   return (
@@ -147,9 +213,16 @@ export function OnboardingStatusPage() {
             className="rounded-[var(--trigonum-radius-lg)] border p-5"
             style={{ borderColor: bannerStyles[banner.tone].border, background: bannerStyles[banner.tone].background }}
           >
-            <p className="text-sm font-bold" style={{ color: bannerStyles[banner.tone].color }}>
-              {banner.title}
-            </p>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <p className="text-sm font-bold" style={{ color: bannerStyles[banner.tone].color }}>
+                {banner.title}
+              </p>
+              {currentStep && (
+                <span className="rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold text-[var(--trigonum-ink)]">
+                  Шаг {stepNumber} из {ONBOARDING_STEPS.length} — {currentStep.title}
+                </span>
+              )}
+            </div>
             <p className="mt-1.5 max-w-[70ch] text-sm text-[var(--trigonum-text)]">{banner.text}</p>
 
             {banner.reasonLabel && status.metadata?.reason && (
@@ -157,6 +230,16 @@ export function OnboardingStatusPage() {
                 <b className="font-semibold text-[var(--trigonum-ink)]">{banner.reasonLabel}:</b>{' '}
                 {status.metadata.reason}
               </p>
+            )}
+
+            {banner.cta && currentStep?.actionPath && (
+              <Link
+                to={currentStep.actionPath}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-125"
+              >
+                {banner.cta}
+                <ArrowRight size={15} />
+              </Link>
             )}
 
             {status.currentState === 'APPROVED' && (
@@ -176,18 +259,22 @@ export function OnboardingStatusPage() {
             {ONBOARDING_STEPS.map((step, index) => {
               const stepStatus = statuses[index]
               const done = completedAt(history, step.states)
+              const override = index === stepNumber - 1 ? anchorOverride[status.currentState] : undefined
+              const action = override?.action ?? actionLabel[stepStatus]
               return (
                 <li key={step.key} className="flex flex-wrap items-center gap-3 py-3.5 first:pt-0 last:pb-0">
                   <span
-                    className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${
-                      stepStatus === 'completed'
-                        ? 'bg-[var(--trigonum-success)] text-white'
-                        : stepStatus === 'current'
-                          ? 'bg-[var(--trigonum-ink)] text-white'
-                          : 'bg-[var(--trigonum-bg)] text-[var(--trigonum-muted)]'
-                    }`}
+                    className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${markerClass[stepStatus]}`}
                   >
-                    {stepStatus === 'completed' ? <Check size={14} strokeWidth={3} /> : index + 1}
+                    {stepStatus === 'completed' ? (
+                      <Check size={14} strokeWidth={3} />
+                    ) : stepStatus === 'failed' || stepStatus === 'rejected' || stepStatus === 'blocked' ? (
+                      <X size={14} strokeWidth={3} />
+                    ) : stepStatus === 'action-required' ? (
+                      <AlertTriangle size={13} strokeWidth={2.5} />
+                    ) : (
+                      index + 1
+                    )}
                   </span>
 
                   <div className="min-w-0 flex-1">
@@ -197,18 +284,14 @@ export function OnboardingStatusPage() {
                     )}
                   </div>
 
-                  <Pill
-                    tone={stepStatus === 'completed' ? 'success' : stepStatus === 'current' ? 'info' : 'neutral'}
-                  >
-                    {statusLabel[stepStatus]}
-                  </Pill>
+                  <Pill tone={statusTone[stepStatus]}>{override?.status ?? statusLabel[stepStatus]}</Pill>
 
-                  {stepStatus === 'current' && step.actionPath && !blockedFlow && (
+                  {action && step.actionPath && !blockedFlow && (
                     <Link
                       to={step.actionPath}
                       className="shrink-0 rounded-lg bg-[var(--trigonum-ink)] px-3 py-1.5 text-xs font-semibold text-white transition hover:brightness-125"
                     >
-                      Перейти
+                      {action}
                     </Link>
                   )}
                 </li>

@@ -3,7 +3,7 @@ import { BrokerAccountProvider } from '../shared/lib/AccountContext'
 import { FundingProvider } from '../shared/lib/FundingContext'
 import { DemoPanel } from '../shared/ui/DemoPanel'
 import { ToastProvider } from '../shared/ui/Toast'
-import { MobileHeader, MobileTabBar } from './MobileChrome'
+import { MobileHeader, MobileNavProvider, MobileTabBar } from './MobileChrome'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 
@@ -12,6 +12,7 @@ export function CabinetLayout() {
     <BrokerAccountProvider>
       <FundingProvider>
         <ToastProvider>
+          <MobileNavProvider>
           <div className="flex min-h-screen bg-[var(--trigonum-bg)]">
             <Sidebar />
             <div className="flex min-w-0 flex-1 flex-col">
@@ -24,6 +25,7 @@ export function CabinetLayout() {
             </div>
             <DemoPanel />
           </div>
+          </MobileNavProvider>
         </ToastProvider>
       </FundingProvider>
     </BrokerAccountProvider>

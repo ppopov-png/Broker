@@ -10,6 +10,7 @@ import {
   type OnboardingState,
   type OnboardingStatus,
   type SelfCertification,
+  STATE_ORDER,
 } from './types'
 
 /**
@@ -70,9 +71,9 @@ function write(store: Store) {
   }
 }
 
-function transition(store: Store, next: OnboardingState, metadata?: { reason?: string }) {
+function transition(store: Store, next: OnboardingState, metadata?: { reason?: string }, at?: string) {
   if (store.currentState === next) return store
-  const createdAt = new Date().toISOString()
+  const createdAt = at ?? new Date().toISOString()
   store.history = [
     ...store.history,
     { id: `h${store.history.length + 1}`, fromState: store.currentState, toState: next, createdAt },
@@ -414,10 +415,17 @@ export async function submitEddResponse(answers: EddResponse['answers']): Promis
  * которые в бою присылает сервер, чтобы прототип можно было смотреть целиком.
  */
 
-/** Перевести онбординг в произвольное состояние. */
+/**
+ * Перевести онбординг в произвольное состояние.
+ *
+ * Прыжок вперёд достраивает историю пропущенными шагами: в бою заявка не
+ * попадает на «Запрошены уточнения», не пройдя регистрацию, почту и анкету, —
+ * и трек статуса должен показывать это, а не восемь пунктов «Ожидает».
+ */
 export async function setOnboardingState(next: OnboardingState, reason?: string): Promise<void> {
   await wait(80)
   const store = read()
+  backfillHistory(store, next)
   transition(store, next, reason ? { reason } : undefined)
   write(store)
 }
@@ -446,24 +454,71 @@ export async function startIdentitySimulation(sessionId: string): Promise<void> 
   write(store)
 }
 
-/** Досрочно закрыть KYC-сессию — за провайдера, который в бою шлёт вебхук. */
+/**
+ * Досрочно закрыть KYC-сессию — за провайдера, который в бою шлёт вебхук.
+ *
+ * Приводим к решению все живые сессии, а не только текущую: иначе оставшаяся
+ * от прошлой попытки «одобренная» сессия перебивала бы новый результат.
+ */
 export async function completeKycNow(decision: 'Approved' | 'Declined'): Promise<void> {
   await wait(80)
   const store = read()
   const now = new Date().toISOString()
 
   for (const session of Object.values(store.sessions)) {
-    if (session.status === 'PENDING' || session.status === 'IN_PROGRESS') {
-      session.status = decision === 'Approved' ? 'COMPLETED' : 'FAILED'
-      session.overallDecision = decision
-      session.updatedAt = now
-      session.webhookReceivedAt = now
-      session.documentData = { documentType: 'PASSPORT' }
-    }
+    if (session.status === 'SUPERSEDED' || session.status === 'EXPIRED') continue
+    session.status = decision === 'Approved' ? 'COMPLETED' : 'FAILED'
+    session.overallDecision = decision
+    session.updatedAt = now
+    session.webhookReceivedAt = now
+    session.documentData = { documentType: 'PASSPORT' }
+    // Симуляция отработала — иначе таймер снова протащит сессию по статусам.
+    delete session.simulatedAt
   }
 
-  transition(store, decision === 'Approved' ? 'IDENTITY_VERIFIED' : 'IDENTITY_FAILED')
+  backfillHistory(store, decision === 'Approved' ? 'IDENTITY_VERIFIED' : 'IDENTITY_FAILED')
+  transition(
+    store,
+    decision === 'Approved' ? 'IDENTITY_VERIFIED' : 'IDENTITY_FAILED',
+    decision === 'Approved'
+      ? undefined
+      : { reason: 'Провайдер не сопоставил фото с документом: снимок засвечен, часть данных не читается.' },
+  )
   write(store)
+}
+
+/**
+ * Точка ветвления для состояний вне линейного трека: до какого шага заявка
+ * дошла, прежде чем уйти в ветку. IDENTITY_FAILED тоже здесь — в STATE_ORDER
+ * он стоит после IDENTITY_VERIFIED (так удобнее гардам), и достраивать
+ * историю по этому порядку значило бы «пройти» проверку, которую провалили.
+ */
+const BRANCH_POINT: Partial<Record<OnboardingState, OnboardingState>> = {
+  IDENTITY_FAILED: 'IDENTITY_IN_PROGRESS',
+  REVERIFICATION_REQUIRED: 'IDENTITY_VERIFIED',
+  AMENDMENTS_REQUESTED: 'UNDER_REVIEW',
+  REJECTED: 'UNDER_REVIEW',
+  SUSPENDED: 'APPROVED',
+}
+
+/** Ветки не лежат на пути вперёд, поэтому в достроенную историю не попадают. */
+const BRANCH_STATES = Object.keys(BRANCH_POINT) as OnboardingState[]
+
+function backfillHistory(store: Store, next: OnboardingState) {
+  const upTo = BRANCH_POINT[next] ?? next
+  const limit = STATE_ORDER.indexOf(upTo)
+  if (limit === -1) return
+
+  const reached = new Set(store.history.map((entry) => entry.toState))
+  const missing = STATE_ORDER.slice(0, limit + 1).filter(
+    (state) => !reached.has(state) && !BRANCH_STATES.includes(state),
+  )
+
+  // Разносим шаги по времени, иначе в треке у всех окажется одна дата.
+  const startedAt = Date.now() - missing.length * 36e5
+  missing.forEach((state, index) => {
+    transition(store, state, undefined, new Date(startedAt + index * 36e5).toISOString())
+  })
 }
 
 /* --- Сообщения ------------------------------------------------------------- */

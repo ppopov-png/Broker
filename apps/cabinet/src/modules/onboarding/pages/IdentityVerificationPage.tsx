@@ -128,7 +128,10 @@ export function IdentityVerificationPage() {
   }, [sessionId, sessionStatus])
 
   // Шаг закончился — сразу открываем следующий, чтобы клиент не искал его сам.
-  const verifiedNow = session?.status === 'COMPLETED' && session.overallDecision === 'Approved'
+  const verifiedNow =
+    status?.currentState !== 'IDENTITY_FAILED' &&
+    session?.status === 'COMPLETED' &&
+    session.overallDecision === 'Approved'
   const [autoRedirect, setAutoRedirect] = useState(false)
   useEffect(() => {
     if (!verifiedNow) return
@@ -181,13 +184,21 @@ export function IdentityVerificationPage() {
 
   if (!allowed) return null
 
-  const currentStatus = alreadyPassed
-    ? 'COMPLETED'
-    : (session?.status ?? (failedByState ? 'FAILED' : 'NOT_STARTED'))
-  const decision = alreadyPassed ? 'Approved' : (session?.overallDecision ?? (failedByState ? 'Declined' : undefined))
-  const canStart = !alreadyPassed && KYC_CAN_START.includes(currentStatus)
+  // ТЗ 4.7 отдаёт приоритет состоянию онбординга над данными сессии: сессия
+  // могла быть очищена или устареть. Правило симметрично и для провала —
+  // иначе на IDENTITY_FAILED показывался бы результат старой успешной сессии.
+  const currentStatus = failedByState
+    ? 'FAILED'
+    : alreadyPassed
+      ? 'COMPLETED'
+      : (session?.status ?? 'NOT_STARTED')
+  const decision = failedByState ? 'Declined' : alreadyPassed ? 'Approved' : session?.overallDecision
+  const terminalResult = KYC_TERMINAL.includes(currentStatus)
+  // ТЗ разрешает показывать старт и при FAILED/EXPIRED, но тогда рядом с
+  // карточкой результата оказались бы две кнопки об одном и том же.
+  const canStart = !alreadyPassed && KYC_CAN_START.includes(currentStatus) && !terminalResult
   const showLink = !alreadyPassed && (currentStatus === 'PENDING' || currentStatus === 'IN_PROGRESS')
-  const terminal = KYC_TERMINAL.includes(currentStatus)
+  const terminal = terminalResult
 
   return (
     <div className="pb-10">

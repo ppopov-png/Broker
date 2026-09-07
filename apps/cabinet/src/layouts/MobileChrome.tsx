@@ -1,5 +1,5 @@
-import { Bell, Home, Menu, TrendingUp, Wallet, X, CalendarClock, LayoutGrid } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Bell, CalendarClock, Home, LayoutGrid, Menu, TrendingUp, Wallet, X } from 'lucide-react'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useBrokerAccount } from '../shared/lib/AccountContext'
 import { tierAccent } from '../shared/lib/InvestorStatus'
@@ -17,8 +17,23 @@ const tabs = [
   { to: '/events', label: 'Events', icon: CalendarClock, end: false },
 ]
 
-export function MobileHeader() {
+/** Шторку открывают и шапка, и вкладка «Ещё», поэтому состояние общее. */
+const MobileMenuContext = createContext<{ open: boolean; setOpen: (value: boolean) => void } | null>(null)
+
+export function MobileNavProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
+  const value = useMemo(() => ({ open, setOpen }), [open])
+  return <MobileMenuContext.Provider value={value}>{children}</MobileMenuContext.Provider>
+}
+
+function useMobileMenu() {
+  const context = useContext(MobileMenuContext)
+  if (!context) throw new Error('useMobileMenu должен вызываться внутри MobileNavProvider')
+  return context
+}
+
+export function MobileHeader() {
+  const { open, setOpen } = useMobileMenu()
   const { activeAccount } = useBrokerAccount()
   const { status } = useInvestorStatus()
   const onboardingNeedsAction = useOnboardingActionRequired()
@@ -188,6 +203,8 @@ function DrawerLink({
 
 /** Нижняя панель: большие цели пальцем, безопасная зона под жест «домой». */
 export function MobileTabBar() {
+  const { setOpen } = useMobileMenu()
+
   return (
     <nav className="fixed bottom-0 left-0 z-40 grid w-screen grid-cols-5 border-t border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] pb-[env(safe-area-inset-bottom)] lg:hidden">
       {tabs.map(({ to, label, icon: Icon, end }) => (
@@ -206,17 +223,14 @@ export function MobileTabBar() {
         </NavLink>
       ))}
 
-      <NavLink
-        to="/transactions"
-        className={({ isActive }) =>
-          `flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition ${
-            isActive ? 'text-[var(--trigonum-blue)]' : 'text-[var(--trigonum-muted)]'
-          }`
-        }
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold text-[var(--trigonum-muted)] transition"
       >
         <LayoutGrid size={20} strokeWidth={2} />
         Ещё
-      </NavLink>
+      </button>
     </nav>
   )
 }

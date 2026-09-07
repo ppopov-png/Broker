@@ -1,4 +1,4 @@
-import type { OnboardingState } from '../../../shared/lib/onboarding/types'
+import type { OnboardingHistoryEntry, OnboardingState } from '../../../shared/lib/onboarding/types'
 import { ONBOARDING_ROUTES } from '../../../shared/lib/onboarding/useOnboarding'
 
 export interface OnboardingStep {
@@ -47,18 +47,52 @@ const COMPLETING_STATES: OnboardingState[] = [
   'EDD_SUBMITTED',
 ]
 
-export type StepStatus = 'completed' | 'current' | 'pending' | 'in-progress'
+export type StepStatus = 'completed' | 'current' | 'pending' | 'action-required' | 'failed' | 'rejected' | 'blocked'
 
-export function resolveStepStatuses(current: OnboardingState): StepStatus[] {
+/**
+ * Состояния, которые выпадают из линейного трека. У каждого есть шаг-якорь —
+ * этап, на котором заявка остановилась. Без якоря ни один шаг не совпадал бы
+ * с состоянием, и весь трек рисовался «Ожидает», хотя регистрация и почта
+ * давно пройдены.
+ */
+const OFF_TRACK: Partial<Record<OnboardingState, { anchorKey: string; status: StepStatus }>> = {
+  IDENTITY_FAILED: { anchorKey: 'identity', status: 'failed' },
+  REVERIFICATION_REQUIRED: { anchorKey: 'identity', status: 'action-required' },
+  AMENDMENTS_REQUESTED: { anchorKey: 'edd', status: 'action-required' },
+  REJECTED: { anchorKey: 'review', status: 'rejected' },
+  SUSPENDED: { anchorKey: 'review', status: 'blocked' },
+}
+
+/** Шаг, на котором заявка стоит прямо сейчас: к нему привязаны баннер и CTA. */
+export function resolveCurrentStep(current: OnboardingState): OnboardingStep | null {
+  const index = resolveAnchorIndex(current)
+  return index === -1 ? null : (ONBOARDING_STEPS[index] ?? null)
+}
+
+function resolveAnchorIndex(current: OnboardingState): number {
+  const offTrack = OFF_TRACK[current]
+  if (offTrack) return ONBOARDING_STEPS.findIndex((step) => step.key === offTrack.anchorKey)
+
   const ownerIndex = ONBOARDING_STEPS.findIndex((step) => step.states.includes(current))
-  if (ownerIndex === -1) return ONBOARDING_STEPS.map(() => 'pending')
+  if (ownerIndex === -1) return -1
+  return COMPLETING_STATES.includes(current) ? ownerIndex + 1 : ownerIndex
+}
 
-  const completesOwnStep = COMPLETING_STATES.includes(current)
-  const currentIndex = completesOwnStep ? ownerIndex + 1 : ownerIndex
+export function resolveStepStatuses(current: OnboardingState, history: OnboardingHistoryEntry[] = []): StepStatus[] {
+  const anchorIndex = resolveAnchorIndex(current)
+  if (anchorIndex === -1) return ONBOARDING_STEPS.map(() => 'pending')
 
-  return ONBOARDING_STEPS.map((_, index) => {
-    if (index < currentIndex) return 'completed'
-    if (index === currentIndex) return current === 'APPROVED' ? 'completed' : 'current'
+  // История нужна для шагов за якорем: анкету могли отправить, а потом
+  // комплаенс запросил уточнения — отправка от этого не отменяется.
+  const reached = new Set(history.map((entry) => entry.toState))
+
+  return ONBOARDING_STEPS.map((step, index) => {
+    if (index < anchorIndex) return 'completed'
+    if (index === anchorIndex) {
+      if (current === 'APPROVED') return 'completed'
+      return OFF_TRACK[current]?.status ?? 'current'
+    }
+    if (step.states.some((state) => COMPLETING_STATES.includes(state) && reached.has(state))) return 'completed'
     return 'pending'
   })
 }

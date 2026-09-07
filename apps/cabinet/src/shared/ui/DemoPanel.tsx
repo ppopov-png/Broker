@@ -188,7 +188,11 @@ export function DemoPanel() {
                 disabled={busy}
                 onClick={() =>
                   void apply(
-                    () => setOnboardingState(item.state, item.reason),
+                    // Провал закрываем через решение провайдера, иначе останется
+                    // успешная сессия и экран покажет подтверждённую личность.
+                    item.state === 'IDENTITY_FAILED'
+                      ? () => completeKycNow('Declined')
+                      : () => setOnboardingState(item.state, item.reason),
                     item.state === 'IDENTITY_FAILED' || item.state === 'REVERIFICATION_REQUIRED'
                       ? ONBOARDING_ROUTES.identity
                       : ONBOARDING_ROUTES.status,
