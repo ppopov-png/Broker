@@ -5,6 +5,13 @@ import { STATE_ORDER, TERMINAL_STATES, type OnboardingHistoryEntry, type Onboard
 
 const STATUS_POLL_MS = 10_000
 
+/** Состояние изменили вне обычного цикла — например, пультом прототипа. */
+export const ONBOARDING_CHANGED_EVENT = 'trigonum:onboarding-changed'
+
+export function notifyOnboardingChanged() {
+  window.dispatchEvent(new Event(ONBOARDING_CHANGED_EVENT))
+}
+
 export const ONBOARDING_ROUTES = {
   status: '/onboarding',
   identity: '/onboarding/identity',
@@ -53,6 +60,12 @@ export function useOnboardingState(poll = true): OnboardingStateResult {
       cancelled = true
     }
   }, [tick])
+
+  // Внешнее изменение состояния подхватываем сразу, не дожидаясь опроса.
+  useEffect(() => {
+    window.addEventListener(ONBOARDING_CHANGED_EVENT, refetch)
+    return () => window.removeEventListener(ONBOARDING_CHANGED_EVENT, refetch)
+  }, [refetch])
 
   // Поллинг живёт отдельно от загрузки, чтобы не сбрасывать экран в спиннер.
   const terminal = status ? TERMINAL_STATES.includes(status.currentState) : false

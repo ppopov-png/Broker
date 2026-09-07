@@ -25,7 +25,7 @@ interface Store {
   stateChangedAt: string
   metadata?: { reason?: string }
   history: OnboardingHistoryEntry[]
-  sessions: Record<string, KycSession & { createdAt: number }>
+  sessions: Record<string, KycSession & { createdAt: number; simulatedAt?: number }>
   selfCertification: SelfCertification | null
   consented: string[]
   eddResponse: EddResponse | null
@@ -97,24 +97,34 @@ export async function getOnboardingHistory(): Promise<OnboardingHistoryEntry[]> 
 }
 
 /**
- * Переходы, которые в реальной системе делает бэкенд сам: вебхук провайдера
- * закрывает KYC-сессию, комплаенс проверяет анкету. В демо они происходят
- * по таймеру, чтобы поллинг было видно.
+ * Переходы, которые в бою делает сервер: вебхук провайдера закрывает
+ * KYC-сессию, комплаенс проверяет анкету.
+ *
+ * Провайдер не подключён, поэтому сессия сама никуда не двигается — её
+ * продвигает симуляция, запущенная с экрана проверки. Так статус не
+ * «перескакивает» мимо промежуточных значений, пока их разглядывают.
  */
+const DIDIT_IN_PROGRESS_AFTER = 3_000
+const DIDIT_COMPLETED_AFTER = 9_000
+
 function advanceServerSideStates(store: Store): Store {
   const now = Date.now()
 
   for (const session of Object.values(store.sessions)) {
-    if (session.status === 'PENDING' && now - session.createdAt > 6_000) {
-      session.status = 'IN_PROGRESS'
+    if (session.simulatedAt) {
+      const elapsed = now - session.simulatedAt
+      if (session.status === 'PENDING' && elapsed > DIDIT_IN_PROGRESS_AFTER) {
+        session.status = 'IN_PROGRESS'
+      }
+      if (session.status === 'IN_PROGRESS' && elapsed > DIDIT_COMPLETED_AFTER) {
+        session.status = 'COMPLETED'
+        session.overallDecision = 'Approved'
+        session.updatedAt = new Date().toISOString()
+        session.webhookReceivedAt = new Date().toISOString()
+        session.documentData = { documentType: 'PASSPORT' }
+      }
     }
-    if (session.status === 'IN_PROGRESS' && now - session.createdAt > 16_000) {
-      session.status = 'COMPLETED'
-      session.overallDecision = 'Approved'
-      session.updatedAt = new Date().toISOString()
-      session.webhookReceivedAt = new Date().toISOString()
-      session.documentData = { documentType: 'PASSPORT' }
-    }
+
     if (session.status === 'COMPLETED' && session.overallDecision === 'Approved') {
       if (store.currentState === 'IDENTITY_IN_PROGRESS') transition(store, 'IDENTITY_VERIFIED')
     }
@@ -123,11 +133,9 @@ function advanceServerSideStates(store: Store): Store {
     }
   }
 
+  // Отправленная анкета естественно уходит в очередь на рассмотрение.
   if (store.currentState === 'EDD_SUBMITTED' && now - Date.parse(store.stateChangedAt) > 8_000) {
     transition(store, 'UNDER_REVIEW')
-  }
-  if (store.currentState === 'UNDER_REVIEW' && now - Date.parse(store.stateChangedAt) > 20_000) {
-    transition(store, 'APPROVED')
   }
 
   return store
@@ -151,10 +159,11 @@ export async function createKycSession(): Promise<KycSession> {
   }
 
   const sessionId = `kyc_${Math.random().toString(36).slice(2, 12)}`
+  // Провайдер не подключён, поэтому ссылки на его окно нет: экран покажет
+  // блок симуляции вместо мёртвого перехода на несуществующий домен.
   const session: KycSession & { createdAt: number } = {
     sessionId,
     status: 'PENDING',
-    verificationUrl: `https://verify.didit.me/session/${sessionId}`,
     createdAt: Date.now(),
   }
   store.sessions[sessionId] = session
@@ -371,6 +380,19 @@ export async function resetOnboarding(): Promise<void> {
   } catch {
     // Приватный режим — сбрасываем только состояние.
   }
+}
+
+/**
+ * Запустить прохождение проверки за клиента: сессия пойдёт по своим
+ * промежуточным статусам — PENDING, затем IN_PROGRESS, затем результат.
+ */
+export async function startIdentitySimulation(sessionId: string): Promise<void> {
+  await wait(80)
+  const store = read()
+  const session = store.sessions[sessionId]
+  if (!session) return
+  session.simulatedAt = Date.now()
+  write(store)
 }
 
 /** Досрочно закрыть KYC-сессию — за провайдера, который в бою шлёт вебхук. */

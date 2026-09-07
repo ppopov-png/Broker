@@ -8,7 +8,7 @@ import {
   setOnboardingState,
 } from '../lib/onboarding/api'
 import type { OnboardingState } from '../lib/onboarding/types'
-import { ONBOARDING_ROUTES } from '../lib/onboarding/useOnboarding'
+import { ONBOARDING_ROUTES, notifyOnboardingChanged } from '../lib/onboarding/useOnboarding'
 
 /**
  * Пульт прототипа. Бэкенда нет: письмо на почту не придёт, провайдер проверки
@@ -30,17 +30,21 @@ const FLOW: Jump[] = [
   { state: 'AGREEMENTS_ACCEPTED', label: 'Соглашения подписаны', route: ONBOARDING_ROUTES.edd },
   { state: 'EDD_SUBMITTED', label: 'Анкета отправлена', route: ONBOARDING_ROUTES.status },
   { state: 'UNDER_REVIEW', label: 'На рассмотрении', route: ONBOARDING_ROUTES.status },
-  { state: 'APPROVED', label: 'Заявка одобрена', route: ONBOARDING_ROUTES.status },
+]
+
+/** Чем комплаенс закрывает заявку после отправки анкеты. */
+const REVIEW_DECISIONS: { state: OnboardingState; label: string; reason?: string }[] = [
+  { state: 'APPROVED', label: 'Одобрить заявку' },
+  {
+    state: 'AMENDMENTS_REQUESTED',
+    label: 'Запросить правки',
+    reason: 'Приложите выписку за последние три месяца — текущая старше полугода.',
+  },
+  { state: 'REJECTED', label: 'Отклонить заявку', reason: 'Не удалось подтвердить происхождение средств.' },
 ]
 
 const EXCEPTIONS: { state: OnboardingState; label: string; reason?: string }[] = [
   { state: 'IDENTITY_FAILED', label: 'Проверка личности провалена' },
-  {
-    state: 'AMENDMENTS_REQUESTED',
-    label: 'Запрошены правки',
-    reason: 'Приложите выписку за последние три месяца — текущая старше полугода.',
-  },
-  { state: 'REJECTED', label: 'Заявка отклонена', reason: 'Не удалось подтвердить происхождение средств.' },
   { state: 'SUSPENDED', label: 'Доступ приостановлен', reason: 'Проверка службы комплаенса по операции от 22.08.' },
   { state: 'REVERIFICATION_REQUIRED', label: 'Нужна повторная проверка' },
 ]
@@ -62,6 +66,8 @@ export function DemoPanel() {
     const status = await getOnboardingState()
     setCurrent(status.currentState)
     setBusy(false)
+    // Экран может быть уже открыт на этом же маршруте — просим его перечитать данные.
+    notifyOnboardingChanged()
     if (route) {
       setOpen(false)
       navigate(route)
@@ -140,6 +146,32 @@ export function DemoPanel() {
                   className={`shrink-0 text-[10px] ${current === jump.state ? 'text-white/55' : 'text-[var(--trigonum-muted)]'}`}
                 >
                   {jump.state}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <p className="mb-2 mt-4 text-[10px] font-semibold uppercase tracking-wide text-[var(--trigonum-muted)]">
+            Решение комплаенса
+          </p>
+          <div className="flex flex-col gap-1.5">
+            {REVIEW_DECISIONS.map((item) => (
+              <button
+                key={item.state}
+                type="button"
+                disabled={busy}
+                onClick={() => void apply(() => setOnboardingState(item.state, item.reason), ONBOARDING_ROUTES.status)}
+                className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition disabled:opacity-50 ${
+                  current === item.state
+                    ? 'border-[var(--trigonum-ink)] bg-[var(--trigonum-ink)] text-white'
+                    : 'border-[var(--trigonum-border)] text-[var(--trigonum-text)] hover:border-[var(--trigonum-ink)]'
+                }`}
+              >
+                <span className="min-w-0 truncate font-medium">{item.label}</span>
+                <span
+                  className={`shrink-0 text-[10px] ${current === item.state ? 'text-white/55' : 'text-[var(--trigonum-muted)]'}`}
+                >
+                  {item.state}
                 </span>
               </button>
             ))}

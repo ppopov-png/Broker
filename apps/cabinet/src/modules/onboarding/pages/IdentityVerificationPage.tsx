@@ -1,6 +1,6 @@
-import { BadgeCheck, ExternalLink, Info, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { BadgeCheck, ExternalLink, FlaskConical, Info, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { createKycSession, getKycSession } from '../../../shared/lib/onboarding/api'
+import { createKycSession, getKycSession, startIdentitySimulation } from '../../../shared/lib/onboarding/api'
 import {
   ApiError,
   KYC_CAN_START,
@@ -74,6 +74,7 @@ export function IdentityVerificationPage() {
   const [starting, setStarting] = useState(false)
   /** Ссылка на экране на случай, если попап заблокирован браузером. */
   const [manualUrl, setManualUrl] = useState<string | null>(null)
+  const [simulating, setSimulating] = useState(false)
 
   const alreadyPassed = status ? PASSED_STATES.includes(status.currentState) : false
   // Сессии может не быть (очищена, другой браузер), но состояние помнит провал.
@@ -135,6 +136,7 @@ export function IdentityVerificationPage() {
       clearSessionId()
       setSessionId(null)
       setSession(null)
+      setSimulating(false)
     }
 
     try {
@@ -223,7 +225,7 @@ export function IdentityVerificationPage() {
             </Card>
           )}
 
-          {showLink && (
+          {showLink && session?.verificationUrl && (
             <Card>
               <p className="text-sm text-[var(--trigonum-text)]">
                 {currentStatus === 'PENDING'
@@ -231,7 +233,7 @@ export function IdentityVerificationPage() {
                   : 'Проверка начата в соседней вкладке. Вернитесь туда и завершите шаги.'}
               </p>
               <a
-                href={session?.verificationUrl}
+                href={session.verificationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-125"
@@ -239,6 +241,40 @@ export function IdentityVerificationPage() {
                 <ExternalLink size={15} />
                 Открыть окно проверки
               </a>
+            </Card>
+          )}
+
+          {/* Провайдер не подключён — проходим проверку за него, но не мгновенно */}
+          {showLink && !session?.verificationUrl && sessionId && (
+            <Card>
+              <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.12em] text-[var(--trigonum-muted)]">
+                <FlaskConical size={13} />
+                Прототип · провайдер не подключён
+              </p>
+              <p className="mt-2 text-sm text-[var(--trigonum-text)]">
+                В бою здесь открывается окно Didit: документ, селфи и проверка живого присутствия. Пока провайдера нет,
+                можно пройти шаг за него — сессия двинется по своим статусам, а не подтвердится мгновенно.
+              </p>
+
+              <StatusTrack current={currentStatus} />
+
+              <button
+                type="button"
+                disabled={simulating}
+                onClick={() => {
+                  setSimulating(true)
+                  void startIdentitySimulation(sessionId)
+                }}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-125 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {simulating ? 'Проверка идёт…' : 'Я прошёл проверку в Didit'}
+              </button>
+
+              {simulating && (
+                <p className="mt-2 text-xs text-[var(--trigonum-muted)]">
+                  Провайдер отвечает не сразу: статус обновится сам через несколько секунд.
+                </p>
+              )}
             </Card>
           )}
 
@@ -359,5 +395,47 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <span className="text-sm text-[var(--trigonum-muted)]">{label}</span>
       <span className="text-sm font-semibold text-[var(--trigonum-ink)]">{value}</span>
     </div>
+  )
+}
+
+/** Промежуточные статусы сессии: видно, на какой стадии проверка сейчас. */
+function StatusTrack({ current }: { current: string }) {
+  const stages = [
+    { key: 'PENDING', label: 'Сессия создана' },
+    { key: 'IN_PROGRESS', label: 'Документы на проверке' },
+    { key: 'COMPLETED', label: 'Решение получено' },
+  ]
+  const activeIndex = stages.findIndex((stage) => stage.key === current)
+
+  return (
+    <ol className="mt-4 flex flex-col gap-2.5">
+      {stages.map((stage, index) => {
+        const done = activeIndex > index
+        const active = activeIndex === index
+        return (
+          <li key={stage.key} className="flex items-center gap-2.5">
+            <span
+              className={`grid size-5 shrink-0 place-items-center rounded-full text-[10px] font-bold ${
+                done
+                  ? 'bg-[var(--trigonum-success)] text-white'
+                  : active
+                    ? 'bg-[var(--trigonum-ink)] text-white'
+                    : 'bg-[var(--trigonum-border)] text-[var(--trigonum-muted)]'
+              }`}
+            >
+              {done ? '✓' : index + 1}
+            </span>
+            <span
+              className={`text-sm ${active ? 'font-semibold text-[var(--trigonum-ink)]' : 'text-[var(--trigonum-muted)]'}`}
+            >
+              {stage.label}
+            </span>
+            {active && (
+              <span className="ml-1 size-1.5 animate-pulse rounded-full bg-[var(--trigonum-ink)]" aria-hidden="true" />
+            )}
+          </li>
+        )
+      })}
+    </ol>
   )
 }
