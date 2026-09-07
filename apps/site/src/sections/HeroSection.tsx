@@ -20,6 +20,13 @@ export function HeroSection() {
     const host = canvas?.closest('.hero') as HTMLElement | null
     if (!canvas || !host) return
 
+    // Управление канвасом передаётся воркеру ровно один раз за элемент.
+    // В dev React монтирует эффект дважды, и повторный вызов
+    // transferControlToOffscreen бросает исключение, роняя весь сайт.
+    const transferred = canvas as HTMLCanvasElement & { dataset: { offscreen?: string } }
+    if (transferred.dataset.offscreen === 'true') return
+    transferred.dataset.offscreen = 'true'
+
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const offscreen = canvas.transferControlToOffscreen()
     const worker = new Worker(new URL('../workers/heroParticles.worker.ts', import.meta.url), { type: 'module' })

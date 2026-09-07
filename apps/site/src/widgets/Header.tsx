@@ -22,12 +22,12 @@ export function Header() {
       </a>
 
       <nav className="main-nav" aria-label="Основная навигация">
-        <a href="#products">{t('nav.products')} <ChevronDown size={13} strokeWidth={2.4} /></a>
+        <a href="#products">{t('nav.products')}</a>
         <a href="#how">{t('nav.how')}</a>
-        <a href="#business">{t('nav.business')}</a>
-        <a href="#private">{t('nav.private')}</a>
+        <a href="#fees">{t('nav.fees')}</a>
+        <a href="#custody">{t('nav.custody')}</a>
+        <a href="#tiers">{t('nav.tiers')}</a>
         <a href="#compliance">{t('nav.compliance')}</a>
-        <a href="#about">{t('nav.about')}</a>
         <a href="#faq">FAQ</a>
       </nav>
 
