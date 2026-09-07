@@ -14,8 +14,9 @@ import { Link } from 'react-router-dom'
 import { tierInk, tierSoft, type InvestorTier } from '../../../shared/lib/InvestorStatus'
 import { useInvestorStatus } from '../../../shared/lib/useInvestorStatus'
 import { Card } from '../../../shared/ui/Card'
+import { Modal } from '../../../shared/ui/Modal'
 import { Pill } from '../../../shared/ui/Pill'
-import { PrimaryButton } from '../../../shared/ui/buttons'
+import { OutlineButton, PrimaryButton } from '../../../shared/ui/buttons'
 
 const TICKETS_KEY = 'trigonum-broker-tickets-v1'
 
@@ -237,7 +238,7 @@ export function SupportPage() {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:items-start">
         <div className="flex flex-col gap-5 lg:col-span-2">
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             <ChannelCard
               icon={<MessageCircle size={17} />}
               title="Онлайн-чат"
@@ -262,6 +263,7 @@ export function SupportPage() {
               accent={ink}
               soft={soft}
             />
+            <TelegramCard accent={ink} soft={soft} />
           </div>
 
           <Card
@@ -481,6 +483,213 @@ export function SupportPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+/* --- Telegram ------------------------------------------------------------
+ * Привязка идёт кодом, а не вводом @username: username можно указать чужой,
+ * и уведомления по счёту ушли бы постороннему. Код одноразовый и живёт
+ * ограниченное время — его нужно отправить боту из своего аккаунта.
+ */
+
+const TELEGRAM_KEY = 'trigonum-telegram-link-v1'
+const TELEGRAM_BOT = '@trigonum_broker_bot'
+const CODE_TTL_MS = 10 * 60 * 1000
+
+interface TelegramLink {
+  username: string
+  linkedAt: string
+  alerts: Record<TelegramAlert, boolean>
+}
+
+type TelegramAlert = 'payouts' | 'deposits' | 'security' | 'events'
+
+const TELEGRAM_ALERTS: { key: TelegramAlert; label: string }[] = [
+  { key: 'payouts', label: 'Выплаты и начисления' },
+  { key: 'deposits', label: 'Зачисления на счёт' },
+  { key: 'security', label: 'Вход и смена данных' },
+  { key: 'events', label: 'Открытие окон Events' },
+]
+
+function loadTelegram(): TelegramLink | null {
+  try {
+    const raw = window.localStorage.getItem(TELEGRAM_KEY)
+    return raw ? (JSON.parse(raw) as TelegramLink) : null
+  } catch {
+    return null
+  }
+}
+
+function saveTelegram(link: TelegramLink | null) {
+  try {
+    if (link) window.localStorage.setItem(TELEGRAM_KEY, JSON.stringify(link))
+    else window.localStorage.removeItem(TELEGRAM_KEY)
+  } catch {
+    // Приватный режим — привязка проживёт до перезагрузки.
+  }
+}
+
+function makeCode() {
+  return Array.from({ length: 6 }, () => '0123456789'[Math.floor(Math.random() * 10)]).join('')
+}
+
+function TelegramCard({ accent, soft }: { accent: string; soft: string }) {
+  const [link, setLink] = useState<TelegramLink | null>(loadTelegram)
+  const [open, setOpen] = useState(false)
+  const [code, setCode] = useState('')
+  const [issuedAt, setIssuedAt] = useState(0)
+  const [copied, setCopied] = useState(false)
+
+  const expired = issuedAt > 0 && Date.now() - issuedAt > CODE_TTL_MS
+
+  const start = () => {
+    setCode(makeCode())
+    setIssuedAt(Date.now())
+    setCopied(false)
+    setOpen(true)
+  }
+
+  const confirm = () => {
+    const next: TelegramLink = {
+      username: '@a_drobkov',
+      linkedAt: new Date().toISOString(),
+      alerts: { payouts: true, deposits: true, security: true, events: false },
+    }
+    setLink(next)
+    saveTelegram(next)
+    setOpen(false)
+  }
+
+  const disconnect = () => {
+    setLink(null)
+    saveTelegram(null)
+  }
+
+  const toggleAlert = (key: TelegramAlert) => {
+    if (!link) return
+    const next = { ...link, alerts: { ...link.alerts, [key]: !link.alerts[key] } }
+    setLink(next)
+    saveTelegram(next)
+  }
+
+  return (
+    <>
+      <div className="rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] p-4 shadow-[var(--trigonum-shadow-card)]">
+        <span className="grid size-9 place-items-center rounded-xl" style={{ background: soft, color: accent }}>
+          <Send size={17} />
+        </span>
+        <p className="mt-3 truncate text-sm font-semibold text-[var(--trigonum-ink)]">Telegram</p>
+        <p className="mt-0.5 text-xs text-[var(--trigonum-muted)]">
+          {link ? `${link.username} · уведомления приходят в чат` : 'Уведомления и ответы поддержки в чат'}
+        </p>
+        {link ? (
+          <span className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[var(--trigonum-success)]">
+            <span className="size-1.5 rounded-full bg-[var(--trigonum-success)]" />
+            Подключён
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={start}
+            className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white transition hover:brightness-110"
+            style={{ background: accent }}
+          >
+            <Send size={13} />
+            Подключить
+          </button>
+        )}
+      </div>
+
+      {link && (
+        <div className="rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] p-4 shadow-[var(--trigonum-shadow-card)] sm:col-span-2 xl:col-span-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <p className="text-sm font-semibold text-[var(--trigonum-ink)]">Что присылать в Telegram</p>
+            <button type="button" onClick={disconnect} className="text-xs font-semibold text-[var(--trigonum-danger)]">
+              Отвязать аккаунт
+            </button>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {TELEGRAM_ALERTS.map((alert) => (
+              <label
+                key={alert.key}
+                className="flex items-center gap-2.5 rounded-xl border border-[var(--trigonum-border)] px-3 py-2.5"
+              >
+                <input
+                  type="checkbox"
+                  checked={link.alerts[alert.key]}
+                  onChange={() => toggleAlert(alert.key)}
+                  className="size-4 shrink-0 accent-[var(--trigonum-blue)]"
+                />
+                <span className="text-xs text-[var(--trigonum-text)]">{alert.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Modal open={open} onClose={() => setOpen(false)} title="Подключить Telegram">
+        <ol className="flex flex-col gap-3.5">
+          <Instruction index={1} text={<>Откройте бота <b className="text-[var(--trigonum-ink)]">{TELEGRAM_BOT}</b> в Telegram.</>} />
+          <Instruction
+            index={2}
+            text={
+              <>
+                Отправьте ему код — он одноразовый и действует 10 минут:
+                <span className="mt-2 flex items-center gap-2">
+                  <b className="rounded-lg bg-[var(--trigonum-bg)] px-3 py-2 font-mono text-lg tracking-[.2em] text-[var(--trigonum-ink)]">
+                    {code}
+                  </b>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(code)
+                      setCopied(true)
+                    }}
+                    className="rounded-lg border border-[var(--trigonum-border)] px-2.5 py-2 text-xs font-semibold text-[var(--trigonum-text)]"
+                  >
+                    {copied ? 'Скопировано' : 'Копировать'}
+                  </button>
+                </span>
+              </>
+            }
+          />
+          <Instruction index={3} text="Бот ответит подтверждением — привязка появится в кабинете." />
+        </ol>
+
+        {expired && (
+          <p className="mt-4 rounded-lg bg-[color-mix(in_srgb,var(--trigonum-danger)_8%,white)] px-3 py-2.5 text-xs text-[var(--trigonum-danger)]">
+            Срок кода истёк. Получите новый.
+          </p>
+        )}
+
+        <p className="mt-4 text-xs text-[var(--trigonum-muted)]">
+          Код привязывает именно тот аккаунт, из которого его отправили. Ввод @username мы не используем: указать
+          можно чужой, и уведомления по счёту ушли бы постороннему.
+        </p>
+
+        {/* Бэкенда нет: бот не ответит вебхуком, поэтому подтверждаем вручную. */}
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <OutlineButton type="button" onClick={start}>
+            Новый код
+          </OutlineButton>
+          <PrimaryButton type="button" disabled={expired} onClick={confirm}>
+            <Send size={15} />
+            Я отправил код боту
+          </PrimaryButton>
+        </div>
+      </Modal>
+    </>
+  )
+}
+
+function Instruction({ index, text }: { index: number; text: ReactNode }) {
+  return (
+    <li className="flex items-start gap-3">
+      <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[var(--trigonum-ink)] text-[11px] font-bold text-white">
+        {index}
+      </span>
+      <span className="text-sm text-[var(--trigonum-text)]">{text}</span>
+    </li>
   )
 }
 

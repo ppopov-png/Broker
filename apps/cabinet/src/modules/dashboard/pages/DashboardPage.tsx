@@ -29,7 +29,7 @@ import { CapitalChart } from '../../../shared/ui/CapitalChart'
 import { Pill } from '../../../shared/ui/Pill'
 import { Reveal } from '../../../shared/ui/Reveal'
 import { TransactionRow } from '../../../shared/ui/TransactionRow'
-import { EARN_APY, nextEventWindow, upcomingPayouts } from '../model/dashboard-data'
+import { EARN_APY, nextEventWindow, paidOutProfit, PROGRAM_APY, upcomingPayouts } from '../model/dashboard-data'
 
 const SECONDS_PER_YEAR = 365 * 24 * 60 * 60
 
@@ -130,10 +130,11 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="relative grid grid-cols-2 gap-px border-t border-white/10 bg-white/10 lg:grid-cols-4">
+          <div className="relative grid grid-cols-2 gap-px border-t border-white/10 bg-white/10 sm:grid-cols-3 lg:grid-cols-5">
             <HeroMetric label="Свободно" value={formatCurrency(available)} accent={available > 0 ? glow : undefined} />
             <HeroMetric label="В продуктах" value={formatCurrency(invested)} />
             <HeroMetric label="В Events" value={formatCurrency(lockedEvents)} />
+            <HeroMetric label="Прибыль выплачена" value={formatCurrency(paidOutProfit)} accent="#7ee2b8" />
             <HeroMetric label="Ближайшая выплата" value={payouts.length ? formatCurrency(payouts[0].amount) : '—'} />
           </div>
         </section>
@@ -373,21 +374,26 @@ function IdleCapitalCard({
 }) {
   const step = 1_000
   const [amount, setAmount] = useState(Math.floor(available / step) * step)
-  const [longTerm, setLongTerm] = useState(true)
+  /**
+   * Earn бессрочен, поэтому надбавки за 12 месяцев у него нет — переключатель
+   * выбирает не срок, а направление: ликвидность против ставки баллов.
+   */
+  const [toProgram, setToProgram] = useState(false)
 
-  const perYear = (amount * EARN_APY) / 100
+  const rate = toProgram ? PROGRAM_APY : EARN_APY
+  const perYear = (amount * rate) / 100
   const perMonth = perYear / 12
   const idleCostPerMonth = (available * EARN_APY) / 100 / 12
 
   // Тот же расчёт, что и на странице уровней — без второй формулы.
-  // Кнопка ведёт в Earn, поэтому и прогноз считается по ставке Earn.
   const projected = calculateInvestorStatus({
     ...input,
-    capital: { ...input.capital, earn: input.capital.earn + amount },
-    longTermCapital: {
-      ...input.longTermCapital,
-      earn: input.longTermCapital.earn + (longTerm ? amount : 0),
-    },
+    capital: toProgram
+      ? { ...input.capital, programs: input.capital.programs + amount }
+      : { ...input.capital, earn: input.capital.earn + amount },
+    longTermCapital: toProgram
+      ? { ...input.longTermCapital, programs: input.longTermCapital.programs + amount }
+      : input.longTermCapital,
   })
   const gained = projected.tier !== status.tier
 
@@ -429,18 +435,23 @@ function IdleCapitalCard({
 
           <button
             type="button"
-            onClick={() => setLongTerm((value) => !value)}
+            onClick={() => setToProgram((value) => !value)}
             className="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-[var(--trigonum-muted)] transition hover:text-[var(--trigonum-ink)]"
-            aria-pressed={longTerm}
+            aria-pressed={toProgram}
           >
             <span
-              className={`grid size-4 place-items-center rounded border ${longTerm ? 'border-transparent' : 'border-[var(--trigonum-border)]'}`}
-              style={longTerm ? { background: ink } : undefined}
+              className={`grid size-4 place-items-center rounded border ${toProgram ? 'border-transparent' : 'border-[var(--trigonum-border)]'}`}
+              style={toProgram ? { background: ink } : undefined}
             >
-              {longTerm && <span className="size-1.5 rounded-[2px] bg-white" />}
+              {toProgram && <span className="size-1.5 rounded-[2px] bg-white" />}
             </span>
-            На 12 месяцев — в полтора раза больше баллов
+            В инвестпрограмму на 12 месяцев — втрое больше баллов
           </button>
+          <p className="mt-1.5 text-xs text-[var(--trigonum-muted)]">
+            {toProgram
+              ? 'Капитал заблокирован договором до конца срока.'
+              : 'Earn без срока: тело выводится раз в неделю, начисление каждый день.'}
+          </p>
         </div>
 
         <div className="rounded-xl border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] p-4">
@@ -463,7 +474,7 @@ function IdleCapitalCard({
             projected.nextTier && (
               <p className="mt-3 text-xs text-[var(--trigonum-muted)]">
                 До {projected.nextTier} останется{' '}
-                <b className="tabular-nums text-[var(--trigonum-ink)]">{projected.pointsToNext} pts</b>
+                <b className="tabular-nums text-[var(--trigonum-ink)]">{formatPoints(projected.pointsToNext)} pts</b>
               </p>
             )
           )}
@@ -473,7 +484,7 @@ function IdleCapitalCard({
               to="/invest"
               className="flex items-center justify-center gap-1.5 rounded-lg bg-[var(--trigonum-ink)] px-3 py-2.5 text-sm font-semibold text-white transition hover:brightness-125"
             >
-              В Earn
+              {toProgram ? 'В инвестпрограмму' : 'В Earn'}
               <ArrowRight size={14} />
             </Link>
             <Link

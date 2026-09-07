@@ -37,6 +37,8 @@ type ArchivedContract = {
 
 import { CUSTODY_STATUS_LABEL, loadCustodyAccounts, networkById, type CustodyAccount } from '../../../shared/lib/custody'
 import { printCustodyContract } from '../../custody/model/contract'
+import { paidOutProfit } from '../../dashboard/model/dashboard-data'
+import { printRegulatorReport, REGULATORS, type Regulator } from '../model/regulator-report'
 
 const ARCHIVE: ArchivedContract[] = [
   { id: 'CTR-2312', productName: 'Earn', amount: 8_000, opened: '2025-03-10', closed: '2026-03-10', result: 560, rate: '~7% годовых' },
@@ -116,13 +118,66 @@ export function DocumentsPage() {
   const activeTotal = useMemo(() => contracts.reduce((sum, contract) => sum + contract.amount, 0), [contracts])
   const archiveIncome = ARCHIVE.reduce((sum, contract) => sum + contract.result, 0)
 
-  return <div className="pb-10"><header className="mb-5"><p className="text-[11px] font-bold uppercase tracking-[.18em] text-[var(--trigonum-violet)]">Личный счёт · {activeAccount.accountNumber}</p><h1 className="mt-2.5 text-[28px] font-bold tracking-[-.01em] text-[var(--trigonum-ink)]">Документы</h1><p className="mt-2 max-w-[620px] text-sm leading-[1.55] text-[var(--trigonum-muted)]">Действующие и завершённые договоры с Trigonum. Каждый документ доступен для скачивания.</p></header><div className="flex flex-col gap-5"><section className="rounded-[18px] border border-[var(--trigonum-border)] bg-white px-6 py-5 shadow-[0_8px_30px_rgb(8_27_58/8%)]"><div className="flex flex-wrap items-baseline justify-between gap-3"><div><h2 className="text-[15px] font-semibold text-[var(--trigonum-ink)]">Действующие договоры</h2><p className="mt-1 text-xs text-[var(--trigonum-muted)]">{contracts.length} договора · вложено {formatCurrency(activeTotal)}</p></div><span className="text-[13px] font-bold tabular-nums text-[var(--trigonum-ink)]">{formatCurrency(activeTotal)}</span></div><div className="mt-4 flex flex-col gap-2.5">{contracts.map((contract) => <div key={contract.id} className="grid items-center gap-3.5 rounded-xl border border-[var(--trigonum-border)] px-4 py-3.5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"><div className="flex min-w-0 items-center gap-3"><span className={`grid size-[38px] shrink-0 place-items-center rounded-[10px] ${contract.guaranteed ? 'bg-[#e8f8ff] text-[#0b7fa6]' : 'bg-[var(--trigonum-violet-soft)] text-[var(--trigonum-violet)]'}`}><FileText size={18}/></span><div className="min-w-0"><p className="text-sm font-bold text-[var(--trigonum-ink)]">{contract.productName} · № {contract.id}</p><p className="mt-0.5 text-[11px] text-[var(--trigonum-muted)]">{contract.rate} · {contract.reinvest ? 'реинвестирование' : `выплаты ${contract.payoutPeriod ?? 'по графику'}`} · открыт {human(contract.opened)}</p></div></div><div><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Сумма</p><p className="mt-1 text-sm font-bold tabular-nums text-[var(--trigonum-ink)]">{formatCurrency(contract.amount)}</p></div><div><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Срок</p><p className="mt-1 text-[13px] font-semibold text-[var(--trigonum-ink)]">{months(contract.termMonths)}{contract.ends ? ` · до ${short(contract.ends)}` : ''}</p></div><div className="flex shrink-0 items-center gap-2"><span className="rounded-full bg-[#eef7f1] px-2.5 py-1.5 text-[11px] font-bold text-[var(--trigonum-success)]">Действует</span><button type="button" onClick={() => printContract(contract, activeAccount.name, activeAccount.accountNumber)} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--trigonum-border)] px-2.5 py-1.5 text-xs font-semibold text-[var(--trigonum-violet)]"><Download size={14}/>PDF</button></div></div>)}</div></section><section className="rounded-[18px] border border-[var(--trigonum-border)] bg-white px-6 py-5 shadow-[0_8px_30px_rgb(8_27_58/8%)]"><div className="flex flex-wrap items-baseline justify-between gap-3"><div><h2 className="text-[15px] font-semibold text-[var(--trigonum-ink)]">Завершённые договоры</h2><p className="mt-1 text-xs text-[var(--trigonum-muted)]">{ARCHIVE.length} завершённых договора</p></div><span className="text-[13px] font-bold tabular-nums text-[var(--trigonum-success)]">+{formatCurrency(archiveIncome)} итог</span></div><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[760px] table-fixed border-collapse"><thead><tr className="text-left text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]"><th className="border-b border-[var(--trigonum-border)] pb-2">Договор</th><th className="w-[150px] border-b border-[var(--trigonum-border)] pb-2">Период</th><th className="w-[100px] border-b border-[var(--trigonum-border)] pb-2">Сумма</th><th className="w-[100px] border-b border-[var(--trigonum-border)] pb-2">Итог</th><th className="w-[92px] border-b border-[var(--trigonum-border)] pb-2 text-right">Документ</th></tr></thead><tbody>{ARCHIVE.map((contract) => <tr key={contract.id} className="text-[13px]"><td className="border-b border-[var(--trigonum-border)] py-3 pr-2"><span className="block font-semibold text-[var(--trigonum-ink)]">{contract.productName} · № {contract.id}</span><span className="mt-0.5 block text-[11px] text-[var(--trigonum-muted)]">{contract.rate}</span></td><td className="border-b border-[var(--trigonum-border)] py-3 pr-2 whitespace-nowrap text-[var(--trigonum-text)]">{short(contract.opened)} – {short(contract.closed)}</td><td className="border-b border-[var(--trigonum-border)] py-3 pr-2 whitespace-nowrap font-bold tabular-nums text-[var(--trigonum-ink)]">{formatCurrency(contract.amount)}</td><td className="border-b border-[var(--trigonum-border)] py-3 pr-2 whitespace-nowrap font-bold tabular-nums text-[var(--trigonum-success)]">+{formatCurrency(contract.result)}</td><td className="border-b border-[var(--trigonum-border)] py-3 text-right"><button type="button" onClick={() => printContract(contract, activeAccount.name, activeAccount.accountNumber)} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--trigonum-border)] px-2.5 py-1.5 text-xs font-semibold text-[var(--trigonum-violet)]"><Download size={14}/>PDF</button></td></tr>)}</tbody></table></div></section>{renderCustody(custody, activeAccount.name, activeAccount.accountNumber)}{renderConsentLog(consentLog)}</div></div>
+  return <div className="pb-10"><header className="mb-5"><p className="text-[11px] font-bold uppercase tracking-[.18em] text-[var(--trigonum-violet)]">Личный счёт · {activeAccount.accountNumber}</p><h1 className="mt-2.5 text-[28px] font-bold tracking-[-.01em] text-[var(--trigonum-ink)]">Документы</h1><p className="mt-2 max-w-[620px] text-sm leading-[1.55] text-[var(--trigonum-muted)]">Действующие и завершённые договоры с Trigonum. Каждый документ доступен для скачивания.</p></header><div className="flex flex-col gap-5"><section className="rounded-[18px] border border-[var(--trigonum-border)] bg-white px-6 py-5 shadow-[0_8px_30px_rgb(8_27_58/8%)]"><div className="flex flex-wrap items-baseline justify-between gap-3"><div><h2 className="text-[15px] font-semibold text-[var(--trigonum-ink)]">Действующие договоры</h2><p className="mt-1 text-xs text-[var(--trigonum-muted)]">{contracts.length} договора · вложено {formatCurrency(activeTotal)}</p></div><span className="text-[13px] font-bold tabular-nums text-[var(--trigonum-ink)]">{formatCurrency(activeTotal)}</span></div><div className="mt-4 flex flex-col gap-2.5">{contracts.map((contract) => <div key={contract.id} className="grid items-center gap-3.5 rounded-xl border border-[var(--trigonum-border)] px-4 py-3.5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"><div className="flex min-w-0 items-center gap-3"><span className={`grid size-[38px] shrink-0 place-items-center rounded-[10px] ${contract.guaranteed ? 'bg-[#e8f8ff] text-[#0b7fa6]' : 'bg-[var(--trigonum-violet-soft)] text-[var(--trigonum-violet)]'}`}><FileText size={18}/></span><div className="min-w-0"><p className="text-sm font-bold text-[var(--trigonum-ink)]">{contract.productName} · № {contract.id}</p><p className="mt-0.5 text-[11px] text-[var(--trigonum-muted)]">{contract.rate} · {contract.reinvest ? 'реинвестирование' : `выплаты ${contract.payoutPeriod ?? 'по графику'}`} · открыт {human(contract.opened)}</p></div></div><div><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Сумма</p><p className="mt-1 text-sm font-bold tabular-nums text-[var(--trigonum-ink)]">{formatCurrency(contract.amount)}</p></div><div><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Срок</p><p className="mt-1 text-[13px] font-semibold text-[var(--trigonum-ink)]">{contract.termMonths > 0 ? months(contract.termMonths) : 'Бессрочно'}{contract.ends ? ` · до ${short(contract.ends)}` : ''}</p></div><div className="flex shrink-0 items-center gap-2"><span className="rounded-full bg-[#eef7f1] px-2.5 py-1.5 text-[11px] font-bold text-[var(--trigonum-success)]">Действует</span><button type="button" onClick={() => printContract(contract, activeAccount.name, activeAccount.accountNumber)} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--trigonum-border)] px-2.5 py-1.5 text-xs font-semibold text-[var(--trigonum-violet)]"><Download size={14}/>PDF</button></div></div>)}</div></section><section className="rounded-[18px] border border-[var(--trigonum-border)] bg-white px-6 py-5 shadow-[0_8px_30px_rgb(8_27_58/8%)]"><div className="flex flex-wrap items-baseline justify-between gap-3"><div><h2 className="text-[15px] font-semibold text-[var(--trigonum-ink)]">Завершённые договоры</h2><p className="mt-1 text-xs text-[var(--trigonum-muted)]">{ARCHIVE.length} завершённых договора</p></div><span className="text-[13px] font-bold tabular-nums text-[var(--trigonum-success)]">+{formatCurrency(archiveIncome)} итог</span></div><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[760px] table-fixed border-collapse"><thead><tr className="text-left text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]"><th className="border-b border-[var(--trigonum-border)] pb-2">Договор</th><th className="w-[150px] border-b border-[var(--trigonum-border)] pb-2">Период</th><th className="w-[100px] border-b border-[var(--trigonum-border)] pb-2">Сумма</th><th className="w-[100px] border-b border-[var(--trigonum-border)] pb-2">Итог</th><th className="w-[92px] border-b border-[var(--trigonum-border)] pb-2 text-right">Документ</th></tr></thead><tbody>{ARCHIVE.map((contract) => <tr key={contract.id} className="text-[13px]"><td className="border-b border-[var(--trigonum-border)] py-3 pr-2"><span className="block font-semibold text-[var(--trigonum-ink)]">{contract.productName} · № {contract.id}</span><span className="mt-0.5 block text-[11px] text-[var(--trigonum-muted)]">{contract.rate}</span></td><td className="border-b border-[var(--trigonum-border)] py-3 pr-2 whitespace-nowrap text-[var(--trigonum-text)]">{short(contract.opened)} – {short(contract.closed)}</td><td className="border-b border-[var(--trigonum-border)] py-3 pr-2 whitespace-nowrap font-bold tabular-nums text-[var(--trigonum-ink)]">{formatCurrency(contract.amount)}</td><td className="border-b border-[var(--trigonum-border)] py-3 pr-2 whitespace-nowrap font-bold tabular-nums text-[var(--trigonum-success)]">+{formatCurrency(contract.result)}</td><td className="border-b border-[var(--trigonum-border)] py-3 text-right"><button type="button" onClick={() => printContract(contract, activeAccount.name, activeAccount.accountNumber)} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--trigonum-border)] px-2.5 py-1.5 text-xs font-semibold text-[var(--trigonum-violet)]"><Download size={14}/>PDF</button></td></tr>)}</tbody></table></div></section>{renderRegulator(contracts, activeTotal, activeAccount.name, activeAccount.accountNumber)}{renderCustody(custody, activeAccount.name, activeAccount.accountNumber)}{renderConsentLog(consentLog)}</div></div>
 }
 
 /**
  * Журнал согласий: по нему видно, какие документы и какой версии были
  * подписаны на конкретную дату и что отзывалось.
  */
+/** Отчётность перед регулятором: состав сведений у каждой юрисдикции свой. */
+function renderRegulator(contracts: Contract[], invested: number, clientName: string, accountNumber: string) {
+  const accrued = contracts.reduce((sum, contract) => sum + (contract.income ?? 0), 0)
+  const data = {
+    clientName,
+    accountNumber,
+    totalCapital: invested,
+    invested,
+    accrued,
+    paidOut: paidOutProfit,
+    contracts: contracts.map((contract) => ({
+      id: contract.id,
+      productName: contract.productName,
+      amount: contract.amount,
+      opened: human(contract.opened),
+      rate: contract.rate,
+    })),
+  }
+
+  return (
+    <section className="rounded-[18px] border border-[var(--trigonum-border)] bg-white px-6 py-5 shadow-[0_8px_30px_rgb(8_27_58/8%)]">
+      <h2 className="text-[15px] font-semibold text-[var(--trigonum-ink)]">Отчётность для регулятора</h2>
+      <p className="mt-1 max-w-[70ch] text-xs text-[var(--trigonum-muted)]">
+        Выписка по счёту в форме, принятой в вашей юрисдикции: сводные сведения, договоры, начисленный и выплаченный
+        доход. Суммы приводятся в национальной валюте по курсу на отчётную дату.
+      </p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {(Object.keys(REGULATORS) as Regulator[]).map((key) => {
+          const profile = REGULATORS[key]
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => printRegulatorReport(key, data)}
+              className="flex items-center justify-between gap-3 rounded-xl border border-[var(--trigonum-border)] px-4 py-3.5 text-left transition hover:border-[var(--trigonum-violet)]"
+            >
+              <span className="min-w-0">
+                <span className="block text-sm font-bold text-[var(--trigonum-ink)]">
+                  Подготовить отчёт · {profile.label}
+                </span>
+                <span className="mt-0.5 block text-[11px] text-[var(--trigonum-muted)]">
+                  {profile.authority} · раз в {profile.period} · {profile.currency}
+                </span>
+              </span>
+              <Download size={16} className="shrink-0 text-[var(--trigonum-violet)]" />
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
 /** Договоры счетов хранения: заявка и подпись — часть документооборота, а не настройка. */
 function renderCustody(accounts: CustodyAccount[], clientName: string, brokerAccount: string) {
   if (accounts.length === 0) return null

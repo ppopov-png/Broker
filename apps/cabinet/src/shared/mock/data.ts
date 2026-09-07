@@ -206,7 +206,7 @@ export const earnProduct = {
   description: 'Стабильная доходность без сложных решений',
   expectedYield: '~7%',
   minAmount: 1_000,
-  tags: ['Высокая ликвидность', 'Без фиксации'],
+  tags: ['Без срока', 'Начисление каждый день', 'Вывод раз в неделю'],
 }
 
 export const strategies: StrategyProduct[] = [
