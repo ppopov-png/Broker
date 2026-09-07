@@ -8,6 +8,7 @@ import {
   formatPoints,
   DORMANCY,
   DOWNGRADE_RULES,
+  pointsWord,
   PRODUCT_LINES,
   SCORE_RATES,
   nextReviewDate,
@@ -248,8 +249,8 @@ export function LevelsPage() {
                   />
                 </div>
                 <p className="mt-2 text-xs text-[var(--trigonum-muted)]">
-                  {SCORE_RATES.perThousandPerMonth[line]} балл{SCORE_RATES.perThousandPerMonth[line] > 1 ? 'а' : ''} за
-                  $1,000 в месяц
+                  {SCORE_RATES.perThousandPerMonth[line]} {pointsWord(SCORE_RATES.perThousandPerMonth[line])} за $1,000
+                  в месяц
                 </p>
               </div>
 

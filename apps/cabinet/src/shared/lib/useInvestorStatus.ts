@@ -19,7 +19,7 @@ const activityInput = {
   netNewMoney: 150_000,
   tenureMonths: 19,
   qualifiedReferrals: 3,
-  referralPoints: 4_200,
+  referralPoints: 42_000,
   investedMonths: SCORE_WINDOW_MONTHS,
   monthsSinceActivity: 0,
 }
