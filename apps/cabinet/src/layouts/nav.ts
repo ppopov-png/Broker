@@ -1,4 +1,5 @@
 import {
+  BadgeCheck,
   CalendarClock,
   FileText,
   Headphones,
@@ -32,6 +33,7 @@ export const primaryNav: NavItem[] = [
 ]
 
 export const secondaryNav: NavItem[] = [
+  { to: '/onboarding', label: 'Статус заявки', icon: BadgeCheck },
   { to: '/profile', label: 'Профиль', icon: User },
   { to: '/security', label: 'Безопасность', icon: ShieldCheck },
   { to: '/support', label: 'Поддержка', icon: Headphones },
