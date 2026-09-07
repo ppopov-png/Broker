@@ -8,6 +8,7 @@ import {
   Copy,
   ExternalLink,
   KeyRound,
+  Landmark,
   Link2,
   LoaderCircle,
   Plus,
@@ -17,8 +18,10 @@ import {
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import { useBrokerAccount } from '../../../shared/lib/AccountContext'
 import { formatCurrency, formatDateTime } from '../../../shared/lib/format'
+import { CUSTODY_STATUS_LABEL, loadCustodyAccounts, networkById, type CustodyAccount } from '../../../shared/lib/custody'
 import { useFunding, type FundingSource, type FundingTransactionRecord } from '../../../shared/lib/FundingContext'
 
 type Flow =
@@ -152,6 +155,91 @@ function Distribution({ brokerBalance, freeBalance, locked, sources }: { brokerB
   )
 }
 
+/**
+ * Счета Trigonum стоят выше подключённых кошельков: это средства уже внутри
+ * периметра брокера, а не внешний источник, к которому нужен доступ.
+ */
+function CustodySection({ accounts }: { accounts: CustodyAccount[] }) {
+  if (accounts.length === 0) {
+    return (
+      <section className="mt-6 overflow-hidden rounded-[18px] border border-dashed border-[#d3d3e6] bg-white px-6 py-6 shadow-[0_8px_30px_rgb(8_27_58/8%)]">
+        <div className="flex flex-wrap items-center justify-between gap-5">
+          <div className="min-w-0 flex-1 basis-[420px]">
+            <h2 className="text-[19px] font-bold text-[var(--trigonum-ink)]">Свой счёт в Trigonum</h2>
+            <p className="mt-1.5 max-w-[62ch] text-sm leading-[1.55] text-[var(--trigonum-muted)]">
+              Собственные реквизиты на кошельке Trigonum: переводите средства с любого кошелька или биржи, не подключая
+              их к кабинету. Счёт открывается по заявке — адрес выдаётся после подписания договора.
+            </p>
+          </div>
+          <Link
+            to="/deposit/custody"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[var(--trigonum-ink)] px-4 py-3 text-sm font-semibold text-white transition hover:brightness-125"
+          >
+            <Landmark size={16} />
+            Создать свой счёт в Trigonum
+          </Link>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="mt-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="text-[19px] font-bold text-[var(--trigonum-ink)]">Счета в Trigonum</h2>
+          <p className="mt-1 text-sm text-[var(--trigonum-muted)]">Реквизиты на кошельке брокера — переводите напрямую</p>
+        </div>
+        <Link to="/deposit/custody" className="text-sm font-semibold text-[var(--trigonum-violet)]">
+          Открыть ещё один →
+        </Link>
+      </div>
+      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        {accounts.map((account) => {
+          const network = networkById(account.application.networkId)
+          const active = account.status === 'active' && account.address
+          return (
+            <Link
+              key={account.id}
+              to="/deposit/custody"
+              className="block rounded-[18px] border border-[var(--trigonum-border)] bg-white p-[18px] shadow-[0_8px_30px_rgb(8_27_58/8%)] transition hover:border-[var(--trigonum-violet)]"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--trigonum-violet-soft)] text-[var(--trigonum-violet)]">
+                    <Landmark size={20} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-bold text-[var(--trigonum-ink)]">{account.id}</p>
+                    <p className="mt-1 text-xs text-[var(--trigonum-muted)]">
+                      {network.label} · {account.application.asset}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                    active ? 'bg-[#eef7f1] text-[var(--trigonum-success)]' : 'bg-[#fdf6e8] text-[#92650c]'
+                  }`}
+                >
+                  {CUSTODY_STATUS_LABEL[account.status]}
+                </span>
+              </div>
+              <div className="mt-4 rounded-xl bg-[#f5f5fa] p-3.5">
+                <p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">
+                  {active ? 'Адрес для пополнения' : 'Реквизиты'}
+                </p>
+                <p className={`mt-1.5 break-all text-[13px] ${active ? 'font-mono text-[var(--trigonum-ink)]' : 'text-[var(--trigonum-muted)]'}`}>
+                  {active ? account.address : 'Появятся после подписания договора'}
+                </p>
+              </div>
+            </Link>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
 function SourceCard({ source, onDeposit, onRemove }: { source: FundingSource; onDeposit: () => void; onRemove: () => void }) {
   return (
     <article className="group overflow-hidden rounded-[18px] border border-[var(--trigonum-border)] bg-white shadow-[0_8px_30px_rgb(8_27_58/8%)]">
@@ -226,6 +314,19 @@ export function PersonalDepositV2() {
   const [message, setMessage] = useState('')
   const [confirmations, setConfirmations] = useState(0)
   const [copied, setCopied] = useState(false)
+
+  const [custodyAccounts, setCustodyAccounts] = useState<CustodyAccount[]>(loadCustodyAccounts)
+
+  // Заявку двигает сторона брокера, поэтому список перечитываем периодически.
+  useEffect(() => {
+    const sync = () => setCustodyAccounts(loadCustodyAccounts())
+    const timer = window.setInterval(sync, 3_000)
+    window.addEventListener('focus', sync)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', sync)
+    }
+  }, [])
 
   const freeBalance = Math.max(0, state.brokerBalance - state.lockedEvents - state.pendingSettlement)
   const externalCapital = state.sources.reduce((sum, source) => sum + source.balance, 0)
@@ -346,6 +447,8 @@ export function PersonalDepositV2() {
       </div>
 
       <Distribution brokerBalance={state.brokerBalance} freeBalance={freeBalance} locked={state.lockedEvents + state.pendingSettlement} sources={state.sources} />
+
+      <CustodySection accounts={custodyAccounts} />
 
       <section className="mt-6">
         <div className="flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-[19px] font-bold text-[var(--trigonum-ink)]">Ваши источники капитала</h2><p className="mt-1 text-sm text-[var(--trigonum-muted)]">Пополнение идёт только с подтверждённых источников этого аккаунта</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setFlow({ kind: 'connect' }); setMessage('') }} className="inline-flex items-center gap-2 rounded-xl bg-[var(--trigonum-ink)] px-3.5 py-2.5 text-sm font-semibold text-white"><Plus size={16} />Кошелёк</button><button type="button" onClick={() => { setFlow({ kind: 'exchange' }); setMessage('') }} className="inline-flex items-center gap-2 rounded-xl border border-[var(--trigonum-border)] bg-white px-3.5 py-2.5 text-sm font-semibold text-[var(--trigonum-text)]"><KeyRound size={16} />Биржа API</button></div></div>

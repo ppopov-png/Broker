@@ -3,6 +3,7 @@ import { CabinetLayout } from '../layouts/CabinetLayout'
 import { RequireAuth } from '../modules/auth/RequireAuth'
 import { LoginPage } from '../modules/auth/pages/LoginPage'
 import { CapitalPage } from '../modules/capital/pages/CapitalPage'
+import { CustodyAccountPage } from '../modules/custody/pages/CustodyAccountPage'
 import { DashboardPage } from '../modules/dashboard/pages/DashboardPage'
 import { DocumentsPage } from '../modules/documents/pages/DocumentsPage'
 import { EventsPage } from '../modules/events/pages/EventsPage'
@@ -29,6 +30,7 @@ export function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/capital" element={<CapitalPage />} />
           <Route path="/deposit" element={<DepositPage />} />
+          <Route path="/deposit/custody" element={<CustodyAccountPage />} />
           <Route path="/withdraw" element={<WithdrawPage />} />
           <Route path="/invest" element={<InvestPage />} />
           <Route path="/events" element={<EventsPage />} />
