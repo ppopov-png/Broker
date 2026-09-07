@@ -15,6 +15,7 @@ import {
   Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { calcFees, FEE_SCHEDULES } from '../../../shared/lib/fees'
 import { formatCurrency } from '../../../shared/lib/format'
 import { EventMarketChart } from '../components/EventMarketChart'
 
@@ -339,6 +340,50 @@ function FilterButton({ active, tone, onClick, children }: { active: boolean; to
   return <button type="button" onClick={onClick} className={`rounded-xl border px-3 py-2 text-sm font-semibold ${cls}`}>{children}</button>
 }
 
+/**
+ * Горизонт задан текстом («7 – 14 дней»), а комиссия за управление считается
+ * за срок. Берём верхнюю границу: клиент должен видеть максимальную комиссию,
+ * а не самую приятную.
+ */
+function horizonMonths(horizon: string): number {
+  const numbers = horizon.match(/\d+/g)?.map(Number) ?? []
+  const days = numbers.length ? Math.max(...numbers) : 30
+  return days / 30
+}
+
+/** Комиссии Event: 2% годовых за управление pro rata за срок сделки плюс доля от прибыли сверх барьера. */
+function EventFees({ amount, months, gross }: { amount: number; months: number; gross: number }) {
+  const schedule = FEE_SCHEDULES.event
+  const fees = calcFees({ amount, months, grossProfit: gross, schedule })
+
+  return (
+    <div className="mt-3 border-t border-[var(--trigonum-border)] pt-3">
+      <p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">
+        Комиссии при целевом сценарии
+      </p>
+      <div className="mt-2 space-y-1.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[11px] text-[var(--trigonum-muted)]">За управление · {schedule.managementAnnual}% годовых</span>
+          <b className="text-xs font-bold tabular-nums text-[var(--trigonum-danger)]">− {formatCurrency(fees.management)}</b>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[11px] text-[var(--trigonum-muted)]">За результат · {schedule.resultShare}% сверх {schedule.hurdleAnnual}% годовых</span>
+          <b className="text-xs font-bold tabular-nums text-[var(--trigonum-danger)]">
+            {fees.result > 0 ? `− ${formatCurrency(fees.result)}` : 'не взимается'}
+          </b>
+        </div>
+        <div className="flex items-baseline justify-between gap-3 border-t border-[var(--trigonum-border)] pt-1.5">
+          <span className="text-xs font-bold text-[var(--trigonum-ink)]">Ваш результат</span>
+          <b className="text-sm font-bold tabular-nums text-[var(--trigonum-success)]">+{formatCurrency(fees.net)}</b>
+        </div>
+      </div>
+      <p className="mt-2 text-[10px] leading-[1.45] text-[var(--trigonum-muted)]">
+        При убытке комиссия за результат не взимается. Управление удерживается за фактический срок удержания позиции.
+      </p>
+    </div>
+  )
+}
+
 function EventDetail({ event, onBack, onInvest, onContra }: { event: LiveEvent; onBack: () => void; onInvest: (amount: number) => void; onContra: (amount: number) => void }) {
   const [side, setSide] = useState<Side>('tais')
   const [amount, setAmount] = useState(Math.max(event.minInvestment, Math.min(20_000, Math.min(event.maxInvestment, BALANCE))))
@@ -397,7 +442,7 @@ function EventDetail({ event, onBack, onInvest, onContra }: { event: LiveEvent; 
         <div className="xl:sticky xl:top-20">
           <div className="overflow-hidden rounded-[18px] border border-[var(--trigonum-border)] bg-white shadow-[0_8px_30px_rgb(8_27_58/8%)]">
             <div className="border-b border-[var(--trigonum-border)] p-4"><div className="flex items-center justify-between gap-3"><div className="flex items-center gap-2.5"><Wallet size={18} className={side === 'tais' ? 'text-[var(--trigonum-success)]' : 'text-[#8321d6]'} /><div><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Действие</p><h3 className="mt-1 text-base font-bold text-[var(--trigonum-ink)]">{blocked ? 'Event заполнен' : side === 'tais' ? 'Инвестировать в Event' : 'Ставка против TAIS'}</h3></div></div><span className="text-xs font-bold tabular-nums text-[var(--trigonum-muted)]">{countdown(event.secondsLeft)}</span></div><div className="mt-3 grid grid-cols-2 gap-2 rounded-xl bg-[#f5f5fa] p-1.5"><SideButton active={side === 'tais'} title="С TAIS" position={event.taisPosition} tone="green" onClick={() => setSide('tais')} /><SideButton active={side === 'contra'} title="Обратная" position={event.counterPosition} tone="violet" onClick={() => setSide('contra')} /></div></div>
-            <div className="p-4">{blocked ? <div className="space-y-3"><div className="rounded-xl border border-[#cdcdf0] bg-[var(--trigonum-violet-soft)] p-4"><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-violet)]">Основной Event заполнен</p><p className="mt-2 text-[17px] font-bold text-[var(--trigonum-ink)]">Новые вложения больше не принимаются</p><p className="mt-2 text-sm leading-[1.45] text-[var(--trigonum-text)]">Капитал участников уже зафиксирован в Event до его завершения.</p></div><button type="button" onClick={() => setSide('contra')} className="w-full rounded-xl border border-[#e5cdf7] bg-[#f4e9ff] px-4 py-3 text-sm font-bold text-[#8321d6]">Рассмотреть ставку против TAIS</button></div> : <div className="space-y-4"><div><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Выбранная позиция</p><div className="mt-1.5 flex items-center justify-between"><p className={`text-[22px] font-bold ${side === 'tais' ? 'text-[var(--trigonum-success)]' : 'text-[#8321d6]'}`}>{side === 'tais' ? event.taisPosition : event.counterPosition}</p><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${side === 'tais' ? 'bg-[#eef7f1] text-[var(--trigonum-success)]' : 'bg-[#f4e9ff] text-[#8321d6]'}`}>{side === 'tais' ? 'TAIS' : 'Обратная'}</span></div></div><AmountPicker amount={amount} setAmount={setAmount} min={event.minInvestment} max={maxAmount} quick={quick} />{side === 'tais' ? <div className="rounded-xl border border-[var(--trigonum-border)] p-3.5"><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Сценарии на горизонте Event</p><Scenario label={`Осторожный · +${event.targetLow}%`} value={`+${formatCurrency(amount * event.targetLow / 100)}`} width={event.targetLow / event.targetHigh * 100} fill="linear-gradient(90deg,var(--trigonum-violet),var(--trigonum-violet))" color="var(--trigonum-violet)" /><Scenario label={`Целевой · +${event.targetHigh}%`} value={`+${formatCurrency(amount * event.targetHigh / 100)}`} width={100} fill="linear-gradient(90deg,#12ccff,#92f222)" color="var(--trigonum-success)" /></div> : <div className="space-y-2"><div className="rounded-xl border border-[#e5cdf7] bg-[#f4e9ff] p-3"><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[#8321d6]">Ставка против гипотезы TAIS</p><p className="mt-1.5 text-sm font-bold text-[var(--trigonum-ink)]">TAIS не достигнет +{event.targetLow}% в горизонте {event.horizon}</p><p className="mt-1.5 text-xs leading-[1.45] text-[#8321d6]">Если нижняя граница цели TAIS не выполнена к завершению Event, ставка выигрывает.</p></div><div className="grid grid-cols-3 gap-2"><MiniMetric label="Коэффициент" value={`×${odds.toFixed(2)}`} violet /><MiniMetric label="Выплата" value={formatCurrency(amount * odds)} success /><MiniMetric label="Прибыль" value={`+${formatCurrency(amount * (odds - 1))}`} success /></div></div>}<button type="button" onClick={reserve} disabled={side === 'tais' ? !canTais : !canContra} className={`w-full rounded-xl px-4 py-3.5 text-sm font-bold text-white disabled:opacity-40 ${side === 'tais' ? 'bg-[var(--trigonum-success)]' : 'bg-[#8321d6]'}`}>{side === 'tais' ? (remaining < amount ? 'Такой объём уже недоступен' : `Открыть ${event.taisPosition}`) : 'Поставить на неуспех TAIS'}</button></div>}{(myAllocation > 0 || myContra > 0) && <div className="mt-4 border-t border-[var(--trigonum-border)] pt-4"><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Ваши позиции</p><div className="mt-2 space-y-2">{myAllocation > 0 && <PositionRow label={event.taisPosition} amount={myAllocation} tone="green" />}{myContra > 0 && <PositionRow label={event.counterPosition} amount={myContra} tone="violet" />}</div><p className="mt-2.5 text-[11px] text-[var(--trigonum-muted)]">Капитал зафиксирован до завершения Event</p></div>}</div>
+            <div className="p-4">{blocked ? <div className="space-y-3"><div className="rounded-xl border border-[#cdcdf0] bg-[var(--trigonum-violet-soft)] p-4"><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-violet)]">Основной Event заполнен</p><p className="mt-2 text-[17px] font-bold text-[var(--trigonum-ink)]">Новые вложения больше не принимаются</p><p className="mt-2 text-sm leading-[1.45] text-[var(--trigonum-text)]">Капитал участников уже зафиксирован в Event до его завершения.</p></div><button type="button" onClick={() => setSide('contra')} className="w-full rounded-xl border border-[#e5cdf7] bg-[#f4e9ff] px-4 py-3 text-sm font-bold text-[#8321d6]">Рассмотреть ставку против TAIS</button></div> : <div className="space-y-4"><div><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Выбранная позиция</p><div className="mt-1.5 flex items-center justify-between"><p className={`text-[22px] font-bold ${side === 'tais' ? 'text-[var(--trigonum-success)]' : 'text-[#8321d6]'}`}>{side === 'tais' ? event.taisPosition : event.counterPosition}</p><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${side === 'tais' ? 'bg-[#eef7f1] text-[var(--trigonum-success)]' : 'bg-[#f4e9ff] text-[#8321d6]'}`}>{side === 'tais' ? 'TAIS' : 'Обратная'}</span></div></div><AmountPicker amount={amount} setAmount={setAmount} min={event.minInvestment} max={maxAmount} quick={quick} />{side === 'tais' ? <div className="rounded-xl border border-[var(--trigonum-border)] p-3.5"><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Сценарии на горизонте Event</p><Scenario label={`Осторожный · +${event.targetLow}%`} value={`+${formatCurrency(amount * event.targetLow / 100)}`} width={event.targetLow / event.targetHigh * 100} fill="linear-gradient(90deg,var(--trigonum-violet),var(--trigonum-violet))" color="var(--trigonum-violet)" /><Scenario label={`Целевой · +${event.targetHigh}%`} value={`+${formatCurrency(amount * event.targetHigh / 100)}`} width={100} fill="linear-gradient(90deg,#12ccff,#92f222)" color="var(--trigonum-success)" /><EventFees amount={amount} months={horizonMonths(event.horizon)} gross={amount * event.targetHigh / 100} /></div> : <div className="space-y-2"><div className="rounded-xl border border-[#e5cdf7] bg-[#f4e9ff] p-3"><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[#8321d6]">Ставка против гипотезы TAIS</p><p className="mt-1.5 text-sm font-bold text-[var(--trigonum-ink)]">TAIS не достигнет +{event.targetLow}% в горизонте {event.horizon}</p><p className="mt-1.5 text-xs leading-[1.45] text-[#8321d6]">Если нижняя граница цели TAIS не выполнена к завершению Event, ставка выигрывает.</p></div><div className="grid grid-cols-3 gap-2"><MiniMetric label="Коэффициент" value={`×${odds.toFixed(2)}`} violet /><MiniMetric label="Выплата" value={formatCurrency(amount * odds)} success /><MiniMetric label="Прибыль" value={`+${formatCurrency(amount * (odds - 1))}`} success /></div></div>}<button type="button" onClick={reserve} disabled={side === 'tais' ? !canTais : !canContra} className={`w-full rounded-xl px-4 py-3.5 text-sm font-bold text-white disabled:opacity-40 ${side === 'tais' ? 'bg-[var(--trigonum-success)]' : 'bg-[#8321d6]'}`}>{side === 'tais' ? (remaining < amount ? 'Такой объём уже недоступен' : `Открыть ${event.taisPosition}`) : 'Поставить на неуспех TAIS'}</button></div>}{(myAllocation > 0 || myContra > 0) && <div className="mt-4 border-t border-[var(--trigonum-border)] pt-4"><p className="text-[10px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Ваши позиции</p><div className="mt-2 space-y-2">{myAllocation > 0 && <PositionRow label={event.taisPosition} amount={myAllocation} tone="green" />}{myContra > 0 && <PositionRow label={event.counterPosition} amount={myContra} tone="violet" />}</div><p className="mt-2.5 text-[11px] text-[var(--trigonum-muted)]">Капитал зафиксирован до завершения Event</p></div>}</div>
           </div>
         </div>
       </div>
