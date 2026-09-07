@@ -1,10 +1,14 @@
-import { ArrowLeft, Check, Lock, Minus } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, Lock, Minus, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatCurrency } from '../../../shared/lib/format'
 import {
   buildScoreHistory,
   calculateInvestorStatus,
+  formatPoints,
+  DORMANCY,
+  DOWNGRADE_RULES,
+  nextReviewDate,
   INVESTOR_TIERS,
   SCORE_RULES,
   TIER_PERK_MATRIX,
@@ -12,6 +16,8 @@ import {
   tierHero,
   tierInk,
   tierMetallic,
+  tierOnMetal,
+  tierOnMetalMuted,
   tierAchievedAt,
   tierPerks,
   tierSummary,
@@ -45,8 +51,8 @@ export function LevelsPage() {
 
   const accent = tierAccent[status.tier]
   const ink = tierInk[status.tier]
-  const onMetal = status.tier === 'Black' ? '#f4f4f5' : '#1b1d22'
-  const onMetalMuted = status.tier === 'Black' ? 'rgb(255 255 255 / 50%)' : 'rgb(0 0 0 / 48%)'
+  const onMetal = tierOnMetal[status.tier]
+  const onMetalMuted = tierOnMetalMuted[status.tier]
 
   return (
     <div className="pb-10">
@@ -82,7 +88,7 @@ export function LevelsPage() {
                   {status.tier}
                 </p>
                 <p className="mt-2 text-sm font-semibold tabular-nums" style={{ color: onMetalMuted }}>
-                  {status.score} pts
+                  {formatPoints(status.score)} pts
                 </p>
               </div>
             </div>
@@ -91,7 +97,7 @@ export function LevelsPage() {
               <h1 className="text-[26px] font-medium leading-tight tracking-[-.03em]">
                 {status.nextTier ? (
                   <>
-                    До {status.nextTier} — <span className="tabular-nums">{status.pointsToNext} pts</span>
+                    До {status.nextTier} — <span className="tabular-nums">{formatPoints(status.pointsToNext)} pts</span>
                   </>
                 ) : (
                   'Максимальный уровень'
@@ -141,9 +147,50 @@ export function LevelsPage() {
           {status.nextTier && (
             <p className="mt-5 border-t border-[var(--trigonum-border)] pt-4 text-sm text-[var(--trigonum-muted)]">
               Следующая отметка — <b className="text-[var(--trigonum-ink)]">{status.nextTier}</b>, осталось{' '}
-              <b className="tabular-nums text-[var(--trigonum-ink)]">{status.pointsToNext} pts</b>
+              <b className="tabular-nums text-[var(--trigonum-ink)]">{formatPoints(status.pointsToNext)} pts</b>
             </p>
           )}
+        </Card>
+      </Reveal>
+
+      <Reveal delay={50}>
+        <Card className="mt-5" title="Удержание уровня">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Metric label="Порог удержания" value={`${formatPoints(status.retention.threshold)} pts`} hint={`Ниже этого значения ${status.tier} снимается`} />
+            <Metric
+              label="Запас"
+              value={`${status.retention.buffer >= 0 ? '+' : ''}${formatPoints(status.retention.buffer)} pts`}
+              hint={status.retention.buffer >= 0 ? 'Столько можно потерять без последствий' : 'Столько не хватает до порога'}
+              tone={status.retention.buffer >= 0 ? ink : 'var(--trigonum-danger)'}
+            />
+            <Metric
+              label="Ближайший пересмотр"
+              value={nextReviewDate().toLocaleDateString('ru-RU', { day: '2-digit', month: 'long' })}
+              hint="Уровень меняется только в эту дату"
+            />
+          </div>
+
+          <div
+            className="mt-4 flex items-start gap-2.5 rounded-xl px-4 py-3"
+            style={{
+              background: status.retention.atRisk
+                ? 'color-mix(in srgb, var(--trigonum-danger) 7%, white)'
+                : 'color-mix(in srgb, var(--trigonum-success) 8%, white)',
+            }}
+          >
+            {status.retention.atRisk ? (
+              <AlertTriangle size={15} className="mt-0.5 shrink-0 text-[var(--trigonum-danger)]" />
+            ) : (
+              <ShieldCheck size={15} className="mt-0.5 shrink-0 text-[var(--trigonum-success)]" />
+            )}
+            <p className="text-sm text-[var(--trigonum-text)]">
+              {status.retention.reason === 'dormant'
+                ? `По счёту не было операций больше ${DORMANCY.downgradeAfterMonths} месяцев — на ближайшем пересмотре уровень снизится на ступень.`
+                : status.retention.reason === 'below-threshold'
+                  ? `Баллов меньше порога удержания. Наберите ${formatPoints(Math.abs(status.retention.buffer))} pts до пересмотра, чтобы сохранить ${status.tier}.`
+                  : `Уровень ${status.tier} закреплён до следующего пересмотра. Запас — ${formatPoints(status.retention.buffer)} pts.`}
+            </p>
+          </div>
         </Card>
       </Reveal>
 
@@ -158,7 +205,7 @@ export function LevelsPage() {
                     <div className="flex items-baseline justify-between gap-3">
                       <p className="text-sm font-semibold text-[var(--trigonum-ink)]">{rule.label}</p>
                       <p className="shrink-0 text-sm font-bold tabular-nums" style={{ color: ink }}>
-                        +{points}
+                        +{formatPoints(points)}
                       </p>
                     </div>
                     <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[var(--trigonum-bg)]">
@@ -176,7 +223,7 @@ export function LevelsPage() {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[var(--trigonum-border)] pt-3">
               <span className="text-sm font-semibold text-[var(--trigonum-ink)]">Итого</span>
-              <span className="text-lg font-bold tabular-nums text-[var(--trigonum-ink)]">{status.score}</span>
+              <span className="text-lg font-bold tabular-nums text-[var(--trigonum-ink)]">{formatPoints(status.score)}</span>
             </div>
           </Card>
         </Reveal>
@@ -227,21 +274,17 @@ export function LevelsPage() {
               <div className="flex items-end justify-between gap-3">
                 <p
                   className="text-xl font-bold"
-                  style={{ color: gainedTier ? (simulated.tier === 'Black' ? '#f4f4f5' : '#1b1d22') : 'var(--trigonum-ink)' }}
+                  style={{ color: gainedTier ? tierOnMetal[simulated.tier] : 'var(--trigonum-ink)' }}
                 >
                   {simulated.tier}
                 </p>
                 <p
                   className="text-sm font-semibold tabular-nums"
                   style={{
-                    color: gainedTier
-                      ? simulated.tier === 'Black'
-                        ? 'rgb(255 255 255 / 55%)'
-                        : 'rgb(0 0 0 / 50%)'
-                      : 'var(--trigonum-muted)',
+                    color: gainedTier ? tierOnMetalMuted[simulated.tier] : 'var(--trigonum-muted)',
                   }}
                 >
-                  {simulated.score} pts{!untouched && ` (+${simulated.score - status.score})`}
+                  {formatPoints(simulated.score)} pts{!untouched && ` (+${formatPoints(simulated.score - status.score)})`}
                 </p>
               </div>
             </div>
@@ -266,12 +309,10 @@ export function LevelsPage() {
                         }`}
                         style={{ background: tierMetallic[tier] }}
                       >
-                        <b className={`text-xs font-bold ${tier === 'Black' ? 'text-white' : 'text-[#1b1d22]'}`}>
+                        <b className="text-xs font-bold" style={{ color: tierOnMetal[tier] }}>
                           {tier}
                         </b>
-                        <span
-                          className={`text-[10px] tabular-nums ${tier === 'Black' ? 'text-white/55' : 'text-black/45'}`}
-                        >
+                        <span className="text-[10px] tabular-nums" style={{ color: tierOnMetalMuted[tier] }}>
                           от {threshold}
                         </span>
                       </span>
@@ -302,6 +343,19 @@ export function LevelsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </Card>
+      </Reveal>
+
+      <Reveal delay={210}>
+        <Card className="mt-5" title="Как уровень можно потерять">
+          <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+            {DOWNGRADE_RULES.map((rule) => (
+              <div key={rule.title}>
+                <p className="text-sm font-semibold text-[var(--trigonum-ink)]">{rule.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--trigonum-muted)]">{rule.text}</p>
+              </div>
+            ))}
           </div>
         </Card>
       </Reveal>
@@ -342,6 +396,18 @@ export function LevelsPage() {
           </Reveal>
         )}
       </div>
+    </div>
+  )
+}
+
+function Metric({ label, value, hint, tone }: { label: string; value: string; hint: string; tone?: string }) {
+  return (
+    <div className="rounded-xl bg-[var(--trigonum-bg)] px-4 py-3.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--trigonum-muted)]">{label}</p>
+      <p className="mt-1 text-lg font-bold tabular-nums" style={{ color: tone ?? 'var(--trigonum-ink)' }}>
+        {value}
+      </p>
+      <p className="mt-0.5 text-xs text-[var(--trigonum-muted)]">{hint}</p>
     </div>
   )
 }

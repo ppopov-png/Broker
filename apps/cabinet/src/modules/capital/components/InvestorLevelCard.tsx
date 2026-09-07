@@ -1,7 +1,7 @@
 import { Check, Lock } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatCurrency } from '../../../shared/lib/format'
-import { capitalForPoints, tierInk, tierMetallic, tierPerks } from '../../../shared/lib/InvestorStatus'
+import { capitalForPoints, formatPoints, tierInk, tierMetallic, tierOnMetal, tierPerks } from '../../../shared/lib/InvestorStatus'
 import { useInvestorStatus } from '../../../shared/lib/useInvestorStatus'
 import { Card } from '../../../shared/ui/Card'
 import { ProgressBar } from '../../../shared/ui/ProgressBar'
@@ -22,11 +22,11 @@ export function InvestorLevelCard() {
       <div className="flex items-center gap-3">
         <span
           className="rounded-lg px-3 py-1.5 text-sm font-bold"
-          style={{ background: tierMetallic[status.tier], color: status.tier === 'Black' ? '#f4f4f5' : '#1b1d22' }}
+          style={{ background: tierMetallic[status.tier], color: tierOnMetal[status.tier] }}
         >
           {status.tier}
         </span>
-        <span className="text-sm font-semibold tabular-nums text-[var(--trigonum-muted)]">{status.score} pts</span>
+        <span className="text-sm font-semibold tabular-nums text-[var(--trigonum-muted)]">{formatPoints(status.score)} pts</span>
       </div>
 
       <div className="mt-4">
@@ -35,7 +35,7 @@ export function InvestorLevelCard() {
 
       {status.nextTier ? (
         <p className="mt-2 text-xs text-[var(--trigonum-muted)]">
-          До {status.nextTier} — <b className="tabular-nums text-[var(--trigonum-ink)]">{status.pointsToNext} pts</b>, это{' '}
+          До {status.nextTier} — <b className="tabular-nums text-[var(--trigonum-ink)]">{formatPoints(status.pointsToNext)} pts</b>, это{' '}
           <b className="text-[var(--trigonum-ink)]">{formatCurrency(capitalForPoints(status.pointsToNext, true))}</b> на
           12 месяцев
         </p>

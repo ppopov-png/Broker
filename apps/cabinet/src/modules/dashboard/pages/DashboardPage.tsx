@@ -15,6 +15,7 @@ import { useBrokerAccount } from '../../../shared/lib/AccountContext'
 import { formatCurrency, formatPercent, formatSigned } from '../../../shared/lib/format'
 import {
   calculateInvestorStatus,
+  formatPoints,
   tierCover,
   tierGlow,
   tierInk,
@@ -234,7 +235,7 @@ export function DashboardPage() {
                 </div>
 
                 <p className="relative mt-4 text-[30px] font-bold leading-none tracking-[-.02em]">{status.tier}</p>
-                <p className="relative mt-2 text-xs font-semibold tabular-nums text-white/60">{status.score} pts</p>
+                <p className="relative mt-2 text-xs font-semibold tabular-nums text-white/60">{formatPoints(status.score)} pts</p>
               </div>
 
               <div className="p-5">
@@ -243,7 +244,7 @@ export function DashboardPage() {
                     {status.nextTier ? `До ${status.nextTier}` : 'Максимальный уровень'}
                   </span>
                   <span className="text-sm font-bold tabular-nums text-[var(--trigonum-ink)]">
-                    {status.nextTier ? `${status.pointsToNext} pts` : '—'}
+                    {status.nextTier ? `${formatPoints(status.pointsToNext)} pts` : '—'}
                   </span>
                 </div>
                 <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--trigonum-bg)]">
@@ -444,7 +445,7 @@ function IdleCapitalCard({
             <Outcome label="За год" value={`+${formatCurrency(perYear)}`} tone="success" />
             <Outcome
               label="Баллы уровня"
-              value={`+${projected.score - status.score}`}
+              value={`+${formatPoints(projected.score - status.score)}`}
               tone={gained ? 'accent' : 'normal'}
               accent={ink}
             />

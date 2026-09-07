@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { tierInk, tierSoft } from '../../../shared/lib/InvestorStatus'
+import { tierInk, tierSoft, type InvestorTier } from '../../../shared/lib/InvestorStatus'
 import { useInvestorStatus } from '../../../shared/lib/useInvestorStatus'
 import { Card } from '../../../shared/ui/Card'
 import { Pill } from '../../../shared/ui/Pill'
@@ -122,13 +122,18 @@ const statusMeta: Record<TicketStatus, { label: string; tone: 'success' | 'info'
   closed: { label: 'Решено', tone: 'success' },
 }
 
-/** Приоритет поддержки — часть привилегий уровня. */
-const tierSla: Record<string, { channel: string; first: string }> = {
+/**
+ * Приоритет поддержки — часть привилегий уровня. Тип по InvestorTier
+ * обязателен: с Record<string, …> новый уровень молча получал бы SLA
+ * запасного варианта, противореча матрице привилегий.
+ */
+const tierSla: Record<InvestorTier, { channel: string; first: string }> = {
   Member: { channel: 'Общая очередь', first: '~2 часа' },
   Silver: { channel: 'Общая очередь', first: '~1 час' },
   Gold: { channel: 'Приоритетная очередь', first: '~15 минут' },
-  Diamond: { channel: 'Персональный менеджер', first: '~5 минут' },
-  Black: { channel: 'Прямая линия с инвесткомитетом', first: 'сразу' },
+  Platinum: { channel: 'Персональный менеджер', first: '~5 минут' },
+  Californium: { channel: 'Прямая линия с инвесткомитетом', first: 'сразу' },
+  Diamond: { channel: 'Управляющий партнёр', first: 'сразу' },
 }
 
 function loadTickets(): Ticket[] {
@@ -144,8 +149,8 @@ export function SupportPage() {
   const { status } = useInvestorStatus()
   const ink = tierInk[status.tier]
   const soft = tierSoft[status.tier]
-  const sla = tierSla[status.tier] ?? tierSla.Member
-  const hasManager = status.tier === 'Diamond' || status.tier === 'Black'
+  const sla = tierSla[status.tier]
+  const hasManager = status.tier === 'Platinum' || status.tier === 'Californium' || status.tier === 'Diamond'
 
   const [tickets, setTickets] = useState<Ticket[]>(loadTickets)
   const [openTicket, setOpenTicket] = useState<string | null>(null)

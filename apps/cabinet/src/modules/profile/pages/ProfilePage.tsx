@@ -22,10 +22,13 @@ import { useBrokerAccount } from '../../../shared/lib/AccountContext'
 import { formatCurrency } from '../../../shared/lib/format'
 import {
   buildScoreHistory,
+  formatPoints,
   tierAccent,
   tierHero,
   tierInk,
   tierMetallic,
+  tierOnMetal,
+  tierOnMetalMuted,
   tierSoft,
 } from '../../../shared/lib/InvestorStatus'
 import { useInvestorStatus } from '../../../shared/lib/useInvestorStatus'
@@ -406,9 +409,9 @@ export function ProfilePage() {
   const accent = tierAccent[status.tier]
   const ink = tierInk[status.tier]
   const soft = tierSoft[status.tier]
-  const onMetal = status.tier === 'Black' ? '#f4f4f5' : '#1b1d22'
-  const onMetalMuted = status.tier === 'Black' ? 'rgb(255 255 255 / 50%)' : 'rgb(0 0 0 / 48%)'
-  const hasPrivateDesk = status.tier === 'Diamond' || status.tier === 'Black'
+  const onMetal = tierOnMetal[status.tier]
+  const onMetalMuted = tierOnMetalMuted[status.tier]
+  const hasPrivateDesk = status.tier === 'Californium' || status.tier === 'Diamond'
   const scoreHistory = buildScoreHistory(status.score)
   const pendingSpec = pending.length > 0 ? fieldSpecs.find((spec) => spec.key === pending[0]) : undefined
 
@@ -529,7 +532,7 @@ export function ProfilePage() {
 
                 <div
                   className="mt-4 h-1.5 overflow-hidden rounded-full"
-                  style={{ background: status.tier === 'Black' ? 'rgb(255 255 255 / 18%)' : 'rgb(0 0 0 / 14%)' }}
+                  style={{ background: status.tier === 'Californium' ? 'rgb(255 255 255 / 18%)' : 'rgb(0 0 0 / 14%)' }}
                 >
                   <div
                     className="h-full rounded-full"
@@ -541,8 +544,8 @@ export function ProfilePage() {
                   className="mt-2.5 flex items-center justify-between gap-3 text-[11px] font-semibold tabular-nums"
                   style={{ color: onMetalMuted }}
                 >
-                  <span>{status.score} pts</span>
-                  <span>{status.nextTier ? `${status.pointsToNext} до ${status.nextTier}` : 'Максимум'}</span>
+                  <span>{formatPoints(status.score)} pts</span>
+                  <span>{status.nextTier ? `${formatPoints(status.pointsToNext)} до ${status.nextTier}` : 'Максимум'}</span>
                 </div>
               </div>
             </Link>
@@ -963,7 +966,7 @@ export function ProfilePage() {
                 <>
                   <p className="text-sm text-[var(--trigonum-muted)]">
                     Персональный менеджер и доверенное лицо открываются на Diamond — осталось{' '}
-                    <b className="tabular-nums text-[var(--trigonum-ink)]">{status.pointsToNext} pts</b>
+                    <b className="tabular-nums text-[var(--trigonum-ink)]">{formatPoints(status.pointsToNext)} pts</b>
                   </p>
                   <ul className="mt-3 flex flex-col gap-1.5">
                     <li className="flex items-center gap-2 text-xs text-[var(--trigonum-muted)]">
@@ -1186,7 +1189,7 @@ function CompanyProfile() {
   return (
     <div className="pb-10">
       <Reveal>
-        <section className="relative overflow-hidden rounded-[24px] p-7 text-white" style={{ background: tierHero.Black }}>
+        <section className="relative overflow-hidden rounded-[24px] p-7 text-white" style={{ background: tierHero.Californium }}>
           <div className="flex flex-wrap items-center gap-5">
             <span className="grid size-[76px] shrink-0 place-items-center rounded-full bg-white/6 ring-1 ring-white/12">
               <Building2 size={26} />

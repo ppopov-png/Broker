@@ -2,15 +2,29 @@ import { useMemo } from 'react'
 import { loadContracts } from '../mock/contracts'
 import { useBrokerAccount } from './AccountContext'
 import { useFunding } from './FundingContext'
-import { calculateInvestorStatus, type InvestorStatusInput, type InvestorStatusResult } from './InvestorStatus'
+import {
+  calculateInvestorStatus,
+  SCORE_WINDOW_MONTHS,
+  type InvestorStatusInput,
+  type InvestorStatusResult,
+} from './InvestorStatus'
 
 
-/** Часть входных данных статуса, которой пока нет в мок-слое кабинета. */
+/**
+ * Часть входных данных статуса, которой пока нет в мок-слое кабинета.
+ * В проде приходит из истории операций: пополнения и договоры за окно,
+ * активные кварталы и дата последней операции.
+ */
 const activityInput = {
-  completedEvents: 21,
-  activeEvents: 3,
-  tenureMonths: 11,
-  qualifiedReferrals: 4,
+  depositsInWindow: 180_000,
+  contractsInWindow: 3,
+  completedEvents: 6,
+  activeEvents: 2,
+  tenureMonths: 19,
+  qualifiedReferrals: 3,
+  referralPoints: 4_200,
+  activeQuarters: 4,
+  monthsSinceActivity: 0,
 }
 
 export interface InvestorSnapshot {
@@ -42,9 +56,14 @@ export function useInvestorStatus(): InvestorSnapshot {
       .filter((contract) => Number(contract.termMonths || 0) >= 12)
       .reduce((sum, contract) => sum + Number(contract.amount || 0), 0)
 
+    // Разные программы, а не договоры: три вклада в Earn — одна программа.
+    const programs = new Set(contracts.map((contract) => contract.productId)).size + (state.lockedEvents > 0 ? 1 : 0)
+
     const input: InvestorStatusInput = {
       qualifiedCapital: invested + state.lockedEvents,
       longTermCapital,
+      holdingMonths: SCORE_WINDOW_MONTHS,
+      programs,
       ...activityInput,
     }
 
