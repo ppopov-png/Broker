@@ -7,24 +7,26 @@ import {
   SCORE_WINDOW_MONTHS,
   type InvestorStatusInput,
   type InvestorStatusResult,
+  type ProductLine,
 } from './InvestorStatus'
-
 
 /**
  * Часть входных данных статуса, которой пока нет в мок-слое кабинета.
- * В проде приходит из истории операций: пополнения и договоры за окно,
- * активные кварталы и дата последней операции.
+ * В проде приходит из истории операций: чистый приток за окно, месяцы
+ * с работающим капиталом и дата последней операции.
  */
 const activityInput = {
-  depositsInWindow: 180_000,
-  contractsInWindow: 3,
-  completedEvents: 6,
-  activeEvents: 2,
+  netNewMoney: 150_000,
   tenureMonths: 19,
   qualifiedReferrals: 3,
   referralPoints: 4_200,
-  activeQuarters: 4,
+  investedMonths: SCORE_WINDOW_MONTHS,
   monthsSinceActivity: 0,
+}
+
+/** Earn — отдельное направление, остальные продукты идут инвестпрограммами. */
+function lineOf(productId: string): ProductLine {
+  return productId === 'earn' ? 'earn' : 'programs'
 }
 
 export interface InvestorSnapshot {
@@ -52,18 +54,21 @@ export function useInvestorStatus(): InvestorSnapshot {
   return useMemo(() => {
     const contracts = loadContracts()
     const invested = contracts.reduce((sum, contract) => sum + Number(contract.amount || 0), 0)
-    const longTermCapital = contracts
-      .filter((contract) => Number(contract.termMonths || 0) >= 12)
-      .reduce((sum, contract) => sum + Number(contract.amount || 0), 0)
 
-    // Разные программы, а не договоры: три вклада в Earn — одна программа.
-    const programs = new Set(contracts.map((contract) => contract.productId)).size + (state.lockedEvents > 0 ? 1 : 0)
+    const capital: Record<ProductLine, number> = { earn: 0, programs: 0, events: state.lockedEvents }
+    const longTermCapital: Record<ProductLine, number> = { earn: 0, programs: 0, events: 0 }
+
+    for (const contract of contracts) {
+      const line = lineOf(contract.productId)
+      const amount = Number(contract.amount || 0)
+      capital[line] += amount
+      if (Number(contract.termMonths || 0) >= 12) longTermCapital[line] += amount
+    }
 
     const input: InvestorStatusInput = {
-      qualifiedCapital: invested + state.lockedEvents,
+      capital,
       longTermCapital,
       holdingMonths: SCORE_WINDOW_MONTHS,
-      programs,
       ...activityInput,
     }
 

@@ -9,75 +9,91 @@ export const INVESTOR_TIERS: { tier: InvestorTier; threshold: number }[] = [
   { tier: 'Member', threshold: 0 },
   { tier: 'Silver', threshold: 1_000 },
   { tier: 'Gold', threshold: 3_000 },
-  { tier: 'Platinum', threshold: 6_500 },
-  { tier: 'Californium', threshold: 12_000 },
-  { tier: 'Diamond', threshold: 25_000 },
+  { tier: 'Platinum', threshold: 6_000 },
+  { tier: 'Californium', threshold: 11_000 },
+  { tier: 'Diamond', threshold: 22_000 },
 ]
 
 /* --- Начисление баллов --------------------------------------------------
  * Баллы живут в скользящем окне 12 месяцев: начисления старше окна выпадают
  * сами, и уровень снижается без отдельной «штрафной» логики. Исключение —
  * стаж: он не выгорает, иначе давний клиент терял бы за верность.
+ *
+ * Единица шкалы: 1 балл — это $1,000, размещённые в Earn на один месяц.
+ * Всё остальное оценено относительно неё, поэтому категории сравнимы между
+ * собой, а не назначены на глаз.
  */
 
 /** Длина окна начисления в месяцах. */
 export const SCORE_WINDOW_MONTHS = 12
 
+/**
+ * Направления размещения. Договор и программа — одно и то же, поэтому
+ * отдельной категории «за договор» нет: капитал считается один раз, но по
+ * ставке своего направления.
+ */
+export type ProductLine = 'earn' | 'programs' | 'events'
+
+export const PRODUCT_LINES: { key: ProductLine; label: string }[] = [
+  { key: 'earn', label: 'Earn' },
+  { key: 'programs', label: 'Инвестпрограммы' },
+  { key: 'events', label: 'Events' },
+]
+
 export interface InvestorStatusInput {
-  /** Средний размещённый капитал за окно. Свободный остаток не считается. */
-  qualifiedCapital: number
-  /** Часть размещённого капитала на срок от 12 месяцев — идёт с двойным весом. */
-  longTermCapital: number
-  /** Сколько месяцев окна капитал реально удерживался, 0–12. */
+  /** Средний размещённый капитал по направлениям. Свободный остаток не считается. */
+  capital: Record<ProductLine, number>
+  /** Часть капитала каждого направления на срок от 12 месяцев. */
+  longTermCapital: Record<ProductLine, number>
+  /** Сколько месяцев окна капитал удерживался, 0–12. */
   holdingMonths: number
-  /** Сумма зачислений на основной счёт за окно. */
-  depositsInWindow: number
-  /** Новых договоров заключено за окно. */
-  contractsInWindow: number
-  /** Число разных программ, в которых клиент участвует. */
-  programs: number
-  completedEvents: number
-  activeEvents: number
-  /** Полных месяцев с момента открытия счёта. */
-  tenureMonths: number
+  /** Чистый приток за окно: зачисления минус выводы. Отток баллов не отнимает. */
+  netNewMoney: number
   qualifiedReferrals: number
   /** Баллы приглашённых за окно — с них идёт доля пригласившему. */
   referralPoints: number
-  /** Кварталов окна, в которых была хотя бы одна операция, 0–4. */
-  activeQuarters: number
+  /** Полных месяцев с момента открытия счёта. */
+  tenureMonths: number
+  /** Месяцев окна, закрытых с ненулевым размещённым капиталом, 0–12. */
+  investedMonths: number
   /** Месяцев с последней операции — для правил спящего счёта. */
   monthsSinceActivity: number
 }
 
 export interface InvestorStatusBreakdown {
-  holding: number
-  deposits: number
-  contracts: number
+  earn: number
   programs: number
   events: number
+  newMoney: number
   referrals: number
   tenure: number
   regularity: number
+  diversification: number
 }
 
 /** Ставки начисления. Держатся здесь, чтобы формула и её описание не разъезжались. */
 export const SCORE_RATES = {
-  /** Баллов за $1,000 размещённого капитала за каждый месяц удержания. */
-  perThousandPerMonth: 1,
-  /** Долгосрочное размещение (12+ мес.) считается дважды. */
-  longTermMultiplier: 2,
-  perThousandDeposited: 1,
-  perContract: 150,
-  perProgram: 250,
-  perCompletedEvent: 200,
-  perActiveEvent: 400,
+  /**
+   * Баллов за $1,000 за месяц удержания. Ставка растёт со срочностью и
+   * маржинальностью направления: Earn ликвиден и доступен всем, Events —
+   * запертый в сделке капитал.
+   */
+  perThousandPerMonth: { earn: 1, programs: 2, events: 3 } as Record<ProductLine, number>,
+  /** Размещение на 12+ месяцев в любом направлении. */
+  longTermMultiplier: 1.5,
+  /** Чистый приток: разово, но весомо — привести деньги дороже, чем удержать. */
+  perThousandNewMoney: 5,
   perReferral: 500,
   /** Доля баллов приглашённого, начисляемая пригласившему. */
-  referralShare: 0.05,
+  referralShare: 0.1,
   perTenureQuarter: 100,
-  tenureCap: 2_000,
-  perActiveQuarter: 300,
-  regularityCap: 1_200,
+  tenureCap: 1_200,
+  /** За каждый месяц окна, закрытый с работающим капиталом. */
+  perInvestedMonth: 50,
+  /** Бонус за все 12 месяцев окна без разрыва. */
+  fullYearBonus: 400,
+  /** Бонус за работу в двух и трёх направлениях. */
+  diversification: { 2: 300, 3: 800 } as Record<number, number>,
 } as const
 
 export interface InvestorStatusResult {
@@ -105,20 +121,26 @@ export interface TierRetention {
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
+/** Баллы за удержание одного направления: объём × срок × ставка направления. */
+function holdingPoints(input: InvestorStatusInput, line: ProductLine, months: number): number {
+  const total = Math.max(0, input.capital[line] ?? 0)
+  const long = clamp(input.longTermCapital[line] ?? 0, 0, total)
+  // Долгосрочная часть считается с надбавкой поверх обычной ставки.
+  const weighted = total + long * (SCORE_RATES.longTermMultiplier - 1)
+  return Math.round((weighted / 1000) * months * SCORE_RATES.perThousandPerMonth[line])
+}
+
 export function calculateInvestorStatus(input: InvestorStatusInput): InvestorStatusResult {
   const months = clamp(input.holdingMonths, 0, SCORE_WINDOW_MONTHS)
-  const capital = Math.max(0, input.qualifiedCapital)
-  // Долгосрочная часть учитывается ещё раз поверх общей — отсюда двойной вес.
-  const longTerm = clamp(input.longTermCapital, 0, capital) * (SCORE_RATES.longTermMultiplier - 1)
+  const investedMonths = clamp(input.investedMonths, 0, SCORE_WINDOW_MONTHS)
+  const lines = PRODUCT_LINES.filter(({ key }) => (input.capital[key] ?? 0) > 0).length
 
   const breakdown: InvestorStatusBreakdown = {
-    holding: Math.round(((capital + longTerm) / 1000) * months * SCORE_RATES.perThousandPerMonth),
-    deposits: Math.round((Math.max(0, input.depositsInWindow) / 1000) * SCORE_RATES.perThousandDeposited),
-    contracts: Math.max(0, input.contractsInWindow) * SCORE_RATES.perContract,
-    programs: Math.max(0, input.programs) * SCORE_RATES.perProgram,
-    events:
-      Math.max(0, input.completedEvents) * SCORE_RATES.perCompletedEvent +
-      Math.max(0, input.activeEvents) * SCORE_RATES.perActiveEvent,
+    earn: holdingPoints(input, 'earn', months),
+    programs: holdingPoints(input, 'programs', months),
+    events: holdingPoints(input, 'events', months),
+    // Отток не уводит категорию в минус: за вывод собственных денег не штрафуем.
+    newMoney: Math.round((Math.max(0, input.netNewMoney) / 1000) * SCORE_RATES.perThousandNewMoney),
     referrals: Math.round(
       Math.max(0, input.qualifiedReferrals) * SCORE_RATES.perReferral +
         Math.max(0, input.referralPoints) * SCORE_RATES.referralShare,
@@ -127,10 +149,10 @@ export function calculateInvestorStatus(input: InvestorStatusInput): InvestorSta
       SCORE_RATES.tenureCap,
       Math.floor(Math.max(0, input.tenureMonths) / 3) * SCORE_RATES.perTenureQuarter,
     ),
-    regularity: Math.min(
-      SCORE_RATES.regularityCap,
-      clamp(input.activeQuarters, 0, 4) * SCORE_RATES.perActiveQuarter,
-    ),
+    regularity:
+      investedMonths * SCORE_RATES.perInvestedMonth +
+      (investedMonths >= SCORE_WINDOW_MONTHS ? SCORE_RATES.fullYearBonus : 0),
+    diversification: SCORE_RATES.diversification[lines] ?? 0,
   }
 
   const score = Object.values(breakdown).reduce((sum, value) => sum + value, 0)
@@ -357,46 +379,39 @@ export function formatPoints(value: number): string {
 
 export const SCORE_RULES: ScoreRule[] = [
   {
-    key: 'holding',
-    label: 'Удержание капитала',
-    rule: '1 балл за $1,000 в месяц, долгосрочное размещение ×2',
-    describe: (input) => `${usd(input.qualifiedCapital)} · ${input.holdingMonths} мес.`,
-    hint: 'Считается размещённый капитал за каждый месяц удержания. Свободный остаток на счёте баллов не даёт.',
-  },
-  {
-    key: 'deposits',
-    label: 'Пополнения счёта',
-    rule: '1 балл за каждые $1,000 зачисления',
-    describe: (input) => usd(input.depositsInWindow),
-    hint: 'Начисляется сразу при зачислении на основной счёт, ещё до размещения в продукт.',
-  },
-  {
-    key: 'contracts',
-    label: 'Заключённые договоры',
-    rule: `${SCORE_RATES.perContract} баллов за договор`,
-    describe: (input) => `${input.contractsInWindow} за 12 месяцев`,
-    hint: 'Учитываются договоры, заключённые за последние 12 месяцев. Продление считается новым договором.',
+    key: 'earn',
+    label: 'Капитал в Earn',
+    rule: `${SCORE_RATES.perThousandPerMonth.earn} балл за $1,000 в месяц`,
+    describe: (input) => `${usd(input.capital.earn)} · ${input.holdingMonths} мес.`,
+    hint: 'Базовая ставка шкалы. Ликвидный продукт: деньги можно забрать, поэтому и баллов меньше.',
   },
   {
     key: 'programs',
-    label: 'Программы инвестиций',
-    rule: `${SCORE_RATES.perProgram} баллов за программу`,
-    describe: (input) => `${input.programs} программы`,
-    hint: 'Считаются разные программы, а не договоры: три вклада в Earn дают баллы одной программы.',
+    label: 'Капитал в инвестпрограммах',
+    rule: `${SCORE_RATES.perThousandPerMonth.programs} балла за $1,000 в месяц`,
+    describe: (input) => `${usd(input.capital.programs)} · ${input.holdingMonths} мес.`,
+    hint: 'Strategies и Alpha считаются вдвое дороже Earn: капитал работает по сроку договора.',
   },
   {
     key: 'events',
-    label: 'Участие в Events',
-    rule: `${SCORE_RATES.perCompletedEvent} за завершённый, ${SCORE_RATES.perActiveEvent} за активный`,
-    describe: (input) => `${input.completedEvents} завершённых · ${input.activeEvents} активных`,
-    hint: 'Активные Events весят вдвое больше — статус реагирует сразу после входа в сделку.',
+    label: 'Капитал в Events',
+    rule: `${SCORE_RATES.perThousandPerMonth.events} балла за $1,000 в месяц`,
+    describe: (input) => `${usd(input.capital.events)} · ${input.holdingMonths} мес.`,
+    hint: 'Максимальная ставка: капитал заперт в сделке до её закрытия.',
+  },
+  {
+    key: 'newMoney',
+    label: 'Новые деньги',
+    rule: `${SCORE_RATES.perThousandNewMoney} баллов за $1,000 чистого притока`,
+    describe: (input) => usd(input.netNewMoney),
+    hint: 'Зачисления минус выводы за 12 месяцев. Прогон одной суммы туда-обратно баллов не даёт.',
   },
   {
     key: 'referrals',
-    label: 'Рекомендации',
-    rule: `${SCORE_RATES.perReferral} за реферала + ${Math.round(SCORE_RATES.referralShare * 100)}% его баллов`,
+    label: 'Приглашённые инвесторы',
+    rule: `${SCORE_RATES.perReferral} за приглашённого + ${Math.round(SCORE_RATES.referralShare * 100)}% его баллов`,
     describe: (input) => `${input.qualifiedReferrals} квалифицированных`,
-    hint: 'Реферал считается квалифицированным после открытия счёта и первого размещения капитала.',
+    hint: 'Квалифицируется после открытия счёта и первого размещения. Доля от его баллов идёт всё время, пока он активен.',
   },
   {
     key: 'tenure',
@@ -408,9 +423,16 @@ export const SCORE_RULES: ScoreRule[] = [
   {
     key: 'regularity',
     label: 'Регулярность',
-    rule: `${SCORE_RATES.perActiveQuarter} баллов за активный квартал`,
-    describe: (input) => `${input.activeQuarters} из 4 кварталов`,
-    hint: 'Квартал считается активным, если в нём было хотя бы одно пополнение или новый договор.',
+    rule: `${SCORE_RATES.perInvestedMonth} баллов за месяц с работающим капиталом, +${SCORE_RATES.fullYearBonus} за все 12`,
+    describe: (input) => `${input.investedMonths} из ${SCORE_WINDOW_MONTHS} месяцев`,
+    hint: 'Месяц засчитан, если на его последний день в продуктах есть капитал. Метрика снимается раз в месяц одним замером.',
+  },
+  {
+    key: 'diversification',
+    label: 'Направления',
+    rule: `${SCORE_RATES.diversification[2]} за два направления, ${SCORE_RATES.diversification[3]} за три`,
+    describe: (input) => `${PRODUCT_LINES.filter(({ key }) => input.capital[key] > 0).length} из ${PRODUCT_LINES.length}`,
+    hint: 'Earn, инвестпрограммы и Events. Считается охват направлений, а не число договоров.',
   },
 ]
 
@@ -520,12 +542,16 @@ export const tierGlow: Record<InvestorTier, string> = {
 
 /**
  * Капитал, который нужно разместить ради указанного числа баллов при
- * удержании весь период окна.
+ * удержании весь период окна. Ставка зависит от направления, поэтому оно
+ * входит в аргументы: иначе подсказка «столько-то долларов» врала бы для
+ * всех направлений, кроме одного.
  */
-export function capitalForPoints(points: number, longTerm = false): number {
+export function capitalForPoints(points: number, longTerm = false, line: ProductLine = 'earn'): number {
   if (points <= 0) return 0
   const perThousand =
-    SCORE_WINDOW_MONTHS * SCORE_RATES.perThousandPerMonth * (longTerm ? SCORE_RATES.longTermMultiplier : 1)
+    SCORE_WINDOW_MONTHS *
+    SCORE_RATES.perThousandPerMonth[line] *
+    (longTerm ? SCORE_RATES.longTermMultiplier : 1)
   return Math.ceil(points / perThousand) * 1000
 }
 

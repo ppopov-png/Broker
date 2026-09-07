@@ -8,6 +8,8 @@ import {
   formatPoints,
   DORMANCY,
   DOWNGRADE_RULES,
+  PRODUCT_LINES,
+  SCORE_RATES,
   nextReviewDate,
   INVESTOR_TIERS,
   SCORE_RULES,
@@ -21,10 +23,12 @@ import {
   tierAchievedAt,
   tierPerks,
   tierSummary,
+  type ProductLine,
 } from '../../../shared/lib/InvestorStatus'
 import { useInvestorStatus } from '../../../shared/lib/useInvestorStatus'
 import { Card } from '../../../shared/ui/Card'
 import { Reveal } from '../../../shared/ui/Reveal'
+import { SegmentedControl } from '../../../shared/ui/SegmentedControl'
 import { Sparkline } from '../../../shared/ui/Sparkline'
 import { Switch } from '../../../shared/ui/Switch'
 
@@ -33,19 +37,22 @@ export function LevelsPage() {
 
   // Калькулятор: что нужно сделать для следующего уровня.
   const [extraCapital, setExtraCapital] = useState(0)
+  const [line, setLine] = useState<ProductLine>('earn')
   const [longTerm, setLongTerm] = useState(true)
-  const [extraEvents, setExtraEvents] = useState(0)
   const [extraReferrals, setExtraReferrals] = useState(0)
 
+  // Ставка зависит от направления, поэтому прибавка идёт именно в выбранное.
   const simulated = calculateInvestorStatus({
     ...input,
-    qualifiedCapital: input.qualifiedCapital + extraCapital,
-    longTermCapital: input.longTermCapital + (longTerm ? extraCapital : 0),
-    activeEvents: input.activeEvents + extraEvents,
+    capital: { ...input.capital, [line]: input.capital[line] + extraCapital },
+    longTermCapital: {
+      ...input.longTermCapital,
+      [line]: input.longTermCapital[line] + (longTerm ? extraCapital : 0),
+    },
     qualifiedReferrals: input.qualifiedReferrals + extraReferrals,
   })
 
-  const untouched = extraCapital === 0 && extraEvents === 0 && extraReferrals === 0
+  const untouched = extraCapital === 0 && extraReferrals === 0
   const gainedTier = simulated.tier !== status.tier
   const maxRulePoints = Math.max(...SCORE_RULES.map((rule) => status.breakdown[rule.key]), 1)
 
@@ -231,8 +238,23 @@ export function LevelsPage() {
         <Reveal delay={120}>
           <Card title="Калькулятор">
             <div className="flex flex-col gap-5">
+              <div>
+                <span className="text-sm font-medium text-[var(--trigonum-text)]">Направление</span>
+                <div className="mt-2">
+                  <SegmentedControl
+                    value={line}
+                    onChange={setLine}
+                    options={PRODUCT_LINES.map(({ key, label }) => ({ value: key, label }))}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-[var(--trigonum-muted)]">
+                  {SCORE_RATES.perThousandPerMonth[line]} балл{SCORE_RATES.perThousandPerMonth[line] > 1 ? 'а' : ''} за
+                  $1,000 в месяц
+                </p>
+              </div>
+
               <Slider
-                label="Капитал в продуктах"
+                label="Добавить капитал"
                 value={extraCapital}
                 onChange={setExtraCapital}
                 max={250_000}
@@ -247,17 +269,7 @@ export function LevelsPage() {
               </div>
 
               <Slider
-                label="Активные Events"
-                value={extraEvents}
-                onChange={setExtraEvents}
-                max={10}
-                step={1}
-                display={`+${extraEvents}`}
-                accent={ink}
-              />
-
-              <Slider
-                label="Рекомендации"
+                label="Приглашённые инвесторы"
                 value={extraReferrals}
                 onChange={setExtraReferrals}
                 max={10}

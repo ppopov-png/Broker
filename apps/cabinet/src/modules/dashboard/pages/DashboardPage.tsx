@@ -380,10 +380,14 @@ function IdleCapitalCard({
   const idleCostPerMonth = (available * EARN_APY) / 100 / 12
 
   // Тот же расчёт, что и на странице уровней — без второй формулы.
+  // Кнопка ведёт в Earn, поэтому и прогноз считается по ставке Earn.
   const projected = calculateInvestorStatus({
     ...input,
-    qualifiedCapital: input.qualifiedCapital + amount,
-    longTermCapital: input.longTermCapital + (longTerm ? amount : 0),
+    capital: { ...input.capital, earn: input.capital.earn + amount },
+    longTermCapital: {
+      ...input.longTermCapital,
+      earn: input.longTermCapital.earn + (longTerm ? amount : 0),
+    },
   })
   const gained = projected.tier !== status.tier
 
@@ -435,7 +439,7 @@ function IdleCapitalCard({
             >
               {longTerm && <span className="size-1.5 rounded-[2px] bg-white" />}
             </span>
-            На 12 месяцев — вдвое больше баллов
+            На 12 месяцев — в полтора раза больше баллов
           </button>
         </div>
 
