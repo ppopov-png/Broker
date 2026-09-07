@@ -1,9 +1,10 @@
-import { Bell, ChevronDown, HelpCircle, LogOut, User as UserIcon } from 'lucide-react'
+import { Bell, ChevronDown, HelpCircle, User as UserIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useBrokerAccount } from '../shared/lib/AccountContext'
 import { tierAccent } from '../shared/lib/InvestorStatus'
 import { useInvestorStatus } from '../shared/lib/useInvestorStatus'
+import { SignOutButton } from '../modules/auth/SignOutButton'
 import { notifications } from '../shared/mock/data'
 
 export function Topbar() {
@@ -82,7 +83,7 @@ export function Topbar() {
               <p className="mt-0.5 text-[10px] text-[var(--trigonum-muted)]">Счёт {activeAccount.accountNumber}</p>
             </div>
             <Link to="/profile" onClick={() => setUserOpen(false)} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--trigonum-text)] hover:bg-[var(--trigonum-bg)]"><UserIcon size={16} /> Профиль аккаунта</Link>
-            <button type="button" className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-[var(--trigonum-danger)] hover:bg-[var(--trigonum-bg)]"><LogOut size={16} /> Выйти</button>
+            <SignOutButton onDone={() => setUserOpen(false)} />
           </div>
         )}
       </div>

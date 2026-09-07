@@ -1,6 +1,7 @@
 import { Bell, CalendarClock, Home, LayoutGrid, Menu, TrendingUp, Wallet, X } from 'lucide-react'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import { SignOutButton } from '../modules/auth/SignOutButton'
 import { useBrokerAccount } from '../shared/lib/AccountContext'
 import { tierAccent } from '../shared/lib/InvestorStatus'
 import { useOnboardingActionRequired } from '../shared/lib/onboarding/useOnboarding'
@@ -154,6 +155,9 @@ export function MobileHeader() {
                     {status.tier} · {status.score} pts
                   </span>
                 </span>
+              </div>
+              <div className="mt-1.5">
+                <SignOutButton onDone={() => setOpen(false)} />
               </div>
               <p className="px-1 pt-3 text-[10px] text-[var(--trigonum-muted)]">© 2026 Trigonum Broker</p>
             </div>

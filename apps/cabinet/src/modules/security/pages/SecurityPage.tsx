@@ -17,6 +17,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { TIER_PERK_MATRIX, tierInk, tierSoft } from '../../../shared/lib/InvestorStatus'
 import { useInvestorStatus } from '../../../shared/lib/useInvestorStatus'
+import { SignOutButton } from '../../auth/SignOutButton'
 import { Card } from '../../../shared/ui/Card'
 import { Modal } from '../../../shared/ui/Modal'
 import { Pill } from '../../../shared/ui/Pill'
@@ -388,6 +389,10 @@ export function SecurityPage() {
                   )}
                 </div>
               ))}
+            </div>
+
+            <div className="mt-3 border-t border-[var(--trigonum-border)] pt-2">
+              <SignOutButton className="px-0" />
             </div>
           </Card>
 
