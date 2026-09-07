@@ -1,5 +1,6 @@
 import { BadgeCheck, ExternalLink, FlaskConical, Info, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { createKycSession, getKycSession, startIdentitySimulation } from '../../../shared/lib/onboarding/api'
 import {
   ApiError,
@@ -10,7 +11,12 @@ import {
   type KycSessionConflict,
   type OnboardingState,
 } from '../../../shared/lib/onboarding/types'
-import { useOnboardingState, useOnboardingStepGuard } from '../../../shared/lib/onboarding/useOnboarding'
+import {
+  ONBOARDING_ROUTES,
+  notifyOnboardingChanged,
+  useOnboardingState,
+  useOnboardingStepGuard,
+} from '../../../shared/lib/onboarding/useOnboarding'
 import { Card } from '../../../shared/ui/Card'
 import { CenteredSpinner, PageHeader } from '../../../shared/ui/PageHeader'
 import { Pill } from '../../../shared/ui/Pill'
@@ -67,6 +73,7 @@ export function IdentityVerificationPage() {
   const { allowed } = useOnboardingStepGuard('EMAIL_VERIFIED')
   const { status } = useOnboardingState(false)
   const toast = useToast()
+  const navigate = useNavigate()
 
   const [sessionId, setSessionId] = useState<string | null>(readSessionId)
   const [session, setSession] = useState<KycSession | null>(null)
@@ -119,6 +126,17 @@ export function IdentityVerificationPage() {
       window.clearInterval(id)
     }
   }, [sessionId, sessionStatus])
+
+  // Шаг закончился — сразу открываем следующий, чтобы клиент не искал его сам.
+  const verifiedNow = session?.status === 'COMPLETED' && session.overallDecision === 'Approved'
+  const [autoRedirect, setAutoRedirect] = useState(false)
+  useEffect(() => {
+    if (!verifiedNow) return
+    notifyOnboardingChanged()
+    setAutoRedirect(true)
+    const id = window.setTimeout(() => navigate(ONBOARDING_ROUTES.selfCertification), 3500)
+    return () => window.clearTimeout(id)
+  }, [verifiedNow, navigate])
 
   const openVerification = (url?: string) => {
     if (!url) return
@@ -321,6 +339,20 @@ export function IdentityVerificationPage() {
                     <BadgeCheck size={17} className="mt-0.5 shrink-0 text-[var(--trigonum-success)]" />
                     Личность успешно подтверждена.
                   </p>
+
+                  {autoRedirect && (
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[var(--trigonum-bg)] px-3.5 py-3">
+                      <p className="text-sm text-[var(--trigonum-text)]">
+                        Открываем следующий шаг — самосертификацию…
+                      </p>
+                      <Link
+                        to={ONBOARDING_ROUTES.selfCertification}
+                        className="shrink-0 rounded-lg bg-[var(--trigonum-ink)] px-3.5 py-2 text-xs font-semibold text-white transition hover:brightness-125"
+                      >
+                        Перейти сейчас
+                      </Link>
+                    </div>
+                  )}
 
                   <div className="mt-4 rounded-xl border border-[var(--trigonum-border)] p-4">
                     <div className="flex items-center justify-between gap-3">

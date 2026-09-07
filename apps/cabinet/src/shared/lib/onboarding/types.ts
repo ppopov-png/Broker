@@ -105,6 +105,16 @@ export interface AgreementTemplate {
   mediaId: string
 }
 
+/** Запись журнала согласий: кто и когда подписал или отозвал документ. */
+export interface ConsentLogEntry {
+  id: string
+  templateId: string
+  name: string
+  version: string
+  action: 'granted' | 'revoked'
+  at: string
+}
+
 export interface Agreement {
   template: AgreementTemplate
   consented: boolean

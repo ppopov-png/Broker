@@ -4,7 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import { getEddResponse, getEddTemplate, submitEddResponse } from '../../../shared/lib/onboarding/api'
 import { COUNTRIES } from '../../../shared/lib/onboarding/countries'
 import { ApiError, type EddAnswer, type EddQuestion, type EddTemplate } from '../../../shared/lib/onboarding/types'
-import { ONBOARDING_ROUTES, useOnboardingState, useOnboardingStepGuard } from '../../../shared/lib/onboarding/useOnboarding'
+import {
+  ONBOARDING_ROUTES,
+  notifyOnboardingChanged,
+  useOnboardingState,
+  useOnboardingStepGuard,
+} from '../../../shared/lib/onboarding/useOnboarding'
 import { Card } from '../../../shared/ui/Card'
 import { CenteredSpinner, PageHeader } from '../../../shared/ui/PageHeader'
 import { Pill } from '../../../shared/ui/Pill'
@@ -140,6 +145,7 @@ export function EddQuestionnairePage() {
         }
       })
       await submitEddResponse(answers)
+      notifyOnboardingChanged()
       toast('success', 'Анкета отправлена на проверку')
       navigate(ONBOARDING_ROUTES.status)
     } catch {

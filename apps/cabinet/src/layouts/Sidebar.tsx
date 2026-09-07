@@ -2,6 +2,7 @@ import { Building2, Check, ChevronsUpDown, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useBrokerAccount } from '../shared/lib/AccountContext'
+import { useOnboardingActionRequired } from '../shared/lib/onboarding/useOnboarding'
 import { Logo } from '../shared/ui/Logo'
 import { primaryNav, secondaryNav } from './nav'
 
@@ -14,6 +15,7 @@ const navItemClass = (active: boolean) =>
 
 export function Sidebar() {
   const { accounts, activeAccount, setActiveAccountId } = useBrokerAccount()
+  const onboardingNeedsAction = useOnboardingActionRequired()
   const [accountOpen, setAccountOpen] = useState(false)
   const ActiveIcon = activeAccount.type === 'company' ? Building2 : UserRound
 
@@ -36,6 +38,12 @@ export function Sidebar() {
           <NavLink key={to} to={to} className={({ isActive }) => navItemClass(isActive)}>
             <Icon size={18} strokeWidth={2} />
             <span className="flex-1">{label}</span>
+            {to === '/onboarding' && onboardingNeedsAction && (
+              <span
+                className="size-2 shrink-0 rounded-full bg-[var(--trigonum-warning)]"
+                title="Нужно продолжить оформление"
+              />
+            )}
           </NavLink>
         ))}
       </nav>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useBrokerAccount } from '../shared/lib/AccountContext'
 import { tierAccent } from '../shared/lib/InvestorStatus'
+import { useOnboardingActionRequired } from '../shared/lib/onboarding/useOnboarding'
 import { useInvestorStatus } from '../shared/lib/useInvestorStatus'
 import { notifications } from '../shared/mock/data'
 import { Logo } from '../shared/ui/Logo'
@@ -20,6 +21,7 @@ export function MobileHeader() {
   const [open, setOpen] = useState(false)
   const { activeAccount } = useBrokerAccount()
   const { status } = useInvestorStatus()
+  const onboardingNeedsAction = useOnboardingActionRequired()
   const location = useLocation()
 
   // Переход по ссылке из шторки должен её закрывать.
@@ -40,10 +42,13 @@ export function MobileHeader() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="-ml-1.5 grid size-9 place-items-center rounded-lg text-[var(--trigonum-ink)]"
+          className="relative -ml-1.5 grid size-9 place-items-center rounded-lg text-[var(--trigonum-ink)]"
           aria-label="Меню"
         >
           <Menu size={20} />
+          {onboardingNeedsAction && (
+            <span className="absolute right-1 top-1 size-2 rounded-full bg-[var(--trigonum-warning)]" />
+          )}
         </button>
 
         <div className="min-w-0 flex-1">
@@ -107,7 +112,13 @@ export function MobileHeader() {
               <div className="my-3 border-t border-[var(--trigonum-border)]" />
 
               {secondaryNav.map(({ to, label, icon: Icon }) => (
-                <DrawerLink key={to} to={to} label={label} icon={<Icon size={18} />} />
+                <DrawerLink
+                  key={to}
+                  to={to}
+                  label={label}
+                  icon={<Icon size={18} />}
+                  dot={to === '/onboarding' && onboardingNeedsAction}
+                />
               ))}
             </div>
 
@@ -143,12 +154,14 @@ function DrawerLink({
   label,
   icon,
   badge,
+  dot = false,
   end = false,
 }: {
   to: string
   label: string
   icon: React.ReactNode
   badge?: string
+  dot?: boolean
   end?: boolean
 }) {
   return (
@@ -168,6 +181,7 @@ function DrawerLink({
       {badge && (
         <span className="rounded-full bg-[var(--trigonum-green)] px-1.5 py-0.5 text-[10px] font-bold text-white">{badge}</span>
       )}
+      {dot && <span className="size-2 shrink-0 rounded-full bg-[var(--trigonum-warning)]" />}
     </NavLink>
   )
 }

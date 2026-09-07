@@ -8,7 +8,11 @@ import {
   type InvestorClassification,
   type SelfCertification,
 } from '../../../shared/lib/onboarding/types'
-import { ONBOARDING_ROUTES, useOnboardingStepGuard } from '../../../shared/lib/onboarding/useOnboarding'
+import {
+  ONBOARDING_ROUTES,
+  notifyOnboardingChanged,
+  useOnboardingStepGuard,
+} from '../../../shared/lib/onboarding/useOnboarding'
 import { Card } from '../../../shared/ui/Card'
 import { CenteredSpinner, PageHeader } from '../../../shared/ui/PageHeader'
 import { useToast } from '../../../shared/ui/Toast'
@@ -123,6 +127,7 @@ export function SelfCertificationPage() {
         accreditationDetails: needsAccreditation ? accreditation : undefined,
       }
       await submitSelfCertification(payload)
+      notifyOnboardingChanged()
       toast('success', 'Самосертификация отправлена')
       navigate(ONBOARDING_ROUTES.agreements)
     } catch {

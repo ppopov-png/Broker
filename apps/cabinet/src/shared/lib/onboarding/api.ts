@@ -1,6 +1,7 @@
 import {
   ApiError,
   type Agreement,
+  type ConsentLogEntry,
   type EddResponse,
   type EddTemplate,
   type KycSession,
@@ -28,6 +29,7 @@ interface Store {
   sessions: Record<string, KycSession & { createdAt: number; simulatedAt?: number }>
   selfCertification: SelfCertification | null
   consented: string[]
+  consentLog: ConsentLogEntry[]
   eddResponse: EddResponse | null
 }
 
@@ -45,6 +47,7 @@ function emptyStore(): Store {
     sessions: {},
     selfCertification: null,
     consented: [],
+    consentLog: [],
     eddResponse: null,
   }
 }
@@ -310,18 +313,66 @@ const AGREEMENT_TEMPLATES: Omit<Agreement, 'consented' | 'consentedAt'>[] = [
 export async function getAgreements(): Promise<Agreement[]> {
   await wait(160)
   const store = read()
-  return AGREEMENT_TEMPLATES.map((item) => ({
-    template: item.template,
-    consented: store.consented.includes(item.template.id),
-    consentedAt: store.consented.includes(item.template.id) ? store.stateChangedAt : null,
-  }))
+  return AGREEMENT_TEMPLATES.map((item) => {
+    const consented = store.consented.includes(item.template.id)
+    const lastGrant = [...(store.consentLog ?? [])]
+      .filter((entry) => entry.templateId === item.template.id && entry.action === 'granted')
+      .pop()
+    return { template: item.template, consented, consentedAt: consented ? (lastGrant?.at ?? null) : null }
+  })
+}
+
+function logConsent(store: Store, templateId: string, action: ConsentLogEntry['action']) {
+  const template = AGREEMENT_TEMPLATES.find((item) => item.template.id === templateId)?.template
+  if (!template) return
+  store.consentLog = [
+    ...(store.consentLog ?? []),
+    {
+      id: `cl${(store.consentLog?.length ?? 0) + 1}`,
+      templateId,
+      name: template.name,
+      version: template.version,
+      action,
+      at: new Date().toISOString(),
+    },
+  ]
 }
 
 export async function consentAgreement(agreementTemplateId: string): Promise<void> {
   await wait()
   const store = read()
-  if (!store.consented.includes(agreementTemplateId)) store.consented.push(agreementTemplateId)
+  if (!store.consented.includes(agreementTemplateId)) {
+    store.consented.push(agreementTemplateId)
+    logConsent(store, agreementTemplateId, 'granted')
+  }
   write(store)
+}
+
+/**
+ * Отзыв согласия. Обязательный документ без подписи закрывает счёт для
+ * операций, поэтому онбординг возвращается на шаг соглашений.
+ */
+export async function revokeAgreement(agreementTemplateId: string): Promise<void> {
+  await wait()
+  const store = read()
+  if (!store.consented.includes(agreementTemplateId)) return
+
+  store.consented = store.consented.filter((id) => id !== agreementTemplateId)
+  logConsent(store, agreementTemplateId, 'revoked')
+
+  const template = AGREEMENT_TEMPLATES.find((item) => item.template.id === agreementTemplateId)?.template
+  const passedAgreements = ['AGREEMENTS_ACCEPTED', 'EDD_IN_PROGRESS', 'EDD_SUBMITTED', 'UNDER_REVIEW', 'APPROVED']
+  if (template?.isRequired && passedAgreements.includes(store.currentState)) {
+    transition(store, 'SELF_CERT_COMPLETED')
+  }
+
+  write(store)
+}
+
+/** Журнал согласий — доказательство, что на конкретный момент всё было подписано. */
+export async function getConsentLog(): Promise<ConsentLogEntry[]> {
+  await wait(100)
+  return [...(read().consentLog ?? [])].sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
 }
 
 /** Бэкенд подтверждает переход, когда все обязательные соглашения подписаны. */

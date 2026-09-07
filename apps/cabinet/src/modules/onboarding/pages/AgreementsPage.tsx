@@ -1,10 +1,15 @@
-import { Check, Download, FileText } from 'lucide-react'
+import { Check, Download, FileText, TriangleAlert } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { consentAgreement, finalizeAgreements, getAgreements } from '../../../shared/lib/onboarding/api'
+import { consentAgreement, finalizeAgreements, getAgreements, revokeAgreement } from '../../../shared/lib/onboarding/api'
 import type { Agreement, AgreementCategory } from '../../../shared/lib/onboarding/types'
-import { ONBOARDING_ROUTES, useOnboardingStepGuard } from '../../../shared/lib/onboarding/useOnboarding'
+import {
+  ONBOARDING_ROUTES,
+  notifyOnboardingChanged,
+  useOnboardingStepGuard,
+} from '../../../shared/lib/onboarding/useOnboarding'
 import { Card } from '../../../shared/ui/Card'
+import { Modal } from '../../../shared/ui/Modal'
 import { CenteredSpinner, PageHeader } from '../../../shared/ui/PageHeader'
 import { Pill } from '../../../shared/ui/Pill'
 import { useToast } from '../../../shared/ui/Toast'
@@ -30,6 +35,7 @@ export function AgreementsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const [pending, setPending] = useState<string | null>(null)
+  const [revoking, setRevoking] = useState<Agreement | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -50,6 +56,7 @@ export function AgreementsPage() {
 
   const goNext = useCallback(async () => {
     await finalizeAgreements()
+    notifyOnboardingChanged()
     navigate(ONBOARDING_ROUTES.edd)
   }, [navigate])
 
@@ -70,6 +77,21 @@ export function AgreementsPage() {
       toast('error', 'Не удалось зафиксировать согласие')
     } finally {
       setPending(null)
+    }
+  }
+
+  const revoke = async (agreement: Agreement) => {
+    setPending(agreement.template.id)
+    try {
+      await revokeAgreement(agreement.template.id)
+      setAgreements(filterRetired(await getAgreements()))
+      notifyOnboardingChanged()
+      toast('success', 'Согласие отозвано, запись добавлена в журнал')
+    } catch {
+      toast('error', 'Не удалось отозвать согласие')
+    } finally {
+      setPending(null)
+      setRevoking(null)
     }
   }
 
@@ -154,12 +176,22 @@ export function AgreementsPage() {
 
               <div className="mt-4 border-t border-[var(--trigonum-border)] pt-4">
                 {item.consented ? (
-                  <p className="flex items-center gap-2 text-sm font-semibold text-[var(--trigonum-success)]">
-                    <Check size={15} strokeWidth={2.5} />
-                    Согласие зафиксировано
-                    {item.consentedAt &&
-                      ` · ${new Date(item.consentedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}`}
-                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-[var(--trigonum-success)]">
+                      <Check size={15} strokeWidth={2.5} />
+                      Согласие зафиксировано
+                      {item.consentedAt &&
+                        ` · ${new Date(item.consentedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}`}
+                    </p>
+                    <button
+                      type="button"
+                      disabled={pending === item.template.id}
+                      onClick={() => setRevoking(item)}
+                      className="shrink-0 text-xs font-semibold text-[var(--trigonum-muted)] transition hover:text-[var(--trigonum-danger)] disabled:opacity-50"
+                    >
+                      Отозвать
+                    </button>
+                  </div>
                 ) : (
                   <label className="flex cursor-pointer items-start gap-3">
                     <input
@@ -179,6 +211,51 @@ export function AgreementsPage() {
           ))}
         </div>
       )}
+
+      <Modal
+        open={Boolean(revoking)}
+        onClose={() => setRevoking(null)}
+        title="Отозвать согласие"
+        subtitle={revoking ? `${revoking.template.name} v${revoking.template.version}` : undefined}
+      >
+        {revoking?.template.isRequired ? (
+          <div
+            className="rounded-xl border p-3.5"
+            style={{
+              borderColor: 'color-mix(in srgb, var(--trigonum-warning) 45%, white)',
+              background: 'color-mix(in srgb, var(--trigonum-warning) 8%, white)',
+            }}
+          >
+            <p className="flex items-start gap-2 text-sm text-[var(--trigonum-text)]">
+              <TriangleAlert size={16} className="mt-0.5 shrink-0 text-[var(--trigonum-warning)]" />
+              Документ обязательный. Без него счёт не может обслуживаться, поэтому заявка вернётся на шаг соглашений,
+              а операции будут недоступны до повторного подписания.
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--trigonum-text)]">
+            Документ не обязателен — отзыв не влияет на обслуживание счёта.
+          </p>
+        )}
+
+        <p className="mt-3 text-xs text-[var(--trigonum-muted)]">
+          Отзыв и дата попадут в журнал согласий в разделе «Документы». Ранее подписанная версия остаётся в истории.
+        </p>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <OutlineButton type="button" onClick={() => setRevoking(null)}>
+            Отмена
+          </OutlineButton>
+          <button
+            type="button"
+            disabled={pending !== null}
+            onClick={() => revoking && void revoke(revoking)}
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-danger)] px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-50"
+          >
+            Отозвать согласие
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

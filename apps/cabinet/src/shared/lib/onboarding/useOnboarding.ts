@@ -103,3 +103,44 @@ export function useOnboardingStepGuard(minimumState: OnboardingState): { allowed
 
   return { allowed: !blocked }
 }
+
+/**
+ * Состояния, в которых ход за клиентом. На них вкладка «Статус заявки»
+ * помечается точкой: шаг закончился, надо открыть следующий.
+ */
+const ACTION_REQUIRED: OnboardingState[] = [
+  'REGISTERED',
+  'EMAIL_VERIFIED',
+  'IDENTITY_VERIFIED',
+  'IDENTITY_FAILED',
+  'SELF_CERT_COMPLETED',
+  'AGREEMENTS_ACCEPTED',
+  'AMENDMENTS_REQUESTED',
+  'REVERIFICATION_REQUIRED',
+]
+
+/** Нужно ли действие клиента прямо сейчас — для отметки в навигации. */
+export function useOnboardingActionRequired(): boolean {
+  const { status } = useOnboardingState(false)
+  return status ? ACTION_REQUIRED.includes(status.currentState) : false
+}
+
+/** Куда вести клиента после завершения шага. */
+export function nextStepRoute(state: OnboardingState): string | null {
+  switch (state) {
+    case 'EMAIL_VERIFIED':
+      return ONBOARDING_ROUTES.identity
+    case 'IDENTITY_VERIFIED':
+      return ONBOARDING_ROUTES.selfCertification
+    case 'SELF_CERT_COMPLETED':
+      return ONBOARDING_ROUTES.agreements
+    case 'AGREEMENTS_ACCEPTED':
+    case 'AMENDMENTS_REQUESTED':
+      return ONBOARDING_ROUTES.edd
+    case 'IDENTITY_FAILED':
+    case 'REVERIFICATION_REQUIRED':
+      return ONBOARDING_ROUTES.identity
+    default:
+      return null
+  }
+}
