@@ -13,7 +13,7 @@ import type { Language } from '../i18n/I18nProvider'
 
 export const PRODUCT_FACTS = {
   earn: { rate: '~7%', min: '$1 000', fee: '1%', liquidityDays: 7 },
-  strategies: { rate: '10–20%', min: '$1 000', fee: '2% + 20%', hurdle: '6%' },
+  strategies: { rate: '10–20%', min: '$1 000', fee: '2%', hurdle: null },
   events: { rate: 'до 20%+', min: '$5 000', fee: '2% + 20%', hurdle: '8%' },
 } as const
 
@@ -116,7 +116,7 @@ const ru: LandingContent = {
         term: '3–12 месяцев',
         liquidity: 'В конце срока',
         min: PRODUCT_FACTS.strategies.min,
-        fee: `${PRODUCT_FACTS.strategies.fee} сверх ${PRODUCT_FACTS.strategies.hurdle}`,
+        fee: `${PRODUCT_FACTS.strategies.fee} годовых за управление`,
         risk: 'Умеренный · высокий',
       },
       {
@@ -146,11 +146,11 @@ const ru: LandingContent = {
   },
   fees: {
     title: 'Сколько мы берём',
-    subtitle: 'Комиссия за результат берётся только там, где результат не гарантирован — и только с прибыли сверх барьера.',
+    subtitle: 'В Earn и Strategies берём только за управление. Доля от прибыли есть лишь в Events — и только сверх барьера.',
     columns: { product: 'Продукт', management: 'За управление', result: 'За результат' },
     rows: [
       { product: 'Earn', management: '1% годовых', result: 'Нет' },
-      { product: 'Strategies', management: '2% годовых', result: '20% сверх 6% годовых' },
+      { product: 'Strategies', management: '2% годовых', result: 'Нет' },
       { product: 'Events', management: '2% годовых', result: '20% сверх 8% годовых' },
     ],
     neverTitle: 'Чего мы не берём',
@@ -161,7 +161,7 @@ const ru: LandingContent = {
       'С нереализованной прибыли',
       'Скрытого спреда сверх раскрытого',
     ],
-    note: 'Ставка Earn публикуется чистой: 1% годовых уже удержан, вы получаете ровно то число, которое видите. Комиссия за результат не берётся при убытке и не берётся повторно за восстановление прошлого максимума.',
+    note: 'Ставка Earn публикуется чистой: 1% годовых уже удержан, вы получаете ровно то число, которое видите. В Strategies берём только за управление — вся прибыль остаётся вам. В Events комиссия за результат не взимается при убытке.',
   },
   custody: {
     title: 'Где лежат ваши средства',
@@ -250,7 +250,7 @@ const en: LandingContent = {
     columns: { rate: 'Return', term: 'Term', liquidity: 'Access', min: 'Minimum', fee: 'Fee', risk: 'Risk', open: 'Open account' },
     rows: [
       { id: 'earn', name: 'Earn', tagline: 'Capital works, access stays', rate: PRODUCT_FACTS.earn.rate, rateNote: 'annual, fixed rate', term: 'Open-ended', liquidity: 'Weekly', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} annual, already in the rate`, risk: 'Low' },
-      { id: 'strategies', name: 'Strategies', tagline: 'Managed strategies for your risk profile', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'target annual return', term: '3–12 months', liquidity: 'At term end', min: PRODUCT_FACTS.strategies.min, fee: `${PRODUCT_FACTS.strategies.fee} above ${PRODUCT_FACTS.strategies.hurdle}`, risk: 'Moderate · high' },
+      { id: 'strategies', name: 'Strategies', tagline: 'Managed strategies for your risk profile', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'target annual return', term: '3–12 months', liquidity: 'At term end', min: PRODUCT_FACTS.strategies.min, fee: `${PRODUCT_FACTS.strategies.fee} annual management`, risk: 'Moderate · high' },
       { id: 'events', name: 'Events', tagline: 'Short trades on a TAIS signal', rate: PRODUCT_FACTS.events.rate, rateNote: 'target return per trade', term: '7–30 days', liquidity: 'On trade close', min: PRODUCT_FACTS.events.min, fee: `${PRODUCT_FACTS.events.fee} above ${PRODUCT_FACTS.events.hurdle}`, risk: 'High' },
     ],
   },
@@ -267,16 +267,16 @@ const en: LandingContent = {
   },
   fees: {
     title: 'What we charge',
-    subtitle: 'A result fee applies only where the result is not guaranteed — and only to profit above the hurdle.',
+    subtitle: 'In Earn and Strategies we charge management only. A profit share applies to Events alone — and only above the hurdle.',
     columns: { product: 'Product', management: 'Management', result: 'Result' },
     rows: [
       { product: 'Earn', management: '1% annual', result: 'None' },
-      { product: 'Strategies', management: '2% annual', result: '20% above 6% annual' },
+      { product: 'Strategies', management: '2% annual', result: 'None' },
       { product: 'Events', management: '2% annual', result: '20% above 8% annual' },
     ],
     neverTitle: 'What we never charge',
     never: ['Deposit fees', 'Withdrawal fees', 'Inactivity fees', 'Fees on unrealised profit', 'Any spread beyond the disclosed one'],
-    note: 'The Earn rate is published net: the 1% is already deducted, so you receive exactly the number you see. The result fee is not charged on losses, and never twice for recovering a previous high.',
+    note: 'The Earn rate is published net: the 1% is already deducted, so you receive exactly the number you see. Strategies carry management only — all profit stays with you. In Events no result fee is charged on a loss.',
   },
   custody: {
     title: 'Where your funds are held',
@@ -370,7 +370,7 @@ const ky: LandingContent = {
     columns: { rate: 'Киреше', term: 'Мөөнөт', liquidity: 'Качан алам', min: 'Минимум', fee: 'Комиссия', risk: 'Тобокел', open: 'Эсеп ачуу' },
     rows: [
       { id: 'earn', name: 'Earn', tagline: 'Капитал иштейт, жетүү мүмкүнчүлүгү калат', rate: PRODUCT_FACTS.earn.rate, rateNote: 'жылдык, туруктуу ставка', term: 'Мөөнөтсүз', liquidity: 'Жумасына бир жолу', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} жылдык, ставкада эсептелген`, risk: 'Төмөн' },
-      { id: 'strategies', name: 'Strategies', tagline: 'Тобокел деңгээлиңизге ылайык башкарылуучу стратегиялар', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'максаттуу жылдык киреше', term: '3–12 ай', liquidity: 'Мөөнөт аягында', min: PRODUCT_FACTS.strategies.min, fee: `${PRODUCT_FACTS.strategies.fee}, ${PRODUCT_FACTS.strategies.hurdle} үстүнөн`, risk: 'Орточо · жогорку' },
+      { id: 'strategies', name: 'Strategies', tagline: 'Тобокел деңгээлиңизге ылайык башкарылуучу стратегиялар', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'максаттуу жылдык киреше', term: '3–12 ай', liquidity: 'Мөөнөт аягында', min: PRODUCT_FACTS.strategies.min, fee: `башкаруу үчүн жылдык ${PRODUCT_FACTS.strategies.fee}`, risk: 'Орточо · жогорку' },
       { id: 'events', name: 'Events', tagline: 'TAIS сигналы боюнча кыска бүтүмдөр', rate: PRODUCT_FACTS.events.rate, rateNote: 'бүтүм боюнча максаттуу киреше', term: '7–30 күн', liquidity: 'Бүтүм жабылганда', min: PRODUCT_FACTS.events.min, fee: `${PRODUCT_FACTS.events.fee}, ${PRODUCT_FACTS.events.hurdle} үстүнөн`, risk: 'Жогорку' },
     ],
   },
@@ -387,16 +387,16 @@ const ky: LandingContent = {
   },
   fees: {
     title: 'Биз канча алабыз',
-    subtitle: 'Натыйжа үчүн комиссия натыйжа кепилденбеген жерде гана жана тоскоолдуктан ашкан кирешеден гана алынат.',
+    subtitle: 'Earn жана Strategies боюнча башкаруу үчүн гана алабыз. Кирешеден үлүш Events’те гана жана тоскоолдуктан ашканда.',
     columns: { product: 'Продукт', management: 'Башкаруу үчүн', result: 'Натыйжа үчүн' },
     rows: [
       { product: 'Earn', management: 'жылдык 1%', result: 'Жок' },
-      { product: 'Strategies', management: 'жылдык 2%', result: 'жылдык 6% үстүнөн 20%' },
+      { product: 'Strategies', management: 'жылдык 2%', result: 'Жок' },
       { product: 'Events', management: 'жылдык 2%', result: 'жылдык 8% үстүнөн 20%' },
     ],
     neverTitle: 'Биз эмне албайбыз',
     never: ['Каражат киргизүү үчүн', 'Каражат чыгаруу үчүн', 'Эсептин активсиздиги үчүн', 'Ишке ашпаган кирешеден', 'Ачыкталгандан тышкары жашыруун спред'],
-    note: 'Earn ставкасы таза жарыяланат: 1% мурунтан кармалган, сиз көргөн сан так ошондой. Зыян болгондо натыйжа комиссиясы алынбайт жана мурунку максимумду калыбына келтирүү үчүн кайра алынбайт.',
+    note: 'Earn ставкасы таза жарыяланат: 1% мурунтан кармалган. Strategies боюнча башкаруу үчүн гана алабыз — киреше толугу менен сизде калат. Events’те зыян болгондо натыйжа комиссиясы алынбайт.',
   },
   custody: {
     title: 'Каражатыңыз кайда сакталат',

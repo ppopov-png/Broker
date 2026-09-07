@@ -344,12 +344,14 @@ function FeeBlock({ product, fees, months }: { product: Product; fees: ReturnTyp
           value={`− ${formatCurrency(fees.management)}`}
           negative
         />
-        <FeeRow
-          label={`За результат · ${schedule.resultShare}% сверх ${schedule.hurdleAnnual}% годовых`}
-          value={fees.result > 0 ? `− ${formatCurrency(fees.result)}` : 'не взимается'}
-          negative={fees.result > 0}
-          hint={fees.result > 0 ? undefined : `Барьер ${formatCurrency(fees.hurdle)} не превышен`}
-        />
+        {schedule.resultShare > 0 && (
+          <FeeRow
+            label={`За результат · ${schedule.resultShare}% сверх ${schedule.hurdleAnnual}% годовых`}
+            value={fees.result > 0 ? `− ${formatCurrency(fees.result)}` : 'не взимается'}
+            negative={fees.result > 0}
+            hint={fees.result > 0 ? undefined : `Барьер ${formatCurrency(fees.hurdle)} не превышен`}
+          />
+        )}
         <div className="flex items-baseline justify-between gap-3 border-t border-[var(--trigonum-border)] pt-2">
           <span className="text-[13px] font-bold text-[var(--trigonum-ink)]">Ваш результат</span>
           <b className="text-[15px] font-bold tabular-nums text-[var(--trigonum-success)]">
@@ -358,8 +360,9 @@ function FeeBlock({ product, fees, months }: { product: Product; fees: ReturnTyp
         </div>
       </div>
       <p className="mt-2.5 text-[11px] leading-[1.5] text-[var(--trigonum-muted)]">
-        Комиссия за результат берётся только с прибыли сверх барьера и сверх прошлого максимума счёта. При убытке
-        она не взимается, а управление удерживается в любом случае.
+        {schedule.resultShare > 0
+          ? 'Комиссия за результат берётся только с прибыли сверх барьера и сверх прошлого максимума счёта. При убытке она не взимается, а управление удерживается в любом случае.'
+          : 'Комиссии за результат нет: брокер зарабатывает только на управлении. Оно удерживается за фактический срок, в том числе в убыточном периоде.'}
       </p>
     </div>
   )

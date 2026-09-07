@@ -7,8 +7,9 @@
  *   публикуется уже чистая ставка, комиссия за управление 1% годовых
  *   удержана до публикации. Комиссии за результат нет — результат
  *   фиксирован договором.
- * - Стратегии: 2% годовых за управление плюс доля от прибыли сверх барьера
- *   и сверх исторического максимума.
+ * - Стратегии: 2% годовых за управление. Комиссии за результат сейчас нет —
+ *   поля модели (resultShare, hurdleAnnual, highWaterMark) сохранены, чтобы
+ *   включить её изменением одной строки, а не переписыванием расчёта.
  * - Events: те же 2% годовых pro rata за срок сделки плюс доля от прибыли
  *   сделки сверх барьера. Максимума нет — каждая сделка самостоятельна.
  */
@@ -40,7 +41,7 @@ export interface FeeSchedule {
 
 export const FEE_SCHEDULES: Record<FeeFamily, FeeSchedule> = {
   earn: { managementAnnual: 1, resultShare: 0, hurdleAnnual: 0, netOfManagement: true, highWaterMark: false },
-  strategy: { managementAnnual: 2, resultShare: 20, hurdleAnnual: 6, netOfManagement: false, highWaterMark: true },
+  strategy: { managementAnnual: 2, resultShare: 0, hurdleAnnual: 0, netOfManagement: false, highWaterMark: true },
   event: { managementAnnual: 2, resultShare: 20, hurdleAnnual: 8, netOfManagement: false, highWaterMark: false },
 }
 
@@ -112,6 +113,7 @@ export function calcFees({ amount, months, grossProfit, schedule, drawdown = 0 }
 /** Короткая формулировка комиссий для карточек продукта. */
 export function feeLabel(schedule: FeeSchedule): string {
   const management = `${schedule.managementAnnual}% годовых за управление`
-  if (schedule.resultShare === 0) return `${management}, уже учтена в ставке`
+  if (schedule.netOfManagement) return `${management}, уже учтена в ставке`
+  if (schedule.resultShare === 0) return `${management}, комиссии за результат нет`
   return `${management} + ${schedule.resultShare}% от прибыли сверх ${schedule.hurdleAnnual}%`
 }
