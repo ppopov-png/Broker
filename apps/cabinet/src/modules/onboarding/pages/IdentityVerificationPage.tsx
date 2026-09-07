@@ -76,6 +76,8 @@ export function IdentityVerificationPage() {
   const [manualUrl, setManualUrl] = useState<string | null>(null)
 
   const alreadyPassed = status ? PASSED_STATES.includes(status.currentState) : false
+  // Сессии может не быть (очищена, другой браузер), но состояние помнит провал.
+  const failedByState = status?.currentState === 'IDENTITY_FAILED'
   const sessionStatus = session?.status
 
   useEffect(() => {
@@ -159,8 +161,10 @@ export function IdentityVerificationPage() {
 
   if (!allowed) return null
 
-  const currentStatus = alreadyPassed ? 'COMPLETED' : (session?.status ?? 'NOT_STARTED')
-  const decision = alreadyPassed ? 'Approved' : session?.overallDecision
+  const currentStatus = alreadyPassed
+    ? 'COMPLETED'
+    : (session?.status ?? (failedByState ? 'FAILED' : 'NOT_STARTED'))
+  const decision = alreadyPassed ? 'Approved' : (session?.overallDecision ?? (failedByState ? 'Declined' : undefined))
   const canStart = !alreadyPassed && KYC_CAN_START.includes(currentStatus)
   const showLink = !alreadyPassed && (currentStatus === 'PENDING' || currentStatus === 'IN_PROGRESS')
   const terminal = KYC_TERMINAL.includes(currentStatus)
@@ -177,7 +181,7 @@ export function IdentityVerificationPage() {
         <CenteredSpinner label="Проверяем статус сессии" />
       ) : (
         <div className="flex flex-col gap-5">
-          {(session || alreadyPassed) && (
+          {(session || alreadyPassed || failedByState) && (
             <Card title="Статус проверки">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">

@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { BrokerAccountProvider } from '../shared/lib/AccountContext'
 import { FundingProvider } from '../shared/lib/FundingContext'
+import { DemoPanel } from '../shared/ui/DemoPanel'
 import { ToastProvider } from '../shared/ui/Toast'
 import { MobileHeader, MobileTabBar } from './MobileChrome'
 import { Sidebar } from './Sidebar'
@@ -21,6 +22,7 @@ export function CabinetLayout() {
               </main>
               <MobileTabBar />
             </div>
+            <DemoPanel />
           </div>
         </ToastProvider>
       </FundingProvider>

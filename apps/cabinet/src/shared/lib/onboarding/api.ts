@@ -348,6 +348,51 @@ export async function submitEddResponse(answers: EddResponse['answers']): Promis
   return response
 }
 
+/* --- Управление прототипом -------------------------------------------------
+ * Без бэкенда пройти шаги «по-настоящему» нельзя: письма не приходят,
+ * провайдер проверки не отвечает вебхуком. Эти операции подменяют события,
+ * которые в бою присылает сервер, чтобы прототип можно было смотреть целиком.
+ */
+
+/** Перевести онбординг в произвольное состояние. */
+export async function setOnboardingState(next: OnboardingState, reason?: string): Promise<void> {
+  await wait(80)
+  const store = read()
+  transition(store, next, reason ? { reason } : undefined)
+  write(store)
+}
+
+/** Начать сначала: состояние, сессии, анкеты и согласия. */
+export async function resetOnboarding(): Promise<void> {
+  await wait(80)
+  write(emptyStore())
+  try {
+    window.localStorage.removeItem('kyc-session-id')
+  } catch {
+    // Приватный режим — сбрасываем только состояние.
+  }
+}
+
+/** Досрочно закрыть KYC-сессию — за провайдера, который в бою шлёт вебхук. */
+export async function completeKycNow(decision: 'Approved' | 'Declined'): Promise<void> {
+  await wait(80)
+  const store = read()
+  const now = new Date().toISOString()
+
+  for (const session of Object.values(store.sessions)) {
+    if (session.status === 'PENDING' || session.status === 'IN_PROGRESS') {
+      session.status = decision === 'Approved' ? 'COMPLETED' : 'FAILED'
+      session.overallDecision = decision
+      session.updatedAt = now
+      session.webhookReceivedAt = now
+      session.documentData = { documentType: 'PASSPORT' }
+    }
+  }
+
+  transition(store, decision === 'Approved' ? 'IDENTITY_VERIFIED' : 'IDENTITY_FAILED')
+  write(store)
+}
+
 /* --- Сообщения ------------------------------------------------------------- */
 
 export async function getMessageThreads(): Promise<MessageThread[]> {

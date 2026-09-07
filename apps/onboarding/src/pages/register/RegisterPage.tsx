@@ -1,6 +1,7 @@
-import { ArrowRight, Check, Mail, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Check, FlaskConical, Mail, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { markOnboardingState } from '@trigonum/shared'
 
 const MAX_NAME = 120
 const MAX_EMAIL = 254
@@ -131,6 +132,26 @@ function CheckMailbox({ email }: { email: string }) {
         <p className="text-xs text-[var(--trigonum-muted)]">
           Письмо не пришло? Проверьте папку со спамом или напишите на support@trigonum.broker.
         </p>
+
+        {/* Бэкенда нет — письмо не придёт, поэтому даём пройти шаг вручную. */}
+        <div className="rounded-xl border border-dashed border-[var(--trigonum-border)] p-4">
+          <p className="flex items-center gap-2 text-xs font-semibold text-[var(--trigonum-ink)]">
+            <FlaskConical size={13} />
+            Прототип без бэкенда
+          </p>
+          <p className="mt-1 text-xs text-[var(--trigonum-muted)]">
+            Настоящее письмо не отправляется. Нажмите, чтобы отметить почту подтверждённой и перейти к проверке
+            личности.
+          </p>
+          <a
+            href="../app/#/onboarding/identity"
+            onClick={() => markOnboardingState('EMAIL_VERIFIED')}
+            className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-125"
+          >
+            Я подтвердил почту
+            <ArrowRight size={15} />
+          </a>
+        </div>
       </div>
     </Shell>
   )

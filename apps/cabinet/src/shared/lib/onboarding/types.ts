@@ -1,20 +1,6 @@
 /** Состояние онбординга. Двигает его только бэкенд, фронт вызывает доменные операции. */
-export type OnboardingState =
-  | 'REGISTERED'
-  | 'EMAIL_VERIFIED'
-  | 'IDENTITY_IN_PROGRESS'
-  | 'IDENTITY_VERIFIED'
-  | 'IDENTITY_FAILED'
-  | 'SELF_CERT_COMPLETED'
-  | 'AGREEMENTS_ACCEPTED'
-  | 'EDD_IN_PROGRESS'
-  | 'EDD_SUBMITTED'
-  | 'UNDER_REVIEW'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'AMENDMENTS_REQUESTED'
-  | 'SUSPENDED'
-  | 'REVERIFICATION_REQUIRED'
+export type { OnboardingState } from '@trigonum/shared'
+import type { OnboardingState } from '@trigonum/shared'
 
 /**
  * Порядок для прогресса и гардов. IDENTITY_FAILED стоит сразу после
