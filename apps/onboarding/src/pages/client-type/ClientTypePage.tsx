@@ -1,23 +1,80 @@
-import { Button } from '@trigonum/ui'
+import { ArrowRight, Building2, ShieldCheck, UserRound } from 'lucide-react'
+import { Link } from 'react-router-dom'
+
+const options = [
+  {
+    type: 'individual',
+    icon: UserRound,
+    title: 'Физическое лицо',
+    detail: 'Частный инвестор',
+    points: ['Проверка личности по документу', 'Открытие счёта за один день', 'Все продукты Trigonum'],
+  },
+  {
+    type: 'company',
+    icon: Building2,
+    title: 'Юридическое лицо',
+    detail: 'Компания или фонд',
+    points: ['Проверка компании и бенефициаров', 'Несколько пользователей на счёте', 'Отчётность для бухгалтерии'],
+  },
+] as const
 
 export function ClientTypePage() {
   return (
-    <main className="mx-auto min-h-screen max-w-6xl px-8 py-20">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-600">Просто. Быстро. Безопасно.</p>
-      <h1 className="mt-4 text-5xl font-bold text-slate-950">Открыть счёт</h1>
-      <p className="mt-3 text-xl text-slate-600">Выберите тип клиента</p>
-      <div className="mt-10 grid gap-6 md:grid-cols-2">
-        <article className="rounded-2xl border bg-white p-8 shadow-sm">
-          <h2 className="text-2xl font-bold text-blue-700">Физическое лицо</h2>
-          <p className="mt-2 text-slate-600">Для частных инвесторов</p>
-          <Button className="mt-8 w-full bg-blue-600 text-white">Выбрать</Button>
-        </article>
-        <article className="rounded-2xl border bg-white p-8 shadow-sm">
-          <h2 className="text-2xl font-bold text-green-700">Юридическое лицо</h2>
-          <p className="mt-2 text-slate-600">Для компаний и организаций</p>
-          <Button className="mt-8 w-full bg-green-600 text-white">Выбрать</Button>
-        </article>
+    <div className="flex min-h-screen items-center justify-center bg-[var(--trigonum-bg)] px-4 py-10">
+      <div className="w-full max-w-[820px]">
+        <div className="mb-7 flex items-center gap-2.5">
+          <span
+            className="grid size-8 place-items-center rounded-[10px]"
+            style={{ backgroundImage: 'var(--trigonum-gradient-cta)' }}
+          >
+            <ShieldCheck size={17} className="text-white" />
+          </span>
+          <span className="text-[15px] font-bold tracking-tight text-[var(--trigonum-ink)]">Trigonum</span>
+        </div>
+
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--trigonum-ink)]">Открыть счёт</h1>
+        <p className="mt-1.5 max-w-[60ch] text-sm text-[var(--trigonum-muted)]">
+          Выберите, от чьего имени открываете счёт. От этого зависит состав документов и порядок проверки.
+        </p>
+
+        <div className="mt-7 grid gap-4 md:grid-cols-2">
+          {options.map((option) => (
+            <Link
+              key={option.type}
+              to={`/register?type=${option.type}`}
+              className="group flex flex-col rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] p-6 shadow-[var(--trigonum-shadow-card)] transition hover:-translate-y-0.5 hover:border-[var(--trigonum-ink)]"
+            >
+              <span className="grid size-11 place-items-center rounded-xl bg-[var(--trigonum-bg)] text-[var(--trigonum-ink)]">
+                <option.icon size={20} />
+              </span>
+
+              <h2 className="mt-4 text-lg font-bold text-[var(--trigonum-ink)]">{option.title}</h2>
+              <p className="mt-0.5 text-sm text-[var(--trigonum-muted)]">{option.detail}</p>
+
+              <ul className="mt-4 flex flex-1 flex-col gap-2">
+                {option.points.map((point) => (
+                  <li key={point} className="flex items-start gap-2 text-sm text-[var(--trigonum-text)]">
+                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[var(--trigonum-muted)]" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+
+              <span className="mt-6 inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-4 py-2.5 text-sm font-semibold text-white transition group-hover:brightness-125">
+                Продолжить
+                <ArrowRight size={15} />
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <p className="mt-6 text-xs text-[var(--trigonum-muted)]">
+          Уже есть счёт?{' '}
+          <a href="../app/" className="font-semibold text-[var(--trigonum-blue)]">
+            Войти в кабинет
+          </a>
+        </p>
       </div>
-    </main>
+    </div>
   )
 }

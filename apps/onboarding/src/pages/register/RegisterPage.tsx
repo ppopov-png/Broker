@@ -1,5 +1,6 @@
 import { ArrowRight, Check, Mail, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 
 const MAX_NAME = 120
 const MAX_EMAIL = 254
@@ -27,6 +28,8 @@ function validate(values: { name: string; email: string; password: string }): Er
 }
 
 export function RegisterPage() {
+  const [params] = useSearchParams()
+  const isCompany = params.get('type') === 'company'
   const [values, setValues] = useState({ name: '', email: '', password: '' })
   const [errors, setErrors] = useState<Errors>({})
   const [submitting, setSubmitting] = useState(false)
@@ -48,15 +51,20 @@ export function RegisterPage() {
 
   return (
     <Shell
-      title="Открыть счёт"
+      title={isCompany ? 'Счёт для компании' : 'Счёт частного инвестора'}
       subtitle="Три поля — и мы отправим письмо для подтверждения. Проверка личности и документы будут на следующих шагах."
+      back={
+        <Link to="/" className="mb-4 inline-flex text-xs font-semibold text-[var(--trigonum-blue)]">
+          ← Изменить тип клиента
+        </Link>
+      }
     >
       <form className="flex flex-col gap-4" onSubmit={submit} noValidate>
-        <Field label="Имя и фамилия" error={errors.name}>
+        <Field label={isCompany ? 'Название компании' : 'Имя и фамилия'} error={errors.name}>
           <input
             value={values.name}
             maxLength={MAX_NAME}
-            autoComplete="name"
+            autoComplete={isCompany ? 'organization' : 'name'}
             onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
             className={inputClass(Boolean(errors.name))}
           />
@@ -149,7 +157,17 @@ function Step({ text, done = false, current = false }: { text: string; done?: bo
   )
 }
 
-function Shell({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+function Shell({
+  title,
+  subtitle,
+  back,
+  children,
+}: {
+  title: string
+  subtitle: string
+  back?: React.ReactNode
+  children: React.ReactNode
+}) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--trigonum-bg)] px-4 py-10">
       <div className="w-full max-w-[460px]">
@@ -164,6 +182,7 @@ function Shell({ title, subtitle, children }: { title: string; subtitle: string;
         </div>
 
         <div className="rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] p-6 shadow-[var(--trigonum-shadow-card)]">
+          {back}
           <h1 className="text-2xl font-bold text-[var(--trigonum-ink)]">{title}</h1>
           <p className="mt-1.5 text-sm text-[var(--trigonum-muted)]">{subtitle}</p>
           <div className="mt-6">{children}</div>
