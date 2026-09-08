@@ -231,7 +231,7 @@ export function InvestPage() {
     // клиент должен видеть, из чего получилась чистая сумма.
     const schedule = FEE_SCHEDULES[selectedProduct.feeFamily]
     const grossMid = reinvestOn ? compoundMid : simpleMid
-    const fees = calcFees({ amount, months: termMonths, grossProfit: grossMid, schedule })
+    const fees = calcFees({ amount, grossProfit: grossMid, schedule })
     return { termMonths, reinvestOn, low, high, simpleMid, compoundMid, maxIncome, range, firstPayoutDate, schedule, fees }
   }, [amount, reinvest, selectedProduct, termIndex, topupContract])
 
@@ -330,8 +330,8 @@ function FeeBlock({ product, fees, months }: { product: Product; fees: ReturnTyp
       <div className="rounded-xl border border-[var(--trigonum-border)] p-3.5">
         <p className="text-[11px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Комиссия</p>
         <p className="mt-1.5 text-xs leading-[1.5] text-[var(--trigonum-text)]">
-          {schedule.managementAnnual}% годовых за управление уже удержаны: ставка {product.rate} — это то, что
-          получаете вы. Комиссии за результат по Earn нет.
+          {schedule.managementOnDeposit}% при пополнении уже учтены: ставка {product.rate} — это то, что получаете вы.
+          Комиссии за результат по Earn нет.
         </p>
       </div>
     )
@@ -345,38 +345,15 @@ function FeeBlock({ product, fees, months }: { product: Product; fees: ReturnTyp
       <div className="mt-2.5 space-y-2">
         <FeeRow label="Целевой доход до комиссий" value={`+${formatCurrency(fees.gross)}`} />
         <FeeRow
-          label={`За управление · ${schedule.managementAnnual}% годовых`}
+          label={`За управление · ${schedule.managementOnDeposit}% при пополнении`}
           value={`− ${formatCurrency(fees.management)}`}
           negative
         />
-        {schedule.resultShare > 0 && (
-          <FeeRow
-            label={
-              schedule.hurdleAnnual > 0
-                ? `За результат · ${schedule.resultShare}% сверх ${schedule.hurdleAnnual}% годовых`
-                : `За результат · ${schedule.resultShare}% от прибыли`
-            }
-            value={fees.result > 0 ? `− ${formatCurrency(fees.result)}` : 'не взимается'}
-            negative={fees.result > 0}
-            hint={
-              fees.result > 0 || schedule.hurdleAnnual === 0
-                ? undefined
-                : `Барьер ${formatCurrency(fees.hurdle)} не превышен`
-            }
-          />
-        )}
-        {schedule.outperformanceShare > 0 && (
-          <FeeRow
-            label={`За превышение цели · ${schedule.outperformanceShare}% сверх ${schedule.targetAnnual}% годовых`}
-            value={fees.outperformance > 0 ? `− ${formatCurrency(fees.outperformance)}` : 'не взимается'}
-            negative={fees.outperformance > 0}
-            hint={
-              fees.outperformance > 0
-                ? undefined
-                : `Цель ${formatCurrency(fees.target)} не превышена`
-            }
-          />
-        )}
+        <FeeRow
+          label={`За результат · ${schedule.resultShare}% от прибыли`}
+          value={fees.result > 0 ? `− ${formatCurrency(fees.result)}` : 'не взимается'}
+          negative={fees.result > 0}
+        />
         <div className="flex items-baseline justify-between gap-3 border-t border-[var(--trigonum-border)] pt-2">
           <span className="text-[13px] font-bold text-[var(--trigonum-ink)]">Ваш результат</span>
           <b className="text-[15px] font-bold tabular-nums text-[var(--trigonum-success)]">
@@ -385,11 +362,8 @@ function FeeBlock({ product, fees, months }: { product: Product; fees: ReturnTyp
         </div>
       </div>
       <p className="mt-2.5 text-[11px] leading-[1.5] text-[var(--trigonum-muted)]">
-        {schedule.resultShare === 0
-          ? 'Комиссии за результат нет: брокер зарабатывает только на управлении. Оно удерживается за фактический срок, в том числе в убыточном периоде.'
-          : schedule.outperformanceShare > 0
-            ? 'Базовая доля берётся с любой прибыли, повышенная — только с части сверх целевой доходности и поверх базовой. Обе не взимаются при убытке и не берутся повторно за восстановление прошлого максимума. Управление удерживается в любом случае.'
-            : 'Комиссия за результат берётся только с прибыли сверх барьера. При убытке она не взимается, а управление удерживается в любом случае.'}
+        Управление удерживается один раз, при внесении средств, и не зависит от срока. Комиссия за результат берётся
+        только с прибыли и не взимается при убытке.
       </p>
     </div>
   )

@@ -24,6 +24,7 @@ export function Header() {
       <nav className="main-nav" aria-label="Основная навигация">
         <a href="#products">{t('nav.products')}</a>
         <a href="#how">{t('nav.how')}</a>
+        <a href="#results">{t('nav.results')}</a>
         <a href="#fees">{t('nav.fees')}</a>
         <a href="#custody">{t('nav.custody')}</a>
         <a href="#tiers">{t('nav.tiers')}</a>

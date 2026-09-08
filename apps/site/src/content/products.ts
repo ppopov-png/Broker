@@ -48,12 +48,7 @@ export const CLOSED_EVENTS: ClosedEvent[] = [
 export function eventNetProfit(event: ClosedEvent): number {
   const gross = (event.invested * event.result) / 100
   if (gross <= 0) return gross
-  return calcFees({
-    amount: event.invested,
-    months: event.days / 30,
-    grossProfit: gross,
-    schedule: FEE_SCHEDULES.event,
-  }).net
+  return calcFees({ amount: event.invested, grossProfit: gross, schedule: FEE_SCHEDULES.event }).net
 }
 
 /* --- Стратегии ------------------------------------------------------------ */
@@ -123,7 +118,6 @@ export function strategyNetReturn(strategy: StrategyRow): number {
   const notional = 100_000
   const fees = calcFees({
     amount: notional,
-    months: 12,
     grossProfit: (notional * strategy.actual) / 100,
     schedule: FEE_SCHEDULES[strategy.family],
   })
@@ -180,3 +174,107 @@ export const PLATFORM_SUMMARY = {
   investors: EARN_STATS.investors + STRATEGIES_SUMMARY.investors,
   paidOut: EARN_STATS.paidOut + STRATEGIES_SUMMARY.netProfit + EVENTS_SUMMARY.netProfit,
 }
+
+/* --- Калькулятор цели ------------------------------------------------------ */
+
+export interface GoalPlan {
+  id: string
+  name: string
+  profile: string
+  /** Доходность после комиссии за результат, % годовых. */
+  netAnnual: number
+  /** Комиссия за управление, % от суммы пополнения. Удерживается один раз. */
+  managementPct: number
+  risk: 'low' | 'moderate' | 'high'
+}
+
+/**
+ * Ставки для калькулятора берутся из тех же строк, что и витрина: сюда
+ * попадает фактическая доходность за 12 месяцев за вычетом комиссии за
+ * результат. Комиссия за управление держится отдельным полем — она разовая
+ * и не должна размазываться по годовой ставке.
+ */
+function planFromStrategy(strategy: StrategyRow): GoalPlan {
+  const schedule = FEE_SCHEDULES[strategy.family]
+  return {
+    id: strategy.id,
+    name: strategy.name,
+    profile: strategy.profile,
+    netAnnual: (strategy.actual * (100 - schedule.resultShare)) / 100,
+    managementPct: schedule.netOfManagement ? 0 : schedule.managementOnDeposit,
+    risk: strategy.family === 'conservative' ? 'low' : strategy.family === 'balanced' ? 'moderate' : 'high',
+  }
+}
+
+export const GOAL_PLANS: GoalPlan[] = [
+  {
+    id: 'earn',
+    name: 'Earn',
+    profile: 'Без срока',
+    netAnnual: EARN_STATS.rate,
+    // Ставка Earn публикуется чистой: управление уже удержано внутри неё.
+    managementPct: FEE_SCHEDULES.earn.netOfManagement ? 0 : FEE_SCHEDULES.earn.managementOnDeposit,
+    risk: 'low',
+  },
+  ...STRATEGIES.map(planFromStrategy),
+]
+
+export interface GoalPlanResult {
+  /** Сколько внести одним платежом сегодня. */
+  lump: number
+  /** Сколько вносить ежемесячно, если начинать с нуля. */
+  monthly: number
+  /** Сумма всех ежемесячных взносов за срок. */
+  contributed: number
+  /** Разница между целью и внесённым при ежемесячном сценарии. */
+  earned: number
+}
+
+/**
+ * Обратная задача: не «сколько вырастет», а «сколько завести». Комиссия за
+ * управление удерживается с каждого взноса, поэтому входит в знаменатель, а
+ * не вычитается из результата.
+ */
+export function planForGoal(plan: GoalPlan, goal: number, years: number): GoalPlanResult {
+  const rate = plan.netAnnual / 100
+  const kept = 1 - plan.managementPct / 100
+  const months = Math.max(1, Math.round(years * 12))
+  const monthlyRate = Math.pow(1 + rate, 1 / 12) - 1
+
+  const lump = goal / (kept * Math.pow(1 + rate, years))
+  const annuity = monthlyRate === 0 ? months : (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate
+  const monthly = goal / (kept * annuity)
+  const contributed = monthly * months
+
+  return { lump, monthly, contributed, earned: Math.max(0, goal - contributed) }
+}
+
+/* --- Результаты инвесторов -------------------------------------------------- */
+
+export interface TopInvestor {
+  /** Публичный псевдоним: реальные имена на витрину не выносятся. */
+  alias: string
+  tier: string
+  /** Чистая прибыль за 12 месяцев, после комиссий. */
+  profit: number
+  /** Средний капитал под управлением за период. */
+  capital: number
+  mix: string
+  since: string
+}
+
+export const TOP_INVESTORS: TopInvestor[] = [
+  { alias: 'Инвестор A-1042', tier: 'Californium', profit: 214_800, capital: 980_000, mix: 'Alpha Momentum · Events', since: 'ноября 2024' },
+  { alias: 'Инвестор B-0377', tier: 'Diamond', profit: 96_400, capital: 520_000, mix: 'Balanced Growth · Events', since: 'марта 2025' },
+  { alias: 'Инвестор C-0918', tier: 'Diamond', profit: 61_200, capital: 410_000, mix: 'Balanced Growth · Earn', since: 'января 2025' },
+  { alias: 'Инвестор D-1156', tier: 'Platinum', profit: 28_700, capital: 190_000, mix: 'Stable Income · Events', since: 'июня 2025' },
+  { alias: 'Инвестор E-0644', tier: 'Gold', profit: 11_900, capital: 84_000, mix: 'Earn · Stable Income', since: 'сентября 2025' },
+]
+
+/** Доходность инвестора за период, % — считаем, а не задаём: иначе разъедется. */
+export function investorReturn(investor: TopInvestor): number {
+  return (investor.profit / investor.capital) * 100
+}
+
+/** Самые результативные закрытые сделки — тот же список, другой срез. */
+export const BEST_EVENTS = [...CLOSED_EVENTS].sort((a, b) => b.result - a.result).slice(0, 3)

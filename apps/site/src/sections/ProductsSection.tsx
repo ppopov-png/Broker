@@ -5,6 +5,7 @@ import { landingContent, type LandingContent, type ProductRow } from '../content
 import { EARN_STATS, EVENTS_SUMMARY, STRATEGIES_SUMMARY } from '../content/products'
 import { onboardingUrl } from '../lib/appLinks'
 import { ProductModal, type ProductId } from './ProductModal'
+import { usd } from '../lib/format'
 
 const icons = {
   earn: ChartNoAxesCombined,
@@ -12,7 +13,6 @@ const icons = {
   events: CalendarDays,
 } as const
 
-const usd = (value: number) => `$${Math.round(value).toLocaleString('ru-RU').replace(/ /g, ' ')}`
 
 /**
  * Короткая строка доказательства под описанием: она вытягивает человека в

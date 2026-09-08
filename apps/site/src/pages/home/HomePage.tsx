@@ -8,6 +8,7 @@ import { HeroSection } from '../../sections/HeroSection'
 import { HowItWorksSection } from '../../sections/HowItWorksSection'
 import { OpenAccountSection } from '../../sections/OpenAccountSection'
 import { ProductsSection } from '../../sections/ProductsSection'
+import { ResultsSection } from '../../sections/ResultsSection'
 import { SiteFooter } from '../../sections/SiteFooter'
 import { StatsStrip } from '../../sections/StatsStrip'
 import { TiersSection } from '../../sections/TiersSection'
@@ -26,6 +27,7 @@ export function HomePage() {
         <StatsStrip />
         <ProductsSection />
         <HowItWorksSection />
+        <ResultsSection />
         <FeesSection />
         <CustodySection />
         <TiersSection />

@@ -13,8 +13,8 @@ import type { Language } from '../i18n/I18nProvider'
 
 export const PRODUCT_FACTS = {
   earn: { rate: '~7%', min: '$1 000', fee: '1%', liquidityDays: 7 },
-  strategies: { rate: '8–20%', min: '$1 000', fee: '2% + 10–20%', hurdle: null },
-  events: { rate: 'до 20%+', min: '$5 000', fee: '2% + 20%', hurdle: '8%' },
+  strategies: { rate: '8–20%', min: '$1 000', fee: '1% + 10%', hurdle: null },
+  events: { rate: 'до 20%+', min: '$5 000', fee: '1% + 20%', hurdle: null },
 } as const
 
 export interface ProductRow {
@@ -69,6 +69,31 @@ export interface LandingContent {
   tiers: { title: string; subtitle: string; rows: TierRow[]; note: string }
   open: { title: string; subtitle: string; steps: StepRow[]; needTitle: string; need: string; cta: string }
   compliance: { title: string; subtitle: string; points: { title: string; text: string }[]; link: string }
+  results: {
+    title: string
+    subtitle: string
+    investorsTitle: string
+    investorsNote: string
+    columns: { investor: string; tier: string; capital: string; profit: string; mix: string; since: string }
+    eventsTitle: string
+    eventsNote: string
+    eventLabels: { days: string; investors: string; kept: string }
+    note: string
+  }
+  calculator: {
+    title: string
+    subtitle: string
+    goalLabel: string
+    yearsLabel: string
+    yearsUnit: (n: number) => string
+    columns: { plan: string; net: string; lump: string; monthly: string }
+    netNote: string
+    monthlyNote: string
+    tickerTitle: string
+    tickerCaption: string
+    tickerText: string
+    note: string
+  }
   faq: { title: string; rows: FaqRow[] }
   final: { title: string; text: string; cta: string; secondary: string }
   footer: { rights: string; risk: string; docs: string[] }
@@ -105,7 +130,7 @@ const ru: LandingContent = {
         term: 'Без срока',
         liquidity: 'Раз в неделю',
         min: PRODUCT_FACTS.earn.min,
-        fee: `${PRODUCT_FACTS.earn.fee} годовых, уже в ставке`,
+        fee: `${PRODUCT_FACTS.earn.fee} при пополнении, уже в ставке`,
         risk: 'Низкий',
       },
       {
@@ -129,30 +154,30 @@ const ru: LandingContent = {
         term: '7–30 дней',
         liquidity: 'При закрытии сделки',
         min: PRODUCT_FACTS.events.min,
-        fee: `${PRODUCT_FACTS.events.fee} сверх ${PRODUCT_FACTS.events.hurdle}`,
+        fee: `${PRODUCT_FACTS.events.fee} от прибыли`,
         risk: 'Высокий',
       },
     ],
   },
   how: {
     title: 'Откуда берётся доходность',
-    subtitle: 'TAIS — система анализа рынка Trigonum. Она ищет расхождения, которые держатся недолго, и превращает их в сделку с понятными границами.',
+    subtitle: 'Не из одного источника. Доход складывается из нескольких направлений, а TAIS — ядро архитектуры, через которое проходят решения.',
     steps: [
-      { title: 'Сигнал', text: 'TAIS фиксирует рыночную аномалию: перекос позиционирования, движение ликвидности, расхождение потоков капитала.' },
-      { title: 'Гипотеза', text: 'Аналитики проверяют сигнал и формулируют тезис: что покупаем, против чего, на каком горизонте и при каких условиях выходим.' },
-      { title: 'Окно входа', text: 'Открывается ограниченный объём. Когда капитал распределён, вход закрывается — размер позиции определяется идеей, а не спросом.' },
-      { title: 'Закрытие', text: 'Позиция закрывается по достижении цели или по стоп-условию. Результат распределяется между участниками, комиссия берётся только с прибыли.' },
+      { title: 'Алгоритмическая торговля', text: 'Собственные торговые алгоритмы работают круглосуточно на арбитраже, маркет-мейкинге и расхождениях цены между площадками.' },
+      { title: 'Управление командой', text: 'Трейдеры и аналитики ведут направленные позиции там, где нужны решение человека и понимание контекста, а не скорость.' },
+      { title: 'TAIS как ядро', text: 'Система анализа рынка собирает данные с бирж и ончейна, находит аномалии и оценивает риск. Через неё проходит каждая идея — от алгоритма и от человека.' },
+      { title: 'Размещение ликвидности', text: 'Часть капитала работает в кредитовании и на предоставлении ликвидности — предсказуемый доход, которым обеспечена фиксированная ставка Earn.' },
     ],
-    note: 'Часть капитала в каждом Event — собственные средства Trigonum. Мы в одной позиции с инвесторами, а не рядом с ней.',
+    note: 'Ни одно направление не решает в одиночку: алгоритм даёт скорость, команда — контекст, TAIS — общую оценку риска. Часть капитала в каждом Event — собственные средства Trigonum.',
   },
   fees: {
     title: 'Сколько мы берём',
-    subtitle: 'В Earn берём только за управление. В стратегиях и Events участвуем в прибыли — доля зависит от профиля риска.',
+    subtitle: 'Комиссия за управление одна на все продукты — 1% от суммы пополнения, разово. Дальше мы зарабатываем только вместе с вами.',
     columns: { product: 'Продукт', management: 'За управление', result: 'За результат' },
     rows: [
-      { product: 'Earn', management: '1% годовых', result: 'Нет' },
-      { product: 'Strategies', management: '2% годовых', result: '10–20% от прибыли по профилю риска' },
-      { product: 'Events', management: '2% годовых', result: '20% сверх 8% годовых' },
+      { product: 'Earn', management: '1% при пополнении', result: 'Нет' },
+      { product: 'Strategies', management: '1% при пополнении', result: '10% от прибыли' },
+      { product: 'Events', management: '1% при пополнении', result: '20% от прибыли' },
     ],
     neverTitle: 'Чего мы не берём',
     never: [
@@ -162,7 +187,7 @@ const ru: LandingContent = {
       'С нереализованной прибыли',
       'Скрытого спреда сверх раскрытого',
     ],
-    note: 'Ставка Earn публикуется чистой: 1% годовых уже удержан. В стратегиях доля берётся с любой прибыли по базовой ставке, а повышенная — только с части сверх целевой доходности. При убытке комиссия за результат не взимается ни в стратегиях, ни в Events.',
+    note: 'Комиссия за управление удерживается один раз, в момент зачисления средств на продукт, и не зависит от того, сколько капитал пролежит. Ставка Earn публикуется чистой: 1% в ней уже учтён. Комиссия за результат берётся только с фактической прибыли: при убытке она равна нулю, а в стратегиях следующая прибыль сначала закрывает предыдущую просадку (high-water mark).',
   },
   custody: {
     title: 'Где лежат ваши средства',
@@ -183,19 +208,21 @@ const ru: LandingContent = {
       { name: 'Silver', perk: 'Открываются Strategies, комиссия вывода 0.75%' },
       { name: 'Gold', perk: 'Ранний доступ к Events, приоритетная поддержка' },
       { name: 'Platinum', perk: 'Персональный менеджер, закрытые Events, ставка Earn выше' },
-      { name: 'Californium', perk: 'Приватные сделки, co-investment, вывод без комиссии' },
-      { name: 'Diamond', perk: 'Клубные сделки, управляющий партнёр, бессрочный статус' },
+      { name: 'Diamond', perk: 'Закрытые сделки, co-investment, вывод без комиссии' },
+      { name: 'Californium', perk: 'Клубные сделки, управляющий партнёр, бессрочный статус' },
     ],
     note: 'Уровень пересматривается раз в квартал, снижается не более чем на ступень и не раньше чем через 30 дней после предупреждения.',
   },
   open: {
-    title: 'Как открыть счёт',
-    subtitle: 'Четыре шага. Между ними ничего не теряется: заявку можно продолжить с того места, где остановились.',
+    title: 'Как начать зарабатывать с Trigonum',
+    subtitle: 'Шесть шагов от письма с подтверждением до первой позиции. Между ними ничего не теряется: заявку можно продолжить с того места, где остановились.',
     steps: [
       { title: 'Регистрация', text: 'Имя, email и пароль. Подтверждаете почту по ссылке из письма.', time: '5 минут' },
       { title: 'Проверка личности', text: 'Паспорт и селфи через сервис проверки. Данные заполняют профиль автоматически.', time: '10 минут' },
       { title: 'Анкета и соглашения', text: 'Самосертификация инвестора и подписание документов. Всё остаётся в кабинете.', time: '10 минут' },
-      { title: 'Решение', text: 'Комплаенс проверяет заявку. После одобрения счёт открыт и доступны все продукты.', time: 'до 1 рабочего дня' },
+      { title: 'Решение', text: 'Комплаенс проверяет заявку. После одобрения кабинет открывается полностью.', time: 'до 1 рабочего дня' },
+      { title: 'Открыть счёт', text: 'Счёт хранения в Trigonum открывается по заявке и договору. После подписания получаете сеть и персональный адрес для пополнения.', time: '1 рабочий день' },
+      { title: 'Выбрать подходящий портфель', text: 'Earn, стратегия под ваш риск-профиль или участие в Event. Калькулятор в кабинете подскажет сумму под вашу цель.', time: '10 минут' },
     ],
     needTitle: 'Что понадобится',
     need: 'Паспорт или ID-карта, камера для селфи и адрес электронной почты.',
@@ -211,6 +238,31 @@ const ru: LandingContent = {
       { title: 'Защита доступа', text: 'Двухфакторная аутентификация, журнал сессий и устройств, подтверждение операций и журнал подписанных документов.' },
     ],
     link: 'Реестр регулятора',
+  },
+  results: {
+    title: 'Что заработали инвесторы',
+    subtitle: 'Публикуем не только среднее по платформе. Ниже — реальные счета из первой пятёрки за последние 12 месяцев и три лучших закрытых сделки.',
+    investorsTitle: 'Топ инвесторов за 12 месяцев',
+    investorsNote: 'Счета обезличены. Прибыль — чистая, после всех комиссий.',
+    columns: { investor: 'Инвестор', tier: 'Уровень', capital: 'Средний капитал', profit: 'Чистая прибыль', mix: 'Что использует', since: 'С нами с' },
+    eventsTitle: 'Лучшие сделки Events',
+    eventsNote: 'Результат — валовый, до комиссии за результат. Рядом показано, сколько осталось инвесторам.',
+    eventLabels: { days: 'дн. в позиции', investors: 'инвесторов', kept: 'Осталось инвесторам' },
+    note: 'Прошлые результаты не гарантируют будущих. Из десяти закрытых сделок две принесли убыток — мы показываем их в разделе Events полностью.',
+  },
+  calculator: {
+    title: 'Сколько нужно завести под вашу цель',
+    subtitle: 'Укажите сумму и срок — посчитаем по фактической доходности каждого продукта за последние 12 месяцев, уже за вычетом комиссий.',
+    goalLabel: 'Моя цель',
+    yearsLabel: 'Срок',
+    yearsUnit: (n: number) => (n === 1 ? 'год' : n < 5 ? 'года' : 'лет'),
+    columns: { plan: 'Куда размещаю', net: 'Чистыми в год', lump: 'Внести сразу', monthly: 'Или в месяц' },
+    netNote: 'после комиссии за результат',
+    monthlyNote: 'равными взносами весь срок',
+    tickerTitle: 'Пока вы читаете эту страницу',
+    tickerCaption: 'заработали инвесторы Trigonum — прямо сейчас, в реальном времени',
+    tickerText: 'Ваша цель {goal} в {plan} принесла бы {app} за 25 минут, пока вы заполняете анкету, и {month} в месяц.',
+    note: 'Расчёт использует фактическую доходность за последние 12 месяцев и не является обещанием результата. Комиссия за управление 1% удержана с каждого взноса.',
   },
   faq: {
     title: 'Вопросы',
@@ -250,34 +302,34 @@ const en: LandingContent = {
     note: 'Target returns for Strategies and Events are a guideline, not an obligation. Actual results are determined at the end of the period.',
     columns: { rate: 'Return', term: 'Term', liquidity: 'Access', min: 'Minimum', fee: 'Fee', risk: 'Risk', open: 'Open account', more: 'Learn more' },
     rows: [
-      { id: 'earn', name: 'Earn', tagline: 'Capital works, access stays', rate: PRODUCT_FACTS.earn.rate, rateNote: 'annual, fixed rate', term: 'Open-ended', liquidity: 'Weekly', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} annual, already in the rate`, risk: 'Low' },
+      { id: 'earn', name: 'Earn', tagline: 'Capital works, access stays', rate: PRODUCT_FACTS.earn.rate, rateNote: 'annual, fixed rate', term: 'Open-ended', liquidity: 'Weekly', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} on deposit, already in the rate`, risk: 'Low' },
       { id: 'strategies', name: 'Strategies', tagline: 'Three profiles: conservative, moderate, aggressive', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'target annual return', term: '3–12 months', liquidity: 'At term end', min: PRODUCT_FACTS.strategies.min, fee: `${PRODUCT_FACTS.strategies.fee} of profit`, risk: 'Conservative · high' },
-      { id: 'events', name: 'Events', tagline: 'Short trades on a TAIS signal', rate: PRODUCT_FACTS.events.rate, rateNote: 'target return per trade', term: '7–30 days', liquidity: 'On trade close', min: PRODUCT_FACTS.events.min, fee: `${PRODUCT_FACTS.events.fee} above ${PRODUCT_FACTS.events.hurdle}`, risk: 'High' },
+      { id: 'events', name: 'Events', tagline: 'Short trades on a TAIS signal', rate: PRODUCT_FACTS.events.rate, rateNote: 'target return per trade', term: '7–30 days', liquidity: 'On trade close', min: PRODUCT_FACTS.events.min, fee: `${PRODUCT_FACTS.events.fee} of profit`, risk: 'High' },
     ],
   },
   how: {
     title: 'Where the return comes from',
-    subtitle: 'TAIS is the Trigonum market analysis system. It looks for dislocations that do not last long and turns them into a trade with defined boundaries.',
+    subtitle: 'Not from a single source. Returns come from several directions, and TAIS is the core of the architecture every decision passes through.',
     steps: [
-      { title: 'Signal', text: 'TAIS detects a market anomaly: positioning skew, liquidity shift, divergence in capital flows.' },
-      { title: 'Thesis', text: 'Analysts verify the signal and state the case: what we buy, against what, over which horizon and on what exit conditions.' },
-      { title: 'Entry window', text: 'A limited size opens. Once capital is allocated, entry closes — position size follows the idea, not demand.' },
-      { title: 'Close', text: 'The position closes on target or stop. The result is distributed among participants; the fee applies to profit only.' },
+      { title: 'Algorithmic trading', text: 'Proprietary algorithms run around the clock on arbitrage, market making and price dislocations between venues.' },
+      { title: 'Managed by the team', text: 'Traders and analysts run directional positions where human judgement and context matter more than speed.' },
+      { title: 'TAIS as the core', text: 'The market analysis system collects exchange and on-chain data, detects anomalies and scores risk. Every idea passes through it — from an algorithm or a person.' },
+      { title: 'Liquidity deployment', text: 'Part of the capital works in lending and liquidity provision — the predictable income behind the fixed Earn rate.' },
     ],
-    note: 'Part of the capital in every Event is Trigonum’s own. We are in the position with investors, not beside it.',
+    note: 'No single direction decides alone: the algorithm brings speed, the team brings context, TAIS brings a shared view of risk. Part of the capital in every Event is Trigonum’s own.',
   },
   fees: {
     title: 'What we charge',
-    subtitle: 'In Earn we charge management only. In Strategies and Events we share the profit — the rate follows the risk profile.',
+    subtitle: 'One management fee across every product — 1% of the deposit, charged once. After that we only earn together with you.',
     columns: { product: 'Product', management: 'Management', result: 'Result' },
     rows: [
-      { product: 'Earn', management: '1% annual', result: 'None' },
-      { product: 'Strategies', management: '2% annual', result: '10–20% of profit by risk profile' },
-      { product: 'Events', management: '2% annual', result: '20% above 8% annual' },
+      { product: 'Earn', management: '1% on deposit', result: 'None' },
+      { product: 'Strategies', management: '1% on deposit', result: '10% of profit' },
+      { product: 'Events', management: '1% on deposit', result: '20% of profit' },
     ],
     neverTitle: 'What we never charge',
     never: ['Deposit fees', 'Withdrawal fees', 'Inactivity fees', 'Fees on unrealised profit', 'Any spread beyond the disclosed one'],
-    note: 'The Earn rate is published net: the 1% is already deducted. In Strategies the base share applies to any profit, while the higher rate applies only above the target return. No result fee is charged on a loss, in Strategies or Events.',
+    note: 'The management fee is charged once, when funds are credited to a product, and does not depend on how long the capital stays. The Earn rate is published net: the 1% is already deducted. The result fee applies to realised profit only: on a loss it is zero, and in Strategies the next profit first recovers the previous drawdown (high-water mark).',
   },
   custody: {
     title: 'Where your funds are held',
@@ -298,19 +350,21 @@ const en: LandingContent = {
       { name: 'Silver', perk: 'Strategies unlocked, 0.75% withdrawal fee' },
       { name: 'Gold', perk: 'Early access to Events, priority support' },
       { name: 'Platinum', perk: 'Personal manager, closed Events, higher Earn rate' },
-      { name: 'Californium', perk: 'Private deals, co-investment, no withdrawal fee' },
-      { name: 'Diamond', perk: 'Club deals, managing partner, permanent status' },
+      { name: 'Diamond', perk: 'Closed deals, co-investment, no withdrawal fee' },
+      { name: 'Californium', perk: 'Club deals, managing partner, permanent status' },
     ],
     note: 'Tiers are reviewed quarterly, drop by no more than one step, and never sooner than 30 days after a warning.',
   },
   open: {
-    title: 'How to open an account',
-    subtitle: 'Four steps. Nothing is lost in between: you can resume the application where you left off.',
+    title: 'How to start earning with Trigonum',
+    subtitle: 'Six steps from the confirmation email to your first position. Nothing is lost in between: you can resume the application where you left off.',
     steps: [
       { title: 'Registration', text: 'Name, email and password. Confirm your email via the link we send.', time: '5 minutes' },
       { title: 'Identity check', text: 'Passport and selfie through the verification service. Your profile is filled in automatically.', time: '10 minutes' },
       { title: 'Questionnaire and agreements', text: 'Investor self-certification and document signing. Everything stays in the cabinet.', time: '10 minutes' },
-      { title: 'Decision', text: 'Compliance reviews the application. Once approved, the account is open and all products are available.', time: 'up to 1 business day' },
+      { title: 'Decision', text: 'Compliance reviews the application. Once approved, the cabinet unlocks in full.', time: 'up to 1 business day' },
+      { title: 'Open an account', text: 'A Trigonum custody account opens on an application and a contract. After signing you receive the network and a personal deposit address.', time: '1 business day' },
+      { title: 'Pick the right portfolio', text: 'Earn, a strategy matching your risk profile, or a seat in an Event. The cabinet calculator suggests the amount for your goal.', time: '10 minutes' },
     ],
     needTitle: 'What you will need',
     need: 'A passport or ID card, a camera for the selfie and an email address.',
@@ -326,6 +380,31 @@ const en: LandingContent = {
       { title: 'Access protection', text: 'Two-factor authentication, session and device log, operation confirmation and a log of signed documents.' },
     ],
     link: 'Regulator register',
+  },
+  results: {
+    title: 'What investors actually earned',
+    subtitle: 'Not just the platform average. Below are five real accounts from the past 12 months and the three best closed trades.',
+    investorsTitle: 'Top investors over 12 months',
+    investorsNote: 'Accounts are anonymised. Profit is net, after all fees.',
+    columns: { investor: 'Investor', tier: 'Tier', capital: 'Average capital', profit: 'Net profit', mix: 'What they use', since: 'With us since' },
+    eventsTitle: 'Best Events trades',
+    eventsNote: 'The result is gross, before the result fee. Next to it is what investors kept.',
+    eventLabels: { days: 'days in position', investors: 'investors', kept: 'Investors kept' },
+    note: 'Past performance does not guarantee future results. Two of the ten closed trades lost money — the Events section shows all of them.',
+  },
+  calculator: {
+    title: 'How much to deposit for your goal',
+    subtitle: 'Enter an amount and a horizon — we compute it from each product’s actual 12-month return, already net of fees.',
+    goalLabel: 'My goal',
+    yearsLabel: 'Horizon',
+    yearsUnit: (n: number) => (n === 1 ? 'year' : 'years'),
+    columns: { plan: 'Where I place it', net: 'Net per year', lump: 'Deposit now', monthly: 'Or per month' },
+    netNote: 'after the result fee',
+    monthlyNote: 'equal instalments for the whole term',
+    tickerTitle: 'While you read this page',
+    tickerCaption: 'earned by Trigonum investors — right now, in real time',
+    tickerText: 'Your goal of {goal} in {plan} would have earned {app} in the 25 minutes it takes to fill in the application, and {month} a month.',
+    note: 'The calculation uses the actual 12-month return and is not a promise of results. The 1% management fee is deducted from every instalment.',
   },
   faq: {
     title: 'Questions',
@@ -370,34 +449,34 @@ const ky: LandingContent = {
     note: 'Strategies жана Events боюнча максаттуу киреше — багыт, милдеттенме эмес. Иш жүзүндөгү натыйжа мезгилдин аягында аныкталат.',
     columns: { rate: 'Киреше', term: 'Мөөнөт', liquidity: 'Качан алам', min: 'Минимум', fee: 'Комиссия', risk: 'Тобокел', open: 'Эсеп ачуу', more: 'Толугураак' },
     rows: [
-      { id: 'earn', name: 'Earn', tagline: 'Капитал иштейт, жетүү мүмкүнчүлүгү калат', rate: PRODUCT_FACTS.earn.rate, rateNote: 'жылдык, туруктуу ставка', term: 'Мөөнөтсүз', liquidity: 'Жумасына бир жолу', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} жылдык, ставкада эсептелген`, risk: 'Төмөн' },
+      { id: 'earn', name: 'Earn', tagline: 'Капитал иштейт, жетүү мүмкүнчүлүгү калат', rate: PRODUCT_FACTS.earn.rate, rateNote: 'жылдык, туруктуу ставка', term: 'Мөөнөтсүз', liquidity: 'Жумасына бир жолу', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} толуктоодо, ставкада эсептелген`, risk: 'Төмөн' },
       { id: 'strategies', name: 'Strategies', tagline: 'Тобокел деңгээлиңизге ылайык башкарылуучу стратегиялар', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'максаттуу жылдык киреше', term: '3–12 ай', liquidity: 'Мөөнөт аягында', min: PRODUCT_FACTS.strategies.min, fee: `${PRODUCT_FACTS.strategies.fee} кирешеден`, risk: 'Консервативдүү · жогорку' },
-      { id: 'events', name: 'Events', tagline: 'TAIS сигналы боюнча кыска бүтүмдөр', rate: PRODUCT_FACTS.events.rate, rateNote: 'бүтүм боюнча максаттуу киреше', term: '7–30 күн', liquidity: 'Бүтүм жабылганда', min: PRODUCT_FACTS.events.min, fee: `${PRODUCT_FACTS.events.fee}, ${PRODUCT_FACTS.events.hurdle} үстүнөн`, risk: 'Жогорку' },
+      { id: 'events', name: 'Events', tagline: 'TAIS сигналы боюнча кыска бүтүмдөр', rate: PRODUCT_FACTS.events.rate, rateNote: 'бүтүм боюнча максаттуу киреше', term: '7–30 күн', liquidity: 'Бүтүм жабылганда', min: PRODUCT_FACTS.events.min, fee: `${PRODUCT_FACTS.events.fee} кирешеден`, risk: 'Жогорку' },
     ],
   },
   how: {
     title: 'Киреше кайдан келет',
-    subtitle: 'TAIS — Trigonum’дун рынокту талдоо системасы. Ал узакка созулбаган айырмачылыктарды издеп, аларды чектери түшүнүктүү бүтүмгө айландырат.',
+    subtitle: 'Бир булактан эмес. Киреше бир нече багыттан түзүлөт, TAIS болсо — чечимдер өтүүчү архитектуранын өзөгү.',
     steps: [
-      { title: 'Сигнал', text: 'TAIS рыноктук аномалияны байкайт: позициялардын кыйшаюусу, ликвиддүүлүктүн жылышы, капитал агымдарынын айырмасы.' },
-      { title: 'Гипотеза', text: 'Аналитиктер сигналды текшерип, тезис түзөт: эмнени, эмнеге каршы, кандай мөөнөттө жана кандай шартта чыгабыз.' },
-      { title: 'Кирүү терезеси', text: 'Чектелген көлөм ачылат. Капитал бөлүштүрүлгөндөн кийин кирүү жабылат — көлөм суроо-талап эмес, идея менен аныкталат.' },
-      { title: 'Жабылуу', text: 'Позиция максатка жеткенде же стоп боюнча жабылат. Натыйжа катышуучуларга бөлүштүрүлөт, комиссия киреше менен гана алынат.' },
+      { title: 'Алгоритмдик соода', text: 'Өздүк алгоритмдер тынымсыз иштейт: арбитраж, маркет-мейкинг жана аянтчалар ортосундагы баа айырмасы.' },
+      { title: 'Команданын башкаруусу', text: 'Трейдерлер жана аналитиктер ылдамдык эмес, адамдын чечими жана контекст керек болгон жерде позицияларды жүргүзөт.' },
+      { title: 'Өзөк катары TAIS', text: 'Рынокту талдоо системасы биржа жана ончейн маалыматтарын чогултуп, аномалияларды табат жана тобокелди баалайт. Ар бир идея ушул системадан өтөт.' },
+      { title: 'Ликвиддүүлүктү жайгаштыруу', text: 'Капиталдын бир бөлүгү кредиттөөдө жана ликвиддүүлүк берүүдө иштейт — Earn’дин туруктуу ставкасы ушуга таянат.' },
     ],
-    note: 'Ар бир Event’теги капиталдын бир бөлүгү — Trigonum’дун өз каражаты. Биз инвесторлор менен бир позициядабыз.',
+    note: 'Бир дагы багыт жалгыз чечпейт: алгоритм ылдамдык берет, команда — контекст, TAIS — тобокелдин жалпы баасы. Ар бир Event’теги капиталдын бир бөлүгү — Trigonum’дун өз каражаты.',
   },
   fees: {
     title: 'Биз канча алабыз',
-    subtitle: 'Earn боюнча башкаруу үчүн гана алабыз. Strategies жана Events’те кирешеге катышабыз — үлүш тобокел профилине жараша.',
+    subtitle: 'Башкаруу комиссиясы бардык продуктта бирдей — толуктоо суммасынан 1%, бир жолу. Андан ары биз сиз менен бирге гана табабыз.',
     columns: { product: 'Продукт', management: 'Башкаруу үчүн', result: 'Натыйжа үчүн' },
     rows: [
-      { product: 'Earn', management: 'жылдык 1%', result: 'Жок' },
-      { product: 'Strategies', management: 'жылдык 2%', result: 'тобокел профили боюнча кирешеден 10–20%' },
-      { product: 'Events', management: 'жылдык 2%', result: 'жылдык 8% үстүнөн 20%' },
+      { product: 'Earn', management: 'толуктоодо 1%', result: 'Жок' },
+      { product: 'Strategies', management: 'толуктоодо 1%', result: 'кирешеден 10%' },
+      { product: 'Events', management: 'толуктоодо 1%', result: 'кирешеден 20%' },
     ],
     neverTitle: 'Биз эмне албайбыз',
     never: ['Каражат киргизүү үчүн', 'Каражат чыгаруу үчүн', 'Эсептин активсиздиги үчүн', 'Ишке ашпаган кирешеден', 'Ачыкталгандан тышкары жашыруун спред'],
-    note: 'Earn ставкасы таза жарыяланат: 1% мурунтан кармалган. Стратегияларда базалык үлүш ар кандай кирешеден, жогорулатылганы максаттуу кирешеден ашкан бөлүктөн гана алынат. Зыян болгондо натыйжа комиссиясы алынбайт.',
+    note: 'Башкаруу комиссиясы каражат продуктка чегерилген учурда бир жолу кармалат жана капиталдын мөөнөтүнө көз каранды эмес. Earn ставкасы таза жарыяланат: 1% мурунтан эсептелген. Натыйжа комиссиясы иш жүзүндөгү кирешеден гана алынат: зыян болгондо ал нөлгө барабар, стратегияларда кийинки киреше адегенде мурунку төмөндөөнү жабат (high-water mark).',
   },
   custody: {
     title: 'Каражатыңыз кайда сакталат',
@@ -418,19 +497,21 @@ const ky: LandingContent = {
       { name: 'Silver', perk: 'Strategies ачылат, чыгаруу комиссиясы 0.75%' },
       { name: 'Gold', perk: 'Events’ке эрте жетүү, артыкчылыктуу колдоо' },
       { name: 'Platinum', perk: 'Жеке менеджер, жабык Events, жогорку Earn ставкасы' },
-      { name: 'Californium', perk: 'Жеке бүтүмдөр, co-investment, комиссиясыз чыгаруу' },
-      { name: 'Diamond', perk: 'Клубдук бүтүмдөр, башкаруучу өнөктөш, мөөнөтсүз статус' },
+      { name: 'Diamond', perk: 'Жабык бүтүмдөр, co-investment, комиссиясыз чыгаруу' },
+      { name: 'Californium', perk: 'Клубдук бүтүмдөр, башкаруучу өнөктөш, мөөнөтсүз статус' },
     ],
     note: 'Деңгээл кварталына бир жолу каралат, бир баскычтан ашык төмөндөбөйт жана эскертүүдөн 30 күн өтпөй өзгөрбөйт.',
   },
   open: {
-    title: 'Эсепти кантип ачуу керек',
-    subtitle: 'Төрт кадам. Арызды токтогон жериңизден улантууга болот.',
+    title: 'Trigonum менен кантип киреше таба баштоо керек',
+    subtitle: 'Ырастоо катынан биринчи позицияга чейин алты кадам. Арызды токтогон жериңизден улантууга болот.',
     steps: [
       { title: 'Каттоо', text: 'Аты-жөнү, email жана сырсөз. Почтаны каттан келген шилтеме менен ырастайсыз.', time: '5 мүнөт' },
       { title: 'Инсандыкты текшерүү', text: 'Паспорт жана селфи. Маалыматтар профилди автоматтык түрдө толтурат.', time: '10 мүнөт' },
       { title: 'Анкета жана келишимдер', text: 'Инвестордун өз-өзүн сертификациялоосу жана документтерге кол коюу.', time: '10 мүнөт' },
-      { title: 'Чечим', text: 'Комплаенс арызды текшерет. Жактыргандан кийин эсеп ачылат.', time: '1 жумуш күнүнө чейин' },
+      { title: 'Чечим', text: 'Комплаенс арызды текшерет. Жактыргандан кийин кабинет толук ачылат.', time: '1 жумуш күнүнө чейин' },
+      { title: 'Эсеп ачуу', text: 'Trigonum сактоо эсеби арыз жана келишим боюнча ачылат. Кол койгондон кийин тармак жана жеке дарек берилет.', time: '1 жумуш күнү' },
+      { title: 'Ылайыктуу портфелди тандоо', text: 'Earn, тобокел профилиңизге ылайык стратегия же Eventке катышуу. Кабинеттеги калькулятор максатыңызга керектүү сумманы эсептейт.', time: '10 мүнөт' },
     ],
     needTitle: 'Эмне керек болот',
     need: 'Паспорт же ID-карта, селфи үчүн камера жана электрондук почта дареги.',
@@ -446,6 +527,31 @@ const ky: LandingContent = {
       { title: 'Жетүүнү коргоо', text: 'Эки факторлуу аутентификация, сессиялардын журналы, операцияларды ырастоо жана кол коюлган документтердин журналы.' },
     ],
     link: 'Жөнгө салуучунун реестри',
+  },
+  results: {
+    title: 'Инвесторлор канча тапты',
+    subtitle: 'Платформа боюнча орточо гана эмес. Төмөндө соңку 12 айдын беш реалдуу эсеби жана үч эң мыкты жабылган бүтүм.',
+    investorsTitle: '12 айдагы мыкты инвесторлор',
+    investorsNote: 'Эсептер жашыруун. Киреше — бардык комиссиядан кийинки таза.',
+    columns: { investor: 'Инвестор', tier: 'Деңгээл', capital: 'Орточо капитал', profit: 'Таза киреше', mix: 'Эмнени колдонот', since: 'Биз менен' },
+    eventsTitle: 'Events боюнча мыкты бүтүмдөр',
+    eventsNote: 'Натыйжа — комиссияга чейинки жалпы. Жанында инвесторлорго калганы көрсөтүлгөн.',
+    eventLabels: { days: 'күн позицияда', investors: 'инвестор', kept: 'Инвесторлорго калды' },
+    note: 'Мурунку натыйжалар келечекке кепилдик бербейт. Он жабылган бүтүмдүн экөө зыян алып келди — Events бөлүмүндө баары көрсөтүлгөн.',
+  },
+  calculator: {
+    title: 'Максатыңыз үчүн канча киргизүү керек',
+    subtitle: 'Сумманы жана мөөнөттү көрсөтүңүз — ар бир продукттун соңку 12 айдагы иш жүзүндөгү, комиссиядан кийинки кирешеси боюнча эсептейбиз.',
+    goalLabel: 'Менин максатым',
+    yearsLabel: 'Мөөнөт',
+    yearsUnit: () => 'жыл',
+    columns: { plan: 'Кайда жайгаштырам', net: 'Жылына таза', lump: 'Азыр киргизүү', monthly: 'Же айына' },
+    netNote: 'натыйжа комиссиясынан кийин',
+    monthlyNote: 'бүт мөөнөт бою бирдей төгүм',
+    tickerTitle: 'Сиз бул бетти окуп жатканда',
+    tickerCaption: 'Trigonum инвесторлору тапты — азыр, реалдуу убакытта',
+    tickerText: 'Максатыңыз {goal} {plan} ичинде анкетаны толтурган 25 мүнөттө {app}, ал эми айына {month} алып келмек.',
+    note: 'Эсеп соңку 12 айдагы иш жүзүндөгү кирешеге негизделген жана натыйжага убада эмес. 1% башкаруу комиссиясы ар бир төгүмдөн кармалат.',
   },
   faq: {
     title: 'Суроолор',

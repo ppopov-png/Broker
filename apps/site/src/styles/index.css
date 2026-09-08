@@ -15,6 +15,8 @@
   --site-violet: #a940e8;
   --site-cyan: #0b7fa6;
   --site-lime: #4f8a0b;
+  /* Тот же зелёный, но читаемый на тёмном: #4f8a0b на navy сливается. */
+  --site-lime-bright: #a6e34d;
   --site-body: #4f5871;
   --site-muted: #747c91;
   --site-line: rgba(37,37,79,.13);
@@ -25,6 +27,8 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+/* Шапка липкая: без отступа якорь уводит заголовок раздела под неё. */
+:target, main > section[id] { scroll-margin-top: 86px; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f8fb; }
 a { color: inherit; text-decoration: none; }
 button, a { -webkit-tap-highlight-color: transparent; }
@@ -32,7 +36,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .broker-site {
   width: 100%;
   min-height: 100vh;
-  overflow: hidden;
+  /* clip, а не hidden: hidden у предка отменяет position:sticky у шапки. */
+  overflow-x: clip;
   color: var(--site-navy);
   background: radial-gradient(1200px 700px at 62% 8%, #fff 0%, #f3f5f9 62%, #eceef5 100%);
 }

@@ -965,7 +965,7 @@ export function ProfilePage() {
               ) : (
                 <>
                   <p className="text-sm text-[var(--trigonum-muted)]">
-                    Персональный менеджер и доверенное лицо открываются на Diamond — осталось{' '}
+                    Персональный менеджер и доверенное лицо открываются на Platinum — осталось{' '}
                     <b className="tabular-nums text-[var(--trigonum-ink)]">{formatPoints(status.pointsToNext)} pts</b>
                   </p>
                   <ul className="mt-3 flex flex-col gap-1.5">
@@ -979,7 +979,7 @@ export function ProfilePage() {
                     </li>
                   </ul>
                   <Link to="/levels" className="mt-3 inline-flex text-xs font-semibold text-[var(--trigonum-blue)]">
-                    Как получить Diamond →
+                    Как получить Platinum →
                   </Link>
                 </>
               )}

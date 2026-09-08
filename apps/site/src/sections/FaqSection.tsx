@@ -2,6 +2,7 @@ import { ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { useI18n } from '../i18n/I18nProvider'
 import { landingContent } from '../content/landing'
+import { GoalCalculator } from './GoalCalculator'
 
 /**
  * FAQ снимает возражения, с которыми человек иначе уходит думать.
@@ -17,6 +18,8 @@ export function FaqSection() {
       <header className="section-head">
         <h2>{faq.title}</h2>
       </header>
+
+      <GoalCalculator />
 
       <div className="faq-list">
         {faq.rows.map((row, index) => {

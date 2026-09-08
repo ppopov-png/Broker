@@ -1,17 +1,16 @@
 /**
- * Уровни инвестора. Diamond — вершина лестницы, Californium — чёрный уровень
- * под ним. Порядок массива INVESTOR_TIERS задаёт лестницу целиком: пороги,
+ * Уровни инвестора. Californium — вершина лестницы, Diamond — уровень под ним. Порядок массива INVESTOR_TIERS задаёт лестницу целиком: пороги,
  * сравнение уровней и понижение считаются от него, отдельных списков нет.
  */
-export type InvestorTier = 'Member' | 'Silver' | 'Gold' | 'Platinum' | 'Californium' | 'Diamond'
+export type InvestorTier = 'Member' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Californium'
 
 export const INVESTOR_TIERS: { tier: InvestorTier; threshold: number }[] = [
   { tier: 'Member', threshold: 0 },
   { tier: 'Silver', threshold: 5_000 },
   { tier: 'Gold', threshold: 15_000 },
   { tier: 'Platinum', threshold: 40_000 },
-  { tier: 'Californium', threshold: 90_000 },
-  { tier: 'Diamond', threshold: 200_000 },
+  { tier: 'Diamond', threshold: 90_000 },
+  { tier: 'Californium', threshold: 200_000 },
 ]
 
 /* --- Начисление баллов --------------------------------------------------
@@ -209,8 +208,8 @@ export const TIER_GRACE_REVIEWS: Record<InvestorTier, number | 'unlimited'> = {
   Silver: 0,
   Gold: 1,
   Platinum: 2,
-  Californium: 4,
-  Diamond: 'unlimited',
+  Diamond: 4,
+  Californium: 'unlimited',
 }
 
 export const DOWNGRADE = {
@@ -294,47 +293,47 @@ export interface TierPerkRow {
 export const TIER_PERK_MATRIX: TierPerkRow[] = [
   {
     label: 'Earn и базовые продукты',
-    values: { Member: 'Доступны', Silver: 'Доступны', Gold: 'Доступны', Platinum: 'Доступны', Californium: 'Доступны', Diamond: 'Доступны' },
+    values: { Member: 'Доступны', Silver: 'Доступны', Gold: 'Доступны', Platinum: 'Доступны', Diamond: 'Доступны', Californium: 'Доступны' },
   },
   {
     label: 'Strategies',
-    values: { Member: null, Silver: 'Доступны', Gold: 'Доступны', Platinum: 'Доступны', Californium: 'Доступны', Diamond: 'Доступны' },
+    values: { Member: null, Silver: 'Доступны', Gold: 'Доступны', Platinum: 'Доступны', Diamond: 'Доступны', Californium: 'Доступны' },
   },
   {
     label: 'Доступ к Events',
-    values: { Member: 'Общий', Silver: 'Общий', Gold: 'За 24 часа до старта', Platinum: 'Закрытые Events', Californium: 'Приватные сделки', Diamond: 'Клубные сделки' },
+    values: { Member: 'Общий', Silver: 'Общий', Gold: 'За 24 часа до старта', Platinum: 'Закрытые Events', Diamond: 'Закрытые сделки', Californium: 'Клубные сделки' },
   },
   {
     label: 'Комиссия вывода',
-    values: { Member: '1.0%', Silver: '0.75%', Gold: '0.5%', Platinum: '0.25%', Californium: 'Без комиссии', Diamond: 'Без комиссии' },
+    values: { Member: '1.0%', Silver: '0.75%', Gold: '0.5%', Platinum: '0.25%', Diamond: 'Без комиссии', Californium: 'Без комиссии' },
   },
   {
     label: 'Лимит вывода в сутки',
-    values: { Member: '$25,000', Silver: '$50,000', Gold: '$150,000', Platinum: '$500,000', Californium: 'Без лимита', Diamond: 'Без лимита' },
+    values: { Member: '$25,000', Silver: '$50,000', Gold: '$150,000', Platinum: '$500,000', Diamond: 'Без лимита', Californium: 'Без лимита' },
   },
   {
     label: 'Ставка Earn',
-    values: { Member: 'Базовая', Silver: 'Базовая', Gold: '+0.3 п.п.', Platinum: '+0.6 п.п.', Californium: 'Индивидуальная', Diamond: 'Индивидуальная' },
+    values: { Member: 'Базовая', Silver: 'Базовая', Gold: '+0.3 п.п.', Platinum: '+0.6 п.п.', Diamond: 'Индивидуальная', Californium: 'Индивидуальная' },
   },
   {
     label: 'Поддержка',
-    values: { Member: '24/7', Silver: '24/7', Gold: 'Приоритетная', Platinum: 'Персональный менеджер', Californium: 'Прямая линия с инвесткомитетом', Diamond: 'Управляющий партнёр' },
+    values: { Member: '24/7', Silver: '24/7', Gold: 'Приоритетная', Platinum: 'Персональный менеджер', Diamond: 'Прямая линия с инвесткомитетом', Californium: 'Управляющий партнёр' },
   },
   {
     label: 'Отчётность',
-    values: { Member: null, Silver: null, Gold: 'Раз в квартал', Platinum: 'Ежемесячно', Californium: 'По запросу', Diamond: 'Индивидуальная аналитика' },
+    values: { Member: null, Silver: null, Gold: 'Раз в квартал', Platinum: 'Ежемесячно', Diamond: 'По запросу', Californium: 'Индивидуальная аналитика' },
   },
   {
     label: 'Co-investment с фондом',
-    values: { Member: null, Silver: null, Gold: null, Platinum: null, Californium: 'По приглашению', Diamond: 'Гарантированная квота' },
+    values: { Member: null, Silver: null, Gold: null, Platinum: null, Diamond: 'По приглашению', Californium: 'Гарантированная квота' },
   },
   {
     label: 'Множитель баллов за рефералов',
-    values: { Member: '×1', Silver: '×1', Gold: '×1.25', Platinum: '×1.5', Californium: '×2', Diamond: '×2' },
+    values: { Member: '×1', Silver: '×1', Gold: '×1.25', Platinum: '×1.5', Diamond: '×2', Californium: '×2' },
   },
   {
     label: 'Защита от понижения',
-    values: { Member: null, Silver: null, Gold: '1 пересмотр', Platinum: '2 пересмотра', Californium: '1 год', Diamond: 'Бессрочно' },
+    values: { Member: null, Silver: null, Gold: '1 пересмотр', Platinum: '2 пересмотра', Diamond: '1 год', Californium: 'Бессрочно' },
   },
 ]
 
@@ -343,8 +342,8 @@ export const tierSummary: Record<InvestorTier, string> = {
   Silver: 'Открываются Strategies и сниженная комиссия вывода.',
   Gold: 'Ранний доступ к Events, приоритетная поддержка и повышенный лимит вывода.',
   Platinum: 'Персональный менеджер, закрытые Events и ставка Earn выше базовой.',
-  Californium: 'Приватные сделки, co-investment с фондом и вывод без комиссии.',
-  Diamond: 'Вершина лестницы: клубные сделки, управляющий партнёр и бессрочный статус.',
+  Diamond: 'Закрытые сделки, co-investment с фондом и вывод без комиссии.',
+  Californium: 'Вершина лестницы: клубные сделки, управляющий партнёр и бессрочный статус.',
 }
 
 /** Что появляется именно на этом уровне — для карточек «уже доступно» и «откроется». */
@@ -353,8 +352,8 @@ export const tierPerks: Record<InvestorTier, string[]> = {
   Silver: ['Доступ к Strategies', 'Комиссия вывода 0.75%', 'Лимит вывода $50,000 в сутки'],
   Gold: ['Ранний доступ к Events за 24 часа', 'Приоритетная поддержка', 'Ставка Earn +0.3 п.п.', 'Защита уровня на один пересмотр'],
   Platinum: ['Персональный менеджер', 'Закрытые Events', 'Ставка Earn +0.6 п.п.', 'Ежемесячная отчётность', 'Баллы за рефералов ×1.5'],
-  Californium: ['Приватные сделки вне платформы', 'Co-investment по приглашению', 'Вывод без комиссии и без лимита', 'Прямая линия с инвесткомитетом', 'Защита уровня на год'],
-  Diamond: ['Клубные сделки', 'Гарантированная квота в co-investment', 'Управляющий партнёр на связи', 'Индивидуальная аналитика', 'Статус не понижается'],
+  Diamond: ['Закрытые сделки вне платформы', 'Co-investment по приглашению', 'Вывод без комиссии и без лимита', 'Прямая линия с инвесткомитетом', 'Защита уровня на год'],
+  Californium: ['Клубные сделки', 'Гарантированная квота в co-investment', 'Управляющий партнёр на связи', 'Индивидуальная аналитика', 'Статус не понижается'],
 }
 
 /* --- Правила начисления баллов ----------------------------------------
@@ -466,8 +465,8 @@ export const tierAccent: Record<InvestorTier, string> = {
   Silver: '#b8bec9',
   Gold: '#cda64a',
   Platinum: '#8aa6c2',
-  Californium: '#3fae74',
   Diamond: '#9fd8f5',
+  Californium: '#3fae74',
 }
 
 export const tierMetallic: Record<InvestorTier, string> = {
@@ -475,8 +474,8 @@ export const tierMetallic: Record<InvestorTier, string> = {
   Silver: 'linear-gradient(135deg,#f8f9fb 0%,#dfe3ea 34%,#aeb5c2 68%,#eceff4 100%)',
   Gold: 'linear-gradient(135deg,#fff5cf 0%,#e9cf78 30%,#c89734 62%,#f2dc8a 100%)',
   Platinum: 'linear-gradient(135deg,#fdfeff 0%,#e2ebf4 30%,#9db2c8 64%,#f1f6fb 100%)',
-  Californium: 'linear-gradient(135deg,#1c2721 0%,#0a0d0b 44%,#22362b 72%,#060908 100%)',
   Diamond: 'linear-gradient(135deg,#f8fdff 0%,#d9f4ff 28%,#9fd8f5 58%,#c7b9f6 84%,#eef9ff 100%)',
+  Californium: 'linear-gradient(135deg,#1c2721 0%,#0a0d0b 44%,#22362b 72%,#060908 100%)',
 }
 
 /** Тёмная подложка шапки профиля. */
@@ -485,8 +484,8 @@ export const tierHero: Record<InvestorTier, string> = {
   Silver: 'linear-gradient(135deg,#14171c 0%,#1c2129 52%,#2c333d 100%)',
   Gold: 'linear-gradient(135deg,#15140f 0%,#201c12 50%,#302818 100%)',
   Platinum: 'linear-gradient(135deg,#0f1419 0%,#182430 52%,#25394b 100%)',
-  Californium: 'linear-gradient(135deg,#050806 0%,#0d1612 55%,#15241b 100%)',
   Diamond: 'linear-gradient(135deg,#0f1820 0%,#142430 52%,#1b3444 100%)',
+  Californium: 'linear-gradient(135deg,#050806 0%,#0d1612 55%,#15241b 100%)',
 }
 
 /** Мягкая подложка светлых блоков в тон уровню. */
@@ -495,8 +494,8 @@ export const tierSoft: Record<InvestorTier, string> = {
   Silver: '#f3f5f8',
   Gold: '#faf5e9',
   Platinum: '#eff4f9',
-  Californium: '#eef4f0',
   Diamond: '#eff7fc',
+  Californium: '#eef4f0',
 }
 
 /** Акцент уровня, читаемый на светлом фоне. */
@@ -505,8 +504,8 @@ export const tierInk: Record<InvestorTier, string> = {
   Silver: '#6b7686',
   Gold: '#9a7c25',
   Platinum: '#41729e',
-  Californium: '#1f7a4d',
   Diamond: '#2f7fae',
+  Californium: '#1f7a4d',
 }
 
 /**
@@ -519,8 +518,8 @@ export const tierOnMetal: Record<InvestorTier, string> = {
   Silver: '#1b1d22',
   Gold: '#1b1d22',
   Platinum: '#1b1d22',
-  Californium: '#f4f4f5',
   Diamond: '#1b1d22',
+  Californium: '#f4f4f5',
 }
 
 export const tierOnMetalMuted: Record<InvestorTier, string> = {
@@ -528,8 +527,8 @@ export const tierOnMetalMuted: Record<InvestorTier, string> = {
   Silver: 'rgb(0 0 0 / 48%)',
   Gold: 'rgb(0 0 0 / 48%)',
   Platinum: 'rgb(0 0 0 / 48%)',
-  Californium: 'rgb(255 255 255 / 52%)',
   Diamond: 'rgb(0 0 0 / 48%)',
+  Californium: 'rgb(255 255 255 / 52%)',
 }
 
 /**
@@ -541,8 +540,8 @@ export const tierCover: Record<InvestorTier, string> = {
   Silver: 'linear-gradient(140deg,#161d27 0%,#39465a 45%,#7f8da3 100%)',
   Gold: 'linear-gradient(140deg,#1d1706 0%,#6b4f11 48%,#c9a53f 100%)',
   Platinum: 'linear-gradient(140deg,#0d1620 0%,#2e4a68 48%,#8fb0d0 100%)',
-  Californium: 'linear-gradient(140deg,#050806 0%,#123021 50%,#2f9e63 100%)',
   Diamond: 'linear-gradient(140deg,#08202f 0%,#115e75 48%,#3b82f6 100%)',
+  Californium: 'linear-gradient(140deg,#050806 0%,#123021 50%,#2f9e63 100%)',
 }
 
 /** Свечение поверх обложки — тот же приём, что на карточках Events. */
@@ -551,8 +550,8 @@ export const tierGlow: Record<InvestorTier, string> = {
   Silver: '#cbd5e1',
   Gold: '#f2d98b',
   Platinum: '#bcd4ea',
-  Californium: '#4ade80',
   Diamond: '#7dd3fc',
+  Californium: '#4ade80',
 }
 
 /* --- Производные от формулы -------------------------------------------

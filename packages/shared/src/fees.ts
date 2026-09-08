@@ -1,44 +1,33 @@
 /**
  * Комиссии Trigonum — единственный источник правды по монетизации.
  *
- * Три продукта зарабатывают по-разному, и это принципиально:
+ * Модель одна на все продукты и держится на двух числах:
  *
- * - Earn: брокер размещает средства и живёт на разнице ставок. Клиенту
- *   публикуется уже чистая ставка, комиссия за управление 1% годовых
- *   удержана до публикации. Комиссии за результат нет — результат
- *   фиксирован договором.
- * - Стратегии: 2% годовых за управление. Комиссии за результат сейчас нет —
- *   поля модели (resultShare, hurdleAnnual, highWaterMark) сохранены, чтобы
- *   включить её изменением одной строки, а не переписыванием расчёта.
- * - Events: те же 2% годовых pro rata за срок сделки плюс доля от прибыли
- *   сделки сверх барьера. Максимума нет — каждая сделка самостоятельна.
+ * - За управление — 1% от суммы пополнения, разово, в момент зачисления
+ *   средств на продукт. Не годовые: срок размещения на неё не влияет, и
+ *   клиент видит цену входа сразу, а не находит её в выписке через месяц.
+ * - За результат — доля брокера в фактической прибыли: Earn 0%, стратегии
+ *   10%, Events 20%. Барьера нет: доля берётся с любой прибыли, а при
+ *   убытке не берётся вовсе.
+ *
+ * Исключение одно — Earn: там ставка фиксирована договором и публикуется
+ * уже чистой, комиссия за управление удержана до публикации.
+ *
+ * В стратегиях действует high-water mark: следующая прибыль сначала
+ * закрывает предыдущую просадку, и только остаток делится.
  */
 
-/**
- * Схема комиссий привязана к профилю риска, а не к продукту целиком:
- * стратегии различаются не только целевой доходностью, но и долей брокера
- * в результате — выше риск, выше участие в верхней части.
- */
 export type FeeFamily = 'earn' | 'conservative' | 'balanced' | 'aggressive' | 'event'
 
 export interface FeeSchedule {
-  /** Комиссия за управление, % годовых от суммы под управлением. */
-  managementAnnual: number
-  /** Базовая доля брокера в прибыли, %. Ноль — комиссии за результат нет. */
+  /**
+   * Комиссия за управление, % от суммы пополнения. Удерживается разово в
+   * момент внесения средств, а не начисляется по дням: клиент видит цену
+   * входа сразу, а не обнаруживает её в выписке через месяц.
+   */
+  managementOnDeposit: number
+  /** Доля брокера в прибыли, %. Ноль — комиссии за результат нет. */
   resultShare: number
-  /**
-   * Барьерная доходность, % годовых. Базовая доля берётся только с прибыли
-   * сверх него. В стратегиях барьера нет: брокер участвует в результате с
-   * первого заработанного доллара, но по сниженной ставке.
-   */
-  hurdleAnnual: number
-  /**
-   * Повышенная доля с части прибыли, превысившей целевую доходность.
-   * Начисляется поверх базовой, а не вместо неё. Ноль — второго уровня нет.
-   */
-  outperformanceShare: number
-  /** Верхняя граница целевого диапазона, % годовых: с превышения идёт повышенная доля. */
-  targetAnnual: number
   /**
    * Публикуемая доходность уже за вычетом комиссии за управление.
    * Так устроен только Earn — там ставка фиксирована и клиенту важно
@@ -52,71 +41,26 @@ export interface FeeSchedule {
   highWaterMark: boolean
 }
 
+/** Комиссия за управление одна на все продукты. */
+export const MANAGEMENT_ON_DEPOSIT = 1
+
 export const FEE_SCHEDULES: Record<FeeFamily, FeeSchedule> = {
-  earn: {
-    managementAnnual: 1,
-    resultShare: 0,
-    hurdleAnnual: 0,
-    outperformanceShare: 0,
-    targetAnnual: 0,
-    netOfManagement: true,
-    highWaterMark: false,
-  },
-  conservative: {
-    managementAnnual: 2,
-    resultShare: 10,
-    hurdleAnnual: 0,
-    outperformanceShare: 20,
-    targetAnnual: 10,
-    netOfManagement: false,
-    highWaterMark: true,
-  },
-  balanced: {
-    managementAnnual: 2,
-    resultShare: 15,
-    hurdleAnnual: 0,
-    outperformanceShare: 25,
-    targetAnnual: 14,
-    netOfManagement: false,
-    highWaterMark: true,
-  },
-  aggressive: {
-    managementAnnual: 2,
-    resultShare: 20,
-    hurdleAnnual: 0,
-    outperformanceShare: 30,
-    targetAnnual: 20,
-    netOfManagement: false,
-    highWaterMark: true,
-  },
-  event: {
-    managementAnnual: 2,
-    resultShare: 20,
-    hurdleAnnual: 8,
-    outperformanceShare: 0,
-    targetAnnual: 0,
-    netOfManagement: false,
-    highWaterMark: false,
-  },
+  earn: { managementOnDeposit: MANAGEMENT_ON_DEPOSIT, resultShare: 0, netOfManagement: true, highWaterMark: false },
+  conservative: { managementOnDeposit: MANAGEMENT_ON_DEPOSIT, resultShare: 10, netOfManagement: false, highWaterMark: true },
+  balanced: { managementOnDeposit: MANAGEMENT_ON_DEPOSIT, resultShare: 10, netOfManagement: false, highWaterMark: true },
+  aggressive: { managementOnDeposit: MANAGEMENT_ON_DEPOSIT, resultShare: 10, netOfManagement: false, highWaterMark: true },
+  event: { managementOnDeposit: MANAGEMENT_ON_DEPOSIT, resultShare: 20, netOfManagement: false, highWaterMark: false },
 }
 
 export interface FeeBreakdown {
   /** Валовая прибыль до комиссий. */
   gross: number
-  /** Комиссия за управление за период. */
+  /** Комиссия за управление, удержанная при пополнении. */
   management: number
-  /** Барьер в деньгах — прибыль, с которой комиссия за результат не берётся. */
-  hurdle: number
-  /** База для базовой комиссии: прибыль сверх барьера и максимума. */
+  /** База для комиссии за результат: прибыль сверх непокрытого убытка. */
   resultBase: number
-  /** Базовая комиссия за результат. */
+  /** Комиссия за результат. */
   result: number
-  /** Целевая прибыль в деньгах — граница, выше которой доля повышается. */
-  target: number
-  /** Часть прибыли сверх целевой. */
-  outperformanceBase: number
-  /** Повышенная комиссия, начисляется поверх базовой. */
-  outperformance: number
   /** Что остаётся клиенту. */
   net: number
   /** Суммарная комиссия. */
@@ -128,8 +72,6 @@ export interface FeeBreakdown {
 export interface FeeInput {
   /** Сумма под управлением. */
   amount: number
-  /** Срок в месяцах, за который считаем. */
-  months: number
   /** Валовая прибыль за период до комиссий. */
   grossProfit: number
   schedule: FeeSchedule
@@ -146,37 +88,23 @@ export interface FeeInput {
  * оставшаяся прибыль участвует в расчёте результата. Иначе клиент платил бы
  * долю с денег, которые уже ушли на комиссию.
  */
-export function calcFees({ amount, months, grossProfit, schedule, drawdown = 0 }: FeeInput): FeeBreakdown {
-  const years = Math.max(0, months) / 12
+export function calcFees({ amount, grossProfit, schedule, drawdown = 0 }: FeeInput): FeeBreakdown {
   const base = Math.max(0, amount)
-  const management = schedule.netOfManagement ? 0 : (base * schedule.managementAnnual) / 100 * years
-  const afterManagement = grossProfit - management
+  // Управление удерживается от суммы входа, поэтому не зависит от срока.
+  const management = schedule.netOfManagement ? 0 : (base * schedule.managementOnDeposit) / 100
 
-  const hurdle = (base * schedule.hurdleAnnual) / 100 * years
   const recovered = schedule.highWaterMark ? Math.max(0, drawdown) : 0
-
-  const resultBase = Math.max(0, afterManagement - hurdle - recovered)
+  const resultBase = Math.max(0, grossProfit - recovered)
   const result = (resultBase * schedule.resultShare) / 100
 
-  // Повышенная доля идёт поверх базовой и только с части сверх целевой
-  // доходности: иначе превышение цели облагалось бы дважды по полной ставке.
-  const target = (base * schedule.targetAnnual) / 100 * years
-  const outperformanceBase =
-    schedule.outperformanceShare > 0 ? Math.max(0, afterManagement - target - recovered) : 0
-  const outperformance = (outperformanceBase * schedule.outperformanceShare) / 100
-
-  const total = management + result + outperformance
+  const total = management + result
   const net = grossProfit - total
 
   return {
     gross: grossProfit,
     management,
-    hurdle,
     resultBase,
     result,
-    target,
-    outperformanceBase,
-    outperformance,
     net,
     total,
     share: grossProfit > 0 ? (total / grossProfit) * 100 : 0,
@@ -185,11 +113,8 @@ export function calcFees({ amount, months, grossProfit, schedule, drawdown = 0 }
 
 /** Короткая формулировка комиссий для карточек продукта. */
 export function feeLabel(schedule: FeeSchedule): string {
-  const management = `${schedule.managementAnnual}% годовых за управление`
+  const management = `${schedule.managementOnDeposit}% при пополнении`
   if (schedule.netOfManagement) return `${management}, уже учтена в ставке`
   if (schedule.resultShare === 0) return `${management}, комиссии за результат нет`
-  if (schedule.outperformanceShare > 0) {
-    return `${management} + ${schedule.resultShare}% от прибыли, ${schedule.outperformanceShare}% сверх ${schedule.targetAnnual}%`
-  }
-  return `${management} + ${schedule.resultShare}% от прибыли сверх ${schedule.hurdleAnnual}%`
+  return `${management} + ${schedule.resultShare}% от прибыли`
 }

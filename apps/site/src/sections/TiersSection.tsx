@@ -7,8 +7,8 @@ const tierTone: Record<string, string> = {
   Silver: 'linear-gradient(135deg,#f8f9fb,#aeb5c2)',
   Gold: 'linear-gradient(135deg,#fff5cf,#c89734)',
   Platinum: 'linear-gradient(135deg,#fdfeff,#9db2c8)',
-  Californium: 'linear-gradient(135deg,#1c2721,#060908)',
   Diamond: 'linear-gradient(135deg,#f8fdff,#9fd8f5,#c7b9f6)',
+  Californium: 'linear-gradient(135deg,#1c2721,#060908)',
 }
 
 export function TiersSection() {

@@ -8,6 +8,7 @@ const dictionaries: Record<Language, Dictionary> = {
   ru: {
     'nav.products': 'ПРОДУКТЫ',
     'nav.how': 'КАК ЭТО РАБОТАЕТ',
+    'nav.results': 'РЕЗУЛЬТАТЫ',
     'nav.fees': 'КОМИССИИ',
     'nav.custody': 'ХРАНЕНИЕ',
     'nav.tiers': 'УРОВНИ',
@@ -65,6 +66,7 @@ const dictionaries: Record<Language, Dictionary> = {
   en: {
     'nav.products': 'PRODUCTS',
     'nav.how': 'HOW IT WORKS',
+    'nav.results': 'RESULTS',
     'nav.fees': 'FEES',
     'nav.custody': 'CUSTODY',
     'nav.tiers': 'TIERS',
@@ -122,6 +124,7 @@ const dictionaries: Record<Language, Dictionary> = {
   ky: {
     'nav.products': 'ПРОДУКТТАР',
     'nav.how': 'КАНТИП ИШТЕЙТ',
+    'nav.results': 'НАТЫЙЖАЛАР',
     'nav.fees': 'КОМИССИЯЛАР',
     'nav.custody': 'САКТОО',
     'nav.tiers': 'ДЕҢГЭЭЛДЕР',

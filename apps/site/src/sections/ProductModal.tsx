@@ -13,11 +13,10 @@ import {
   STRATEGIES_SUMMARY,
   strategyNetReturn,
 } from '../content/products'
+import { usd, pct } from '../lib/format'
 
 export type ProductId = 'earn' | 'strategies' | 'events'
 
-const usd = (value: number) => `$${Math.round(value).toLocaleString('ru-RU').replace(/ /g, ' ')}`
-const pct = (value: number, digits = 1) => `${value >= 0 ? '' : '−'}${Math.abs(value).toFixed(digits)}%`
 
 const titles: Record<ProductId, { name: string; lead: string }> = {
   events: {
@@ -242,8 +241,7 @@ function StrategiesBody() {
                 </div>
 
                 <p className="pm-fee">
-                  {schedule.managementAnnual}% за управление · {schedule.resultShare}% от прибыли ·{' '}
-                  {schedule.outperformanceShare}% сверх {schedule.targetAnnual}%
+                  {schedule.managementOnDeposit}% при пополнении · {schedule.resultShare}% от прибыли
                 </p>
               </article>
             )

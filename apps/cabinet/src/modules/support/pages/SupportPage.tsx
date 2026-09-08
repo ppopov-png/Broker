@@ -133,8 +133,8 @@ const tierSla: Record<InvestorTier, { channel: string; first: string }> = {
   Silver: { channel: 'Общая очередь', first: '~1 час' },
   Gold: { channel: 'Приоритетная очередь', first: '~15 минут' },
   Platinum: { channel: 'Персональный менеджер', first: '~5 минут' },
-  Californium: { channel: 'Прямая линия с инвесткомитетом', first: 'сразу' },
-  Diamond: { channel: 'Управляющий партнёр', first: 'сразу' },
+  Diamond: { channel: 'Прямая линия с инвесткомитетом', first: 'сразу' },
+  Californium: { channel: 'Управляющий партнёр', first: 'сразу' },
 }
 
 function loadTickets(): Ticket[] {
@@ -250,7 +250,7 @@ export function SupportPage() {
             <ChannelCard
               icon={<Headphones size={17} />}
               title={hasManager ? 'Дарья Ковалёва' : 'Персональный менеджер'}
-              detail={hasManager ? 'Ваш менеджер · GMT+6' : `Откроется на Diamond`}
+              detail={hasManager ? 'Ваш менеджер · GMT+6' : 'Откроется на Platinum'}
               badge={hasManager ? 'Прямая линия' : undefined}
               muted={!hasManager}
               accent={ink}
