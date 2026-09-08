@@ -5,7 +5,12 @@
  * localStorage у них общий.
  */
 
+import type { ClientProfile, ClientType, Jurisdiction } from './documents'
+
 export const ONBOARDING_STORE_KEY = 'trigonum-onboarding-v1'
+
+/** Профиль по умолчанию: физлицо-резидент — самый короткий перечень документов. */
+export const DEFAULT_CLIENT_PROFILE: ClientProfile = { clientType: 'individual', jurisdiction: 'KG' }
 
 export type OnboardingState =
   | 'REGISTERED'
@@ -15,6 +20,7 @@ export type OnboardingState =
   | 'IDENTITY_FAILED'
   | 'SELF_CERT_COMPLETED'
   | 'AGREEMENTS_ACCEPTED'
+  | 'DOCUMENTS_SUBMITTED'
   | 'EDD_IN_PROGRESS'
   | 'EDD_SUBMITTED'
   | 'UNDER_REVIEW'
@@ -29,7 +35,47 @@ interface StoreShape {
   stateChangedAt: string
   metadata?: { reason?: string }
   history: { id: string; fromState: OnboardingState | null; toState: OnboardingState; createdAt: string }[]
+  clientType?: ClientType
+  jurisdiction?: Jurisdiction
   [key: string]: unknown
+}
+
+function readStore(): StoreShape | null {
+  try {
+    const raw = window.localStorage.getItem(ONBOARDING_STORE_KEY)
+    return raw ? (JSON.parse(raw) as StoreShape) : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Тип клиента и юрисдикция выбираются до регистрации и определяют весь
+ * дальнейший маршрут: состав документов, формулировки шагов и то, чью
+ * личность проверяет провайдер. Пишутся сюда, потому что выбор делает
+ * приложение открытия счёта, а читает его кабинет.
+ */
+export function markClientProfile(profile: ClientProfile): void {
+  try {
+    const store = readStore() ?? {
+      currentState: 'REGISTERED' as OnboardingState,
+      stateChangedAt: new Date().toISOString(),
+      history: [],
+    }
+    store.clientType = profile.clientType
+    store.jurisdiction = profile.jurisdiction
+    window.localStorage.setItem(ONBOARDING_STORE_KEY, JSON.stringify(store))
+  } catch {
+    // Приватный режим — выбор просто не сохранится.
+  }
+}
+
+export function readClientProfile(): ClientProfile {
+  const store = readStore()
+  return {
+    clientType: store?.clientType ?? DEFAULT_CLIENT_PROFILE.clientType,
+    jurisdiction: store?.jurisdiction ?? DEFAULT_CLIENT_PROFILE.jurisdiction,
+  }
 }
 
 /**

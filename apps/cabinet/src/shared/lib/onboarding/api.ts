@@ -10,6 +10,7 @@ import {
   type OnboardingState,
   type OnboardingStatus,
   type SelfCertification,
+  type SubmittedDocument,
   STATE_ORDER,
 } from './types'
 
@@ -32,6 +33,8 @@ interface Store {
   consented: string[]
   consentLog: ConsentLogEntry[]
   eddResponse: EddResponse | null
+  /** Загруженные файлы досье: ключ — идентификатор пункта перечня. */
+  documents: Record<string, SubmittedDocument>
 }
 
 function emptyStore(): Store {
@@ -50,6 +53,7 @@ function emptyStore(): Store {
     consented: [],
     consentLog: [],
     eddResponse: null,
+    documents: {},
   }
 }
 
@@ -381,6 +385,57 @@ export async function finalizeAgreements(): Promise<void> {
   await wait(120)
   const store = read()
   transition(store, 'AGREEMENTS_ACCEPTED')
+  write(store)
+}
+
+/* --- Досье документов ------------------------------------------------------
+ * Состав перечня задаёт приложение №1.1 (пакет @trigonum/shared), здесь
+ * хранится только то, что клиент приложил: файл, форма представления и дата.
+ */
+
+export async function getDocuments(): Promise<Record<string, SubmittedDocument>> {
+  await wait(120)
+  return read().documents ?? {}
+}
+
+export async function attachDocument(documentId: string, fileName: string): Promise<SubmittedDocument> {
+  await wait(200)
+  const store = read()
+  const entry: SubmittedDocument = {
+    documentId,
+    fileName,
+    mediaId: `media_${Date.now()}`,
+    uploadedAt: new Date().toISOString(),
+    status: 'UPLOADED',
+  }
+  store.documents = { ...store.documents, [documentId]: entry }
+  write(store)
+  return entry
+}
+
+export async function removeDocument(documentId: string): Promise<void> {
+  await wait(140)
+  const store = read()
+  const next = { ...store.documents }
+  delete next[documentId]
+  store.documents = next
+  write(store)
+}
+
+/**
+ * Отправка досье. Комплектность проверяет сервер, а не экран: гард на фронте —
+ * удобство, и заявка без обязательного документа не должна уходить дальше,
+ * что бы ни показал интерфейс.
+ */
+export async function submitDocuments(requiredIds: string[]): Promise<void> {
+  await wait()
+  const store = read()
+  const attached = store.documents ?? {}
+  const missing = requiredIds.filter((id) => !attached[id])
+  if (missing.length > 0) {
+    throw new ApiError(422, 'Documents incomplete', { missing })
+  }
+  transition(store, 'DOCUMENTS_SUBMITTED')
   write(store)
 }
 

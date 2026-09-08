@@ -27,7 +27,7 @@
 | --- | --- | --- |
 | **A0** | Гость | сессии нет |
 | **A1** | Заявка начата | `REGISTERED` |
-| **A2** | Проверка идёт | `EMAIL_VERIFIED`, `IDENTITY_IN_PROGRESS`, `IDENTITY_VERIFIED`, `IDENTITY_FAILED`, `SELF_CERT_COMPLETED`, `AGREEMENTS_ACCEPTED`, `EDD_IN_PROGRESS` |
+| **A2** | Проверка идёт | `EMAIL_VERIFIED`, `IDENTITY_IN_PROGRESS`, `IDENTITY_VERIFIED`, `IDENTITY_FAILED`, `SELF_CERT_COMPLETED`, `AGREEMENTS_ACCEPTED`, `DOCUMENTS_SUBMITTED`, `EDD_IN_PROGRESS` |
 | **A3** | На рассмотрении | `EDD_SUBMITTED`, `UNDER_REVIEW`, `AMENDMENTS_REQUESTED` |
 | **A4** | Счёт открыт | `APPROVED` |
 | **A5** | Проверка истекла | `REVERIFICATION_REQUIRED` |

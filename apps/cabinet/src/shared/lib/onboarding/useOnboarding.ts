@@ -17,6 +17,7 @@ export const ONBOARDING_ROUTES = {
   identity: '/onboarding/identity',
   selfCertification: '/onboarding/self-certification',
   agreements: '/onboarding/agreements',
+  documents: '/onboarding/documents',
   edd: '/onboarding/edd',
 } as const
 
@@ -115,6 +116,7 @@ const ACTION_REQUIRED: OnboardingState[] = [
   'IDENTITY_FAILED',
   'SELF_CERT_COMPLETED',
   'AGREEMENTS_ACCEPTED',
+  'DOCUMENTS_SUBMITTED',
   'AMENDMENTS_REQUESTED',
   'REVERIFICATION_REQUIRED',
 ]

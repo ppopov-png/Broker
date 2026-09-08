@@ -58,7 +58,7 @@ function validate(questions: EddQuestion[], draft: Draft): Record<string, string
 }
 
 export function EddQuestionnairePage() {
-  const { allowed } = useOnboardingStepGuard('AGREEMENTS_ACCEPTED')
+  const { allowed } = useOnboardingStepGuard('DOCUMENTS_SUBMITTED')
   const { status } = useOnboardingState(false)
   const navigate = useNavigate()
   const toast = useToast()

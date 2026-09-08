@@ -27,7 +27,8 @@ const FLOW: Jump[] = [
   { state: 'EMAIL_VERIFIED', label: 'Почта подтверждена', route: ONBOARDING_ROUTES.identity },
   { state: 'IDENTITY_VERIFIED', label: 'Личность подтверждена', route: ONBOARDING_ROUTES.selfCertification },
   { state: 'SELF_CERT_COMPLETED', label: 'Самосертификация пройдена', route: ONBOARDING_ROUTES.agreements },
-  { state: 'AGREEMENTS_ACCEPTED', label: 'Соглашения подписаны', route: ONBOARDING_ROUTES.edd },
+  { state: 'AGREEMENTS_ACCEPTED', label: 'Соглашения подписаны', route: ONBOARDING_ROUTES.documents },
+  { state: 'DOCUMENTS_SUBMITTED', label: 'Досье отправлено', route: ONBOARDING_ROUTES.edd },
   { state: 'EDD_SUBMITTED', label: 'Анкета отправлена', route: ONBOARDING_ROUTES.status },
   { state: 'UNDER_REVIEW', label: 'На рассмотрении', route: ONBOARDING_ROUTES.status },
 ]

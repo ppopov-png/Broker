@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "exports": {
     ".": "./src/index.ts",
-    "./fees": "./src/fees.ts"
+    "./fees": "./src/fees.ts",
+    "./documents": "./src/documents.ts"
   }
 }

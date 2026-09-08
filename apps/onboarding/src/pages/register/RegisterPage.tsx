@@ -1,7 +1,15 @@
-import { ArrowRight, Check, FlaskConical, Mail, ShieldCheck } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowRight, Check, FileText, FlaskConical, Mail, ShieldCheck } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { markOnboardingState } from '@trigonum/shared'
+import {
+  DOCUMENT_FORMS,
+  JURISDICTIONS,
+  documentChecklist,
+  markClientProfile,
+  markOnboardingState,
+  type ClientType,
+  type Jurisdiction,
+} from '@trigonum/shared'
 
 const MAX_NAME = 120
 const MAX_EMAIL = 254
@@ -30,11 +38,18 @@ function validate(values: { name: string; email: string; password: string }): Er
 
 export function RegisterPage() {
   const [params] = useSearchParams()
-  const isCompany = params.get('type') === 'company'
+  const clientType: ClientType = params.get('type') === 'company' ? 'company' : 'individual'
+  const isCompany = clientType === 'company'
+
   const [values, setValues] = useState({ name: '', email: '', password: '' })
+  // Юрисдикция определяет перечень документов, поэтому спрашивается здесь,
+  // а не в анкете: клиент должен увидеть состав досье до регистрации.
+  const [jurisdiction, setJurisdiction] = useState<Jurisdiction>('KG')
   const [errors, setErrors] = useState<Errors>({})
   const [submitting, setSubmitting] = useState(false)
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null)
+
+  const checklist = useMemo(() => documentChecklist({ clientType, jurisdiction }), [clientType, jurisdiction])
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -44,16 +59,21 @@ export function RegisterPage() {
 
     setSubmitting(true)
     await new Promise((resolve) => setTimeout(resolve, 600))
+    markClientProfile({ clientType, jurisdiction })
     setRegisteredEmail(values.email.trim())
     setSubmitting(false)
   }
 
-  if (registeredEmail) return <CheckMailbox email={registeredEmail} />
+  if (registeredEmail) return <CheckMailbox email={registeredEmail} isCompany={isCompany} />
 
   return (
     <Shell
       title={isCompany ? 'Счёт для компании' : 'Счёт частного инвестора'}
-      subtitle="Три поля — и мы отправим письмо для подтверждения. Проверка личности и документы будут на следующих шагах."
+      subtitle={
+        isCompany
+          ? 'Заполните форму — и мы отправим письмо для подтверждения. Проверка компании, подписанта и документы будут на следующих шагах.'
+          : 'Заполните форму — и мы отправим письмо для подтверждения. Проверка личности и документы будут на следующих шагах.'
+      }
       back={
         <Link to="/" className="mb-4 inline-flex text-xs font-semibold text-[var(--trigonum-blue)]">
           ← Изменить тип клиента
@@ -69,6 +89,29 @@ export function RegisterPage() {
             onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
             className={inputClass(Boolean(errors.name))}
           />
+        </Field>
+
+        <Field
+          label={isCompany ? 'Юрисдикция регистрации компании' : 'Гражданство'}
+          helper={
+            isCompany
+              ? 'От неё зависит перечень учредительных документов и требования к их легализации.'
+              : 'Для граждан Кыргызстана перечень короче: паспорт нерезидента подаётся нотариальной копией и с подтверждением адреса.'
+          }
+        >
+          <select
+            value={jurisdiction}
+            onChange={(event) => setJurisdiction(event.target.value as Jurisdiction)}
+            className={inputClass(false)}
+          >
+            {(isCompany ? JURISDICTIONS : JURISDICTIONS.filter((item) => item.id === 'KG' || item.id === 'OTHER')).map(
+              (item) => (
+                <option key={item.id} value={item.id}>
+                  {isCompany ? item.label : item.id === 'KG' ? 'Кыргызская Республика' : 'Другое гражданство'}
+                </option>
+              ),
+            )}
+          </select>
         </Field>
 
         <Field label="Email" error={errors.email}>
@@ -107,11 +150,63 @@ export function RegisterPage() {
           нужно будет подписать отдельно на шаге соглашений.
         </p>
       </form>
+
+      <ChecklistPreview items={checklist} />
     </Shell>
   )
 }
 
-function CheckMailbox({ email }: { email: string }) {
+/**
+ * Состав досье показывается до регистрации, а не после четырёх пройденных
+ * шагов. Юрлицо из Турции увидит шестнадцать позиций с апостилем сразу —
+ * и решит, готово ли оно их собрать, до того как заведёт аккаунт.
+ */
+function ChecklistPreview({ items }: { items: ReturnType<typeof documentChecklist> }) {
+  const mandatory = items.filter((item) => !item.optional)
+
+  return (
+    <div className="mt-7 rounded-xl border border-[var(--trigonum-border)] bg-[var(--trigonum-bg)] p-5">
+      <p className="flex items-center gap-2 text-sm font-bold text-[var(--trigonum-ink)]">
+        <FileText size={15} />
+        Что понадобится: {mandatory.length} {plural(mandatory.length, 'документ', 'документа', 'документов')}
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-[var(--trigonum-muted)]">
+        Перечень приложения №1.1. Собирать заранее не нужно — досье загружается на отдельном шаге после подписания
+        соглашений.
+      </p>
+
+      <ol className="mt-4 flex flex-col gap-2.5">
+        {items.map((item, index) => (
+          <li key={item.id} className="flex items-start gap-2.5">
+            <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-[var(--trigonum-border)] text-[10px] font-bold text-[var(--trigonum-muted)]">
+              {index + 1}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[13px] leading-snug text-[var(--trigonum-text)]">
+                {item.title}
+                {item.optional && <span className="text-[var(--trigonum-muted)]"> — при наличии</span>}
+              </span>
+              <span className="mt-0.5 block text-[11px] text-[var(--trigonum-muted)]">
+                {DOCUMENT_FORMS[item.form].label}
+                {item.maxAgeMonths ? ` · не старше ${item.maxAgeMonths} мес.` : ''}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
+function plural(count: number, one: string, few: string, many: string): string {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 === 1 && mod100 !== 11) return one
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few
+  return many
+}
+
+function CheckMailbox({ email, isCompany }: { email: string; isCompany: boolean }) {
   return (
     <Shell title="Проверьте почту" subtitle={`Мы отправили ссылку для подтверждения на ${email}.`}>
       <div className="flex flex-col gap-4">
@@ -125,8 +220,9 @@ function CheckMailbox({ email }: { email: string }) {
         <div className="flex flex-col gap-2.5">
           <Step done text="Регистрация" />
           <Step text="Подтверждение email" current />
-          <Step text="Проверка личности" />
-          <Step text="Самосертификация и документы" />
+          <Step text={isCompany ? 'Проверка компании и подписанта' : 'Проверка личности'} />
+          <Step text="Самосертификация и соглашения" />
+          <Step text={isCompany ? 'Документы компании' : 'Документы'} />
         </div>
 
         <p className="text-xs text-[var(--trigonum-muted)]">

@@ -14,6 +14,7 @@ export const STATE_ORDER: OnboardingState[] = [
   'IDENTITY_FAILED',
   'SELF_CERT_COMPLETED',
   'AGREEMENTS_ACCEPTED',
+  'DOCUMENTS_SUBMITTED',
   'EDD_IN_PROGRESS',
   'EDD_SUBMITTED',
   'UNDER_REVIEW',
@@ -174,4 +175,17 @@ export class ApiError extends Error {
     super(message)
     this.name = 'ApiError'
   }
+}
+
+/* --- Досье документов ---------------------------------------------------- */
+
+/** Приложенный документ. Что именно требуется — задаёт приложение №1.1. */
+export interface SubmittedDocument {
+  documentId: string
+  fileName: string
+  mediaId: string
+  uploadedAt: string
+  status: 'UPLOADED' | 'ACCEPTED' | 'REJECTED'
+  /** Причина отказа от проверяющего. */
+  reason?: string
 }

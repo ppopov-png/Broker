@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowRight, Check, Clock, Mail, RefreshCw, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { readClientProfile } from '@trigonum/shared'
 import { getMessageThreads } from '../../../shared/lib/onboarding/api'
 import type { MessageThread, OnboardingHistoryEntry, OnboardingState } from '../../../shared/lib/onboarding/types'
 import { useOnboardingState } from '../../../shared/lib/onboarding/useOnboarding'
@@ -8,7 +9,7 @@ import { Card } from '../../../shared/ui/Card'
 import { CenteredSpinner, PageHeader } from '../../../shared/ui/PageHeader'
 import { Pill, type PillTone } from '../../../shared/ui/Pill'
 import { OutlineButton } from '../../../shared/ui/buttons'
-import { ONBOARDING_STEPS, resolveCurrentStep, resolveStepStatuses, type StepStatus } from '../model/steps'
+import { onboardingSteps, resolveCurrentStep, resolveStepStatuses, type StepStatus } from '../model/steps'
 
 type Banner = {
   tone: 'warning' | 'error' | 'info' | 'success'
@@ -197,7 +198,10 @@ export function OnboardingStatusPage() {
   const banner = bannerFor(status.currentState)
   const statuses = resolveStepStatuses(status.currentState, history)
   const currentStep = resolveCurrentStep(status.currentState)
-  const stepNumber = currentStep ? ONBOARDING_STEPS.indexOf(currentStep) + 1 : 0
+  // Ключи и порядок шагов у веток общие, различаются только формулировки,
+  // поэтому индекс ищем по ключу, а не по ссылке на объект.
+  const steps = onboardingSteps(readClientProfile().clientType)
+  const stepNumber = currentStep ? steps.findIndex((step) => step.key === currentStep.key) + 1 : 0
   const blockedFlow = status.currentState === 'REJECTED' || status.currentState === 'SUSPENDED'
 
   return (
@@ -219,7 +223,7 @@ export function OnboardingStatusPage() {
               </p>
               {currentStep && (
                 <span className="rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold text-[var(--trigonum-ink)]">
-                  Шаг {stepNumber} из {ONBOARDING_STEPS.length} — {currentStep.title}
+                  Шаг {stepNumber} из {steps.length} — {steps[stepNumber - 1]?.title ?? currentStep.title}
                 </span>
               )}
             </div>
@@ -256,7 +260,7 @@ export function OnboardingStatusPage() {
 
         <Card title="Шаги проверки">
           <ol className="flex flex-col divide-y divide-[var(--trigonum-border)]">
-            {ONBOARDING_STEPS.map((step, index) => {
+            {steps.map((step, index) => {
               const stepStatus = statuses[index]
               const done = completedAt(history, step.states)
               const override = index === stepNumber - 1 ? anchorOverride[status.currentState] : undefined

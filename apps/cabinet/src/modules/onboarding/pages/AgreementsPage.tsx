@@ -57,7 +57,7 @@ export function AgreementsPage() {
   const goNext = useCallback(async () => {
     await finalizeAgreements()
     notifyOnboardingChanged()
-    navigate(ONBOARDING_ROUTES.edd)
+    navigate(ONBOARDING_ROUTES.documents)
   }, [navigate])
 
   const accept = async (templateId: string) => {

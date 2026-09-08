@@ -296,7 +296,7 @@ const ru: LandingContent = {
       { title: 'Выбрать подходящий портфель', text: 'Earn, стратегия под ваш риск-профиль или участие в Event. Калькулятор в кабинете подскажет сумму под вашу цель.', time: '10 минут' },
     ],
     needTitle: 'Что понадобится',
-    need: 'Паспорт или ID-карта, камера для селфи и адрес электронной почты.',
+    need: 'Частному инвестору — паспорт или ID-карта, камера для селфи и адрес электронной почты. Компании — учредительные документы, схема бенефициарного владения и подтверждение источника средств: полный перечень зависит от юрисдикции и показывается до регистрации.',
     cta: 'Открыть счёт',
   },
   compliance: {
@@ -500,7 +500,7 @@ const en: LandingContent = {
       { title: 'Pick the right portfolio', text: 'Earn, a strategy matching your risk profile, or a seat in an Event. The cabinet calculator suggests the amount for your goal.', time: '10 minutes' },
     ],
     needTitle: 'What you will need',
-    need: 'A passport or ID card, a camera for the selfie and an email address.',
+    need: 'A private investor needs a passport or ID card, a camera for the selfie and an email address. A company needs its constituent documents, a beneficial ownership chart and proof of the source of funds: the full list depends on the jurisdiction and is shown before registration.',
     cta: 'Open account',
   },
   compliance: {
@@ -709,7 +709,7 @@ const ky: LandingContent = {
       { title: 'Ылайыктуу портфелди тандоо', text: 'Earn, тобокел профилиңизге ылайык стратегия же Eventке катышуу. Кабинеттеги калькулятор максатыңызга керектүү сумманы эсептейт.', time: '10 мүнөт' },
     ],
     needTitle: 'Эмне керек болот',
-    need: 'Паспорт же ID-карта, селфи үчүн камера жана электрондук почта дареги.',
+    need: 'Жеке инвесторго — паспорт же ID-карта, селфи үчүн камера жана электрондук почта дареги. Компанияга — уюштуруу документтери, бенефициардык ээлик схемасы жана каражаттын булагын ырастоо: толук тизме юрисдикцияга жараша жана каттоого чейин көрсөтүлөт.',
     cta: 'Эсеп ачуу',
   },
   compliance: {

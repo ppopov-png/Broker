@@ -12,6 +12,7 @@ import { WithdrawPage } from '../modules/funding/pages/WithdrawPage'
 import { InvestPage } from '../modules/invest/pages/InvestPage'
 import { LevelsPage } from '../modules/levels/pages/LevelsPage'
 import { AgreementsPage } from '../modules/onboarding/pages/AgreementsPage'
+import { DocumentsChecklistPage } from '../modules/onboarding/pages/DocumentsChecklistPage'
 import { EddQuestionnairePage } from '../modules/onboarding/pages/EddQuestionnairePage'
 import { IdentityVerificationPage } from '../modules/onboarding/pages/IdentityVerificationPage'
 import { OnboardingStatusPage } from '../modules/onboarding/pages/OnboardingStatusPage'
@@ -42,6 +43,7 @@ export function App() {
           <Route path="/onboarding/identity" element={<IdentityVerificationPage />} />
           <Route path="/onboarding/self-certification" element={<SelfCertificationPage />} />
           <Route path="/onboarding/agreements" element={<AgreementsPage />} />
+          <Route path="/onboarding/documents" element={<DocumentsChecklistPage />} />
           <Route path="/onboarding/edd" element={<EddQuestionnairePage />} />
           <Route path="/security" element={<SecurityPage />} />
           <Route path="/support" element={<SupportPage />} />
