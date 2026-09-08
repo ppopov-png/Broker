@@ -54,8 +54,25 @@ export interface LandingContent {
     note: string
     rows: ProductRow[]
     columns: { rate: string; term: string; liquidity: string; min: string; fee: string; risk: string; open: string; more: string }
+    /** Подписи к трём числам доказательства. Значения считаются из данных. */
+    proof: Record<ProductRow['id'], [string, string, string]>
+    /** Заголовок и подсказка к графику продукта. */
+    visual: Record<ProductRow['id'], { title: string; hint: string }>
   }
-  how: { title: string; subtitle: string; steps: { title: string; text: string }[]; note: string }
+  how: {
+    title: string
+    subtitle: string
+    steps: { title: string; text: string; metrics: { value: string; label: string }[] }[]
+    flow: { sources: string; core: string; products: string; share: string }
+    /** Подписи внутри иллюстраций. Держим тут же, иначе картинки останутся русскими. */
+    art: {
+      algo: { venueA: string; venueB: string; close: string; spread: string }
+      team: { committee: string; accepted: string; rejected: string }
+      tais: { feeds: string }
+      liquidity: { capital: string; desks: [string, string, string]; coupon: string }
+    }
+    note: string
+  }
   fees: {
     title: string
     subtitle: string
@@ -94,6 +111,12 @@ export interface LandingContent {
     tickerText: string
     note: string
   }
+  /** Подписи внутри графиков продуктов. Значения приходят из данных. */
+  charts: {
+    events: { average: string; best: string; worst: string; days: string }
+    strategies: { drawdown: string }
+    earn: { monthsShort: string; base: string; windows: string; rows: [string, string][] }
+  }
   faq: { title: string; rows: FaqRow[] }
   final: { title: string; text: string; cta: string; secondary: string }
   footer: { rights: string; risk: string; docs: string[] }
@@ -119,6 +142,16 @@ const ru: LandingContent = {
       risk: 'Риск',
       open: 'Открыть счёт',
       more: 'Подробнее',
+    },
+    proof: {
+      events: ['сделок закрыто в плюс', 'заработали инвесторы', 'средний срок сделки'],
+      strategies: ['под управлением', 'заработали за 12 месяцев', 'инвесторов в стратегиях'],
+      earn: ['под управлением', 'выплачено дохода', 'месяцев без задержек выплат'],
+    },
+    visual: {
+      events: { title: 'Результат последних 10 закрытых сделок', hint: 'Наведите на столбец — покажем сделку' },
+      strategies: { title: 'Накопленная доходность по кварталам', hint: 'Наведите на линию — покажем стратегию' },
+      earn: { title: 'Рост $100 000 за 12 месяцев', hint: 'Доход начисляется каждый день, тело выводится раз в неделю' },
     },
     rows: [
       {
@@ -161,13 +194,52 @@ const ru: LandingContent = {
   },
   how: {
     title: 'Откуда берётся доходность',
-    subtitle: 'Не из одного источника. Доход складывается из нескольких направлений, а TAIS — ядро архитектуры, через которое проходят решения.',
+    subtitle: 'Не из одного источника. Доход складывается из трёх направлений, а TAIS — ядро архитектуры, через которое проходит каждое решение.',
     steps: [
-      { title: 'Алгоритмическая торговля', text: 'Собственные торговые алгоритмы работают круглосуточно на арбитраже, маркет-мейкинге и расхождениях цены между площадками.' },
-      { title: 'Управление командой', text: 'Трейдеры и аналитики ведут направленные позиции там, где нужны решение человека и понимание контекста, а не скорость.' },
-      { title: 'TAIS как ядро', text: 'Система анализа рынка собирает данные с бирж и ончейна, находит аномалии и оценивает риск. Через неё проходит каждая идея — от алгоритма и от человека.' },
-      { title: 'Размещение ликвидности', text: 'Часть капитала работает в кредитовании и на предоставлении ликвидности — предсказуемый доход, которым обеспечена фиксированная ставка Earn.' },
+      {
+        title: 'Алгоритмическая торговля',
+        text: 'Собственные торговые алгоритмы работают круглосуточно на арбитраже, маркет-мейкинге и расхождениях цены между площадками. Там, где решает скорость, человек не участвует.',
+        metrics: [
+          { value: '< 40 мс', label: 'реакция на расхождение цены' },
+          { value: '6 площадок', label: 'одновременно под наблюдением' },
+        ],
+      },
+      {
+        title: 'Управление командой',
+        text: 'Трейдеры и аналитики ведут направленные позиции там, где нужны решение человека и понимание контекста, а не скорость. Каждая идея защищается перед инвесткомитетом.',
+        metrics: [
+          { value: '11 лет', label: 'средний опыт управляющих' },
+          { value: '2 из 3', label: 'идей не проходят комитет' },
+        ],
+      },
+      {
+        title: 'TAIS как ядро',
+        text: 'Система анализа рынка собирает данные с бирж и ончейна, находит аномалии и оценивает риск. Через неё проходит каждая идея — и от алгоритма, и от человека: она не торгует, а решает, какого размера позиция допустима.',
+        metrics: [
+          { value: '100%', label: 'идей проходят оценку риска' },
+          { value: '2,1 млн', label: 'сигналов обрабатывается в сутки' },
+        ],
+      },
+      {
+        title: 'Размещение ликвидности',
+        text: 'Часть капитала работает в кредитовании и на предоставлении ликвидности. Это самый предсказуемый источник — именно им обеспечена фиксированная ставка Earn.',
+        metrics: [
+          { value: '~7%', label: 'ставка, которую видит инвестор' },
+          { value: '18 мес.', label: 'без единой задержки выплаты' },
+        ],
+      },
     ],
+    flow: { sources: 'Источники дохода', core: 'Оценка риска', products: 'Продукты', share: 'доля в доходе' },
+    art: {
+      algo: { venueA: 'Площадка A', venueB: 'Площадка B', close: 'закрытие расхождения', spread: '+0,8%' },
+      team: { committee: 'инвесткомитет', accepted: 'Идея принята', rejected: 'Отклонена' },
+      tais: { feeds: 'биржи · ончейн · деривативы' },
+      liquidity: {
+        capital: 'Капитал',
+        desks: ['Кредитование', 'Пулы ликвидности', 'Стейкинг'],
+        coupon: 'ровный купон → ставка Earn',
+      },
+    },
     note: 'Ни одно направление не решает в одиночку: алгоритм даёт скорость, команда — контекст, TAIS — общую оценку риска. Часть капитала в каждом Event — собственные средства Trigonum.',
   },
   fees: {
@@ -264,6 +336,20 @@ const ru: LandingContent = {
     tickerText: 'Ваша цель {goal} в {plan} принесла бы {app} за 25 минут, пока вы заполняете анкету, и {month} в месяц.',
     note: 'Расчёт использует фактическую доходность за последние 12 месяцев и не является обещанием результата. Комиссия за управление 1% удержана с каждого взноса.',
   },
+  charts: {
+    events: { average: 'Средний результат', best: 'Лучшая', worst: 'Худшая', days: 'дн.' },
+    strategies: { drawdown: 'просадка' },
+    earn: {
+      monthsShort: 'мес.',
+      base: 'на вложенные {amount} по ставке ~{rate}% годовых',
+      windows: '52 окна вывода в год',
+      rows: [
+        ['Начисление', 'каждый день'],
+        ['Вывод тела', 'раз в неделю'],
+        ['Заявка', '{days} дн.'],
+      ],
+    },
+  },
   faq: {
     title: 'Вопросы',
     rows: [
@@ -301,6 +387,16 @@ const en: LandingContent = {
     subtitle: 'They differ not only in return, but in when you can take your money back.',
     note: 'Target returns for Strategies and Events are a guideline, not an obligation. Actual results are determined at the end of the period.',
     columns: { rate: 'Return', term: 'Term', liquidity: 'Access', min: 'Minimum', fee: 'Fee', risk: 'Risk', open: 'Open account', more: 'Learn more' },
+    proof: {
+      events: ['trades closed in profit', 'earned by investors', 'average trade length'],
+      strategies: ['under management', 'earned over 12 months', 'investors in strategies'],
+      earn: ['under management', 'income paid out', 'months without a delayed payout'],
+    },
+    visual: {
+      events: { title: 'Result of the last 10 closed trades', hint: 'Hover a bar to see the trade' },
+      strategies: { title: 'Cumulative return by quarter', hint: 'Hover a line to see the strategy' },
+      earn: { title: 'How $100,000 grows over 12 months', hint: 'Income accrues daily, principal is withdrawn weekly' },
+    },
     rows: [
       { id: 'earn', name: 'Earn', tagline: 'Capital works, access stays', rate: PRODUCT_FACTS.earn.rate, rateNote: 'annual, fixed rate', term: 'Open-ended', liquidity: 'Weekly', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} on deposit, already in the rate`, risk: 'Low' },
       { id: 'strategies', name: 'Strategies', tagline: 'Three profiles: conservative, moderate, aggressive', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'target annual return', term: '3–12 months', liquidity: 'At term end', min: PRODUCT_FACTS.strategies.min, fee: `${PRODUCT_FACTS.strategies.fee} of profit`, risk: 'Conservative · high' },
@@ -309,13 +405,52 @@ const en: LandingContent = {
   },
   how: {
     title: 'Where the return comes from',
-    subtitle: 'Not from a single source. Returns come from several directions, and TAIS is the core of the architecture every decision passes through.',
+    subtitle: 'Not from a single source. Returns come from three directions, and TAIS is the core of the architecture every decision passes through.',
     steps: [
-      { title: 'Algorithmic trading', text: 'Proprietary algorithms run around the clock on arbitrage, market making and price dislocations between venues.' },
-      { title: 'Managed by the team', text: 'Traders and analysts run directional positions where human judgement and context matter more than speed.' },
-      { title: 'TAIS as the core', text: 'The market analysis system collects exchange and on-chain data, detects anomalies and scores risk. Every idea passes through it — from an algorithm or a person.' },
-      { title: 'Liquidity deployment', text: 'Part of the capital works in lending and liquidity provision — the predictable income behind the fixed Earn rate.' },
+      {
+        title: 'Algorithmic trading',
+        text: 'Proprietary algorithms run around the clock on arbitrage, market making and price dislocations between venues. Where speed decides, no human is involved.',
+        metrics: [
+          { value: '< 40 ms', label: 'reaction to a price dislocation' },
+          { value: '6 venues', label: 'watched simultaneously' },
+        ],
+      },
+      {
+        title: 'Managed by the team',
+        text: 'Traders and analysts run directional positions where human judgement and context matter more than speed. Every idea is defended before the investment committee.',
+        metrics: [
+          { value: '11 years', label: 'average manager experience' },
+          { value: '2 in 3', label: 'ideas never clear the committee' },
+        ],
+      },
+      {
+        title: 'TAIS as the core',
+        text: 'The market analysis system collects exchange and on-chain data, detects anomalies and scores risk. Every idea passes through it — from an algorithm or a person: it does not trade, it decides how large a position may be.',
+        metrics: [
+          { value: '100%', label: 'of ideas are risk-scored' },
+          { value: '2.1M', label: 'signals processed per day' },
+        ],
+      },
+      {
+        title: 'Liquidity deployment',
+        text: 'Part of the capital works in lending and liquidity provision. This is the most predictable source — and it is what backs the fixed Earn rate.',
+        metrics: [
+          { value: '~7%', label: 'the rate the investor sees' },
+          { value: '18 mo', label: 'without a single delayed payout' },
+        ],
+      },
     ],
+    flow: { sources: 'Income sources', core: 'Risk scoring', products: 'Products', share: 'share of income' },
+    art: {
+      algo: { venueA: 'Venue A', venueB: 'Venue B', close: 'dislocation closes', spread: '+0.8%' },
+      team: { committee: 'committee', accepted: 'Idea accepted', rejected: 'Rejected' },
+      tais: { feeds: 'exchanges · on-chain · derivatives' },
+      liquidity: {
+        capital: 'Capital',
+        desks: ['Lending', 'Liquidity pools', 'Staking'],
+        coupon: 'steady coupon → Earn rate',
+      },
+    },
     note: 'No single direction decides alone: the algorithm brings speed, the team brings context, TAIS brings a shared view of risk. Part of the capital in every Event is Trigonum’s own.',
   },
   fees: {
@@ -406,6 +541,20 @@ const en: LandingContent = {
     tickerText: 'Your goal of {goal} in {plan} would have earned {app} in the 25 minutes it takes to fill in the application, and {month} a month.',
     note: 'The calculation uses the actual 12-month return and is not a promise of results. The 1% management fee is deducted from every instalment.',
   },
+  charts: {
+    events: { average: 'Weighted average', best: 'Best', worst: 'Worst', days: 'd' },
+    strategies: { drawdown: 'drawdown' },
+    earn: {
+      monthsShort: 'mo',
+      base: 'on {amount} at ~{rate}% a year',
+      windows: '52 withdrawal windows a year',
+      rows: [
+        ['Accrual', 'every day'],
+        ['Principal', 'weekly'],
+        ['Request', '{days} days'],
+      ],
+    },
+  },
   faq: {
     title: 'Questions',
     rows: [
@@ -448,6 +597,16 @@ const ky: LandingContent = {
     subtitle: 'Алар кирешеси менен гана эмес, акчаңызды качан кайра ала турганыңыз менен айырмаланат.',
     note: 'Strategies жана Events боюнча максаттуу киреше — багыт, милдеттенме эмес. Иш жүзүндөгү натыйжа мезгилдин аягында аныкталат.',
     columns: { rate: 'Киреше', term: 'Мөөнөт', liquidity: 'Качан алам', min: 'Минимум', fee: 'Комиссия', risk: 'Тобокел', open: 'Эсеп ачуу', more: 'Толугураак' },
+    proof: {
+      events: ['бүтүм кирешелүү жабылды', 'инвесторлор тапты', 'бүтүмдүн орточо мөөнөтү'],
+      strategies: ['башкарууда', '12 айда табылды', 'стратегиядагы инвестор'],
+      earn: ['башкарууда', 'киреше төлөндү', 'ай кечиктирүүсүз'],
+    },
+    visual: {
+      events: { title: 'Акыркы 10 жабылган бүтүмдүн натыйжасы', hint: 'Мамычага курсорду алып барыңыз' },
+      strategies: { title: 'Кварталдар боюнча топтолгон киреше', hint: 'Сызыкка курсорду алып барыңыз' },
+      earn: { title: '$100 000 12 айда кантип өсөт', hint: 'Киреше күн сайын кошулат, негизги сумма жумасына бир жолу чыгарылат' },
+    },
     rows: [
       { id: 'earn', name: 'Earn', tagline: 'Капитал иштейт, жетүү мүмкүнчүлүгү калат', rate: PRODUCT_FACTS.earn.rate, rateNote: 'жылдык, туруктуу ставка', term: 'Мөөнөтсүз', liquidity: 'Жумасына бир жолу', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} толуктоодо, ставкада эсептелген`, risk: 'Төмөн' },
       { id: 'strategies', name: 'Strategies', tagline: 'Тобокел деңгээлиңизге ылайык башкарылуучу стратегиялар', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'максаттуу жылдык киреше', term: '3–12 ай', liquidity: 'Мөөнөт аягында', min: PRODUCT_FACTS.strategies.min, fee: `${PRODUCT_FACTS.strategies.fee} кирешеден`, risk: 'Консервативдүү · жогорку' },
@@ -456,13 +615,52 @@ const ky: LandingContent = {
   },
   how: {
     title: 'Киреше кайдан келет',
-    subtitle: 'Бир булактан эмес. Киреше бир нече багыттан түзүлөт, TAIS болсо — чечимдер өтүүчү архитектуранын өзөгү.',
+    subtitle: 'Бир булактан эмес. Киреше үч багыттан түзүлөт, TAIS болсо — ар бир чечим өтүүчү архитектуранын өзөгү.',
     steps: [
-      { title: 'Алгоритмдик соода', text: 'Өздүк алгоритмдер тынымсыз иштейт: арбитраж, маркет-мейкинг жана аянтчалар ортосундагы баа айырмасы.' },
-      { title: 'Команданын башкаруусу', text: 'Трейдерлер жана аналитиктер ылдамдык эмес, адамдын чечими жана контекст керек болгон жерде позицияларды жүргүзөт.' },
-      { title: 'Өзөк катары TAIS', text: 'Рынокту талдоо системасы биржа жана ончейн маалыматтарын чогултуп, аномалияларды табат жана тобокелди баалайт. Ар бир идея ушул системадан өтөт.' },
-      { title: 'Ликвиддүүлүктү жайгаштыруу', text: 'Капиталдын бир бөлүгү кредиттөөдө жана ликвиддүүлүк берүүдө иштейт — Earn’дин туруктуу ставкасы ушуга таянат.' },
+      {
+        title: 'Алгоритмдик соода',
+        text: 'Өздүк алгоритмдер тынымсыз иштейт: арбитраж, маркет-мейкинг жана аянтчалар ортосундагы баа айырмасы. Ылдамдык чечкен жерде адам катышпайт.',
+        metrics: [
+          { value: '< 40 мс', label: 'баа айырмасына реакция' },
+          { value: '6 аянтча', label: 'бир убакта көзөмөлдө' },
+        ],
+      },
+      {
+        title: 'Команданын башкаруусу',
+        text: 'Трейдерлер жана аналитиктер ылдамдык эмес, адамдын чечими керек болгон жерде позицияларды жүргүзөт. Ар бир идея инвесткомитетте корголот.',
+        metrics: [
+          { value: '11 жыл', label: 'башкаруучулардын орточо тажрыйбасы' },
+          { value: '3түн 2си', label: 'идея комитеттен өтпөйт' },
+        ],
+      },
+      {
+        title: 'Өзөк катары TAIS',
+        text: 'Рынокту талдоо системасы биржа жана ончейн маалыматтарын чогултуп, аномалияларды табат жана тобокелди баалайт. Ар бир идея ушул системадан өтөт: ал соода кылбайт, позициянын өлчөмүн чечет.',
+        metrics: [
+          { value: '100%', label: 'идея тобокел боюнча бааланат' },
+          { value: '2,1 млн', label: 'сигнал бир суткада' },
+        ],
+      },
+      {
+        title: 'Ликвиддүүлүктү жайгаштыруу',
+        text: 'Капиталдын бир бөлүгү кредиттөөдө жана ликвиддүүлүк берүүдө иштейт. Бул эң болжолдуу булак — Earn’дин туруктуу ставкасы ушуга таянат.',
+        metrics: [
+          { value: '~7%', label: 'инвестор көргөн ставка' },
+          { value: '18 ай', label: 'бир да кечиктирүүсүз' },
+        ],
+      },
     ],
+    flow: { sources: 'Киреше булактары', core: 'Тобокелди баалоо', products: 'Продукттар', share: 'кирешедеги үлүш' },
+    art: {
+      algo: { venueA: 'A аянтчасы', venueB: 'B аянтчасы', close: 'айырма жабылат', spread: '+0,8%' },
+      team: { committee: 'инвесткомитет', accepted: 'Идея кабыл алынды', rejected: 'Четке кагылды' },
+      tais: { feeds: 'биржалар · ончейн · деривативдер' },
+      liquidity: {
+        capital: 'Капитал',
+        desks: ['Кредиттөө', 'Ликвиддүүлүк пулдары', 'Стейкинг'],
+        coupon: 'туруктуу купон → Earn ставкасы',
+      },
+    },
     note: 'Бир дагы багыт жалгыз чечпейт: алгоритм ылдамдык берет, команда — контекст, TAIS — тобокелдин жалпы баасы. Ар бир Event’теги капиталдын бир бөлүгү — Trigonum’дун өз каражаты.',
   },
   fees: {
@@ -552,6 +750,20 @@ const ky: LandingContent = {
     tickerCaption: 'Trigonum инвесторлору тапты — азыр, реалдуу убакытта',
     tickerText: 'Максатыңыз {goal} {plan} ичинде анкетаны толтурган 25 мүнөттө {app}, ал эми айына {month} алып келмек.',
     note: 'Эсеп соңку 12 айдагы иш жүзүндөгү кирешеге негизделген жана натыйжага убада эмес. 1% башкаруу комиссиясы ар бир төгүмдөн кармалат.',
+  },
+  charts: {
+    events: { average: 'Орточо натыйжа', best: 'Мыкты', worst: 'Начар', days: 'күн' },
+    strategies: { drawdown: 'төмөндөө' },
+    earn: {
+      monthsShort: 'ай',
+      base: 'салынган {amount} үчүн жылдык ~{rate}% ставка боюнча',
+      windows: 'жылына 52 чыгаруу терезеси',
+      rows: [
+        ['Кошуу', 'күн сайын'],
+        ['Негизги сумма', 'жумасына бир жолу'],
+        ['Арыз', '{days} күн'],
+      ],
+    },
   },
   faq: {
     title: 'Суроолор',

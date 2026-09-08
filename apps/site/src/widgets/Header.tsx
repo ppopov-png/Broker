@@ -27,8 +27,8 @@ export function Header() {
         <a href="#results">{t('nav.results')}</a>
         <a href="#fees">{t('nav.fees')}</a>
         <a href="#custody">{t('nav.custody')}</a>
-        <a href="#tiers">{t('nav.tiers')}</a>
         <a href="#compliance">{t('nav.compliance')}</a>
+        <a href="#tiers">{t('nav.tiers')}</a>
         <a href="#faq">FAQ</a>
       </nav>
 

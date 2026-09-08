@@ -14,9 +14,15 @@ import { StatsStrip } from '../../sections/StatsStrip'
 import { TiersSection } from '../../sections/TiersSection'
 
 /**
- * Порядок блоков отвечает на возражения в том порядке, в котором они
- * возникают: кто вы → кому подотчётны → где мои деньги → как заберу →
- * сколько возьмёте → сколько заработаю. Обоснование — docs/landing-structure.md.
+ * Порядок блоков — это порядок возражений: что вы предлагаете → почему это
+ * вообще работает → чем докажете → сколько возьмёте → где лежат мои деньги →
+ * кому вы подотчётны → что будет дальше → а если у меня вопрос → как начать.
+ *
+ * Хранение и комплаенс стоят подряд: оба отвечают на «не потеряю ли я
+ * деньги», и разнесённые по странице они читались как два разных разговора.
+ * Калькулятор внутри FAQ — последний шаг перед действием: он превращает
+ * «интересно» в конкретную сумму, и сразу за ним идёт «как начать».
+ * Обоснование — docs/landing-structure.md.
  */
 export function HomePage() {
   return (
@@ -30,10 +36,10 @@ export function HomePage() {
         <ResultsSection />
         <FeesSection />
         <CustodySection />
-        <TiersSection />
-        <OpenAccountSection />
         <ComplianceSection />
+        <TiersSection />
         <FaqSection />
+        <OpenAccountSection />
         <FinalCta />
       </main>
       <SiteFooter />
