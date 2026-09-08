@@ -92,13 +92,18 @@ const PRODUCTS: Product[] = [
     headerBg: 'linear-gradient(150deg,#12122e,var(--trigonum-ink) 60%,#0b7fa6)', accent: '#12ccff',
   },
   {
+    id: 'strategy-stable-income', family: 'STRATEGIES', category: 'conservative', name: 'Stable Income', rate: '8–10%', rateNote: 'целевая доходность годовых', guaranteed: false, rateLow: 8, rateHigh: 10,
+    risk: 'Консервативный риск', description: 'Низкая волатильность: доход от инструментов с предсказуемым денежным потоком.', terms: [3, 6, 12], payout: 'раз в квартал', payoutMonths: 3, min: 1000, topup: 'в любой момент', withdraw: 'в конце срока', feeFamily: 'conservative', tags: ['Ожидаемая просадка до 3%', 'Срок 3–12 мес.'],
+    headerBg: 'linear-gradient(150deg,#12122e,var(--trigonum-ink) 60%,#0b7fa6)', accent: '#12ccff',
+  },
+  {
     id: 'strategy-balanced-growth', family: 'STRATEGIES', category: 'balanced', name: 'Balanced Growth', rate: '10–14%', rateNote: 'целевая доходность годовых', guaranteed: false, rateLow: 10, rateHigh: 14,
-    risk: 'Умеренный риск', description: 'Сбалансированный рост: управляемая стратегия Trigonum с горизонтом от трёх месяцев.', terms: [3, 6, 12], payout: 'раз в квартал', payoutMonths: 3, min: 1000, topup: 'в любой момент', withdraw: 'в конце срока', feeFamily: 'strategy', tags: ['Сбалансированный рост', 'Срок 3–12 мес.'],
+    risk: 'Умеренный риск', description: 'Сбалансированный рост: управляемая стратегия с горизонтом от трёх месяцев.', terms: [3, 6, 12], payout: 'раз в квартал', payoutMonths: 3, min: 1000, topup: 'в любой момент', withdraw: 'в конце срока', feeFamily: 'balanced', tags: ['Ожидаемая просадка до 8%', 'Срок 3–12 мес.'],
     headerBg: 'linear-gradient(150deg,#12122e,var(--trigonum-ink) 60%,var(--trigonum-violet))', accent: 'var(--trigonum-violet)',
   },
   {
     id: 'strategy-alpha-momentum', family: 'STRATEGIES', category: 'aggressive', name: 'Alpha Momentum', rate: '15–20%', rateNote: 'целевая доходность годовых', guaranteed: false, rateLow: 15, rateHigh: 20,
-    risk: 'Высокий риск', description: 'Агрессивный рост: активное управление с повышенной волатильностью результата.', terms: [3, 6, 12], payout: 'раз в полгода', payoutMonths: 6, min: 1000, topup: 'в любой момент', withdraw: 'в конце срока', feeFamily: 'strategy', tags: ['Агрессивный рост', 'Срок 3–12 мес.'],
+    risk: 'Высокий риск', description: 'Агрессивный рост: активное управление с повышенной волатильностью результата.', terms: [6, 12], payout: 'раз в полгода', payoutMonths: 6, min: 1000, topup: 'в любой момент', withdraw: 'в конце срока', feeFamily: 'aggressive', tags: ['Ожидаемая просадка до 20%', 'Срок 6–12 мес.'],
     headerBg: 'linear-gradient(150deg,#12122e,#3f3f8a 60%,#af47ff)', accent: '#af47ff',
   },
 ]
@@ -346,10 +351,30 @@ function FeeBlock({ product, fees, months }: { product: Product; fees: ReturnTyp
         />
         {schedule.resultShare > 0 && (
           <FeeRow
-            label={`За результат · ${schedule.resultShare}% сверх ${schedule.hurdleAnnual}% годовых`}
+            label={
+              schedule.hurdleAnnual > 0
+                ? `За результат · ${schedule.resultShare}% сверх ${schedule.hurdleAnnual}% годовых`
+                : `За результат · ${schedule.resultShare}% от прибыли`
+            }
             value={fees.result > 0 ? `− ${formatCurrency(fees.result)}` : 'не взимается'}
             negative={fees.result > 0}
-            hint={fees.result > 0 ? undefined : `Барьер ${formatCurrency(fees.hurdle)} не превышен`}
+            hint={
+              fees.result > 0 || schedule.hurdleAnnual === 0
+                ? undefined
+                : `Барьер ${formatCurrency(fees.hurdle)} не превышен`
+            }
+          />
+        )}
+        {schedule.outperformanceShare > 0 && (
+          <FeeRow
+            label={`За превышение цели · ${schedule.outperformanceShare}% сверх ${schedule.targetAnnual}% годовых`}
+            value={fees.outperformance > 0 ? `− ${formatCurrency(fees.outperformance)}` : 'не взимается'}
+            negative={fees.outperformance > 0}
+            hint={
+              fees.outperformance > 0
+                ? undefined
+                : `Цель ${formatCurrency(fees.target)} не превышена`
+            }
           />
         )}
         <div className="flex items-baseline justify-between gap-3 border-t border-[var(--trigonum-border)] pt-2">
@@ -360,9 +385,11 @@ function FeeBlock({ product, fees, months }: { product: Product; fees: ReturnTyp
         </div>
       </div>
       <p className="mt-2.5 text-[11px] leading-[1.5] text-[var(--trigonum-muted)]">
-        {schedule.resultShare > 0
-          ? 'Комиссия за результат берётся только с прибыли сверх барьера и сверх прошлого максимума счёта. При убытке она не взимается, а управление удерживается в любом случае.'
-          : 'Комиссии за результат нет: брокер зарабатывает только на управлении. Оно удерживается за фактический срок, в том числе в убыточном периоде.'}
+        {schedule.resultShare === 0
+          ? 'Комиссии за результат нет: брокер зарабатывает только на управлении. Оно удерживается за фактический срок, в том числе в убыточном периоде.'
+          : schedule.outperformanceShare > 0
+            ? 'Базовая доля берётся с любой прибыли, повышенная — только с части сверх целевой доходности и поверх базовой. Обе не взимаются при убытке и не берутся повторно за восстановление прошлого максимума. Управление удерживается в любом случае.'
+            : 'Комиссия за результат берётся только с прибыли сверх барьера. При убытке она не взимается, а управление удерживается в любом случае.'}
       </p>
     </div>
   )

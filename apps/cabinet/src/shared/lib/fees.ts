@@ -14,18 +14,31 @@
  *   сделки сверх барьера. Максимума нет — каждая сделка самостоятельна.
  */
 
-export type FeeFamily = 'earn' | 'strategy' | 'event'
+/**
+ * Схема комиссий привязана к профилю риска, а не к продукту целиком:
+ * стратегии различаются не только целевой доходностью, но и долей брокера
+ * в результате — выше риск, выше участие в верхней части.
+ */
+export type FeeFamily = 'earn' | 'conservative' | 'balanced' | 'aggressive' | 'event'
 
 export interface FeeSchedule {
   /** Комиссия за управление, % годовых от суммы под управлением. */
   managementAnnual: number
-  /** Доля брокера в прибыли, % . Ноль — комиссии за результат нет. */
+  /** Базовая доля брокера в прибыли, %. Ноль — комиссии за результат нет. */
   resultShare: number
   /**
-   * Барьерная доходность, % годовых. Комиссия за результат берётся только
-   * с прибыли сверх барьера: клиент сначала получает базовую доходность.
+   * Барьерная доходность, % годовых. Базовая доля берётся только с прибыли
+   * сверх него. В стратегиях барьера нет: брокер участвует в результате с
+   * первого заработанного доллара, но по сниженной ставке.
    */
   hurdleAnnual: number
+  /**
+   * Повышенная доля с части прибыли, превысившей целевую доходность.
+   * Начисляется поверх базовой, а не вместо неё. Ноль — второго уровня нет.
+   */
+  outperformanceShare: number
+  /** Верхняя граница целевого диапазона, % годовых: с превышения идёт повышенная доля. */
+  targetAnnual: number
   /**
    * Публикуемая доходность уже за вычетом комиссии за управление.
    * Так устроен только Earn — там ставка фиксирована и клиенту важно
@@ -40,9 +53,51 @@ export interface FeeSchedule {
 }
 
 export const FEE_SCHEDULES: Record<FeeFamily, FeeSchedule> = {
-  earn: { managementAnnual: 1, resultShare: 0, hurdleAnnual: 0, netOfManagement: true, highWaterMark: false },
-  strategy: { managementAnnual: 2, resultShare: 0, hurdleAnnual: 0, netOfManagement: false, highWaterMark: true },
-  event: { managementAnnual: 2, resultShare: 20, hurdleAnnual: 8, netOfManagement: false, highWaterMark: false },
+  earn: {
+    managementAnnual: 1,
+    resultShare: 0,
+    hurdleAnnual: 0,
+    outperformanceShare: 0,
+    targetAnnual: 0,
+    netOfManagement: true,
+    highWaterMark: false,
+  },
+  conservative: {
+    managementAnnual: 2,
+    resultShare: 10,
+    hurdleAnnual: 0,
+    outperformanceShare: 20,
+    targetAnnual: 10,
+    netOfManagement: false,
+    highWaterMark: true,
+  },
+  balanced: {
+    managementAnnual: 2,
+    resultShare: 15,
+    hurdleAnnual: 0,
+    outperformanceShare: 25,
+    targetAnnual: 14,
+    netOfManagement: false,
+    highWaterMark: true,
+  },
+  aggressive: {
+    managementAnnual: 2,
+    resultShare: 20,
+    hurdleAnnual: 0,
+    outperformanceShare: 30,
+    targetAnnual: 20,
+    netOfManagement: false,
+    highWaterMark: true,
+  },
+  event: {
+    managementAnnual: 2,
+    resultShare: 20,
+    hurdleAnnual: 8,
+    outperformanceShare: 0,
+    targetAnnual: 0,
+    netOfManagement: false,
+    highWaterMark: false,
+  },
 }
 
 export interface FeeBreakdown {
@@ -52,10 +107,16 @@ export interface FeeBreakdown {
   management: number
   /** Барьер в деньгах — прибыль, с которой комиссия за результат не берётся. */
   hurdle: number
-  /** База для комиссии за результат: прибыль сверх барьера и максимума. */
+  /** База для базовой комиссии: прибыль сверх барьера и максимума. */
   resultBase: number
-  /** Комиссия за результат. */
+  /** Базовая комиссия за результат. */
   result: number
+  /** Целевая прибыль в деньгах — граница, выше которой доля повышается. */
+  target: number
+  /** Часть прибыли сверх целевой. */
+  outperformanceBase: number
+  /** Повышенная комиссия, начисляется поверх базовой. */
+  outperformance: number
   /** Что остаётся клиенту. */
   net: number
   /** Суммарная комиссия. */
@@ -87,16 +148,25 @@ export interface FeeInput {
  */
 export function calcFees({ amount, months, grossProfit, schedule, drawdown = 0 }: FeeInput): FeeBreakdown {
   const years = Math.max(0, months) / 12
-  const management = schedule.netOfManagement ? 0 : (Math.max(0, amount) * schedule.managementAnnual) / 100 * years
+  const base = Math.max(0, amount)
+  const management = schedule.netOfManagement ? 0 : (base * schedule.managementAnnual) / 100 * years
   const afterManagement = grossProfit - management
 
-  const hurdle = (Math.max(0, amount) * schedule.hurdleAnnual) / 100 * years
+  const hurdle = (base * schedule.hurdleAnnual) / 100 * years
   const recovered = schedule.highWaterMark ? Math.max(0, drawdown) : 0
+
   const resultBase = Math.max(0, afterManagement - hurdle - recovered)
   const result = (resultBase * schedule.resultShare) / 100
 
-  const net = grossProfit - management - result
-  const total = management + result
+  // Повышенная доля идёт поверх базовой и только с части сверх целевой
+  // доходности: иначе превышение цели облагалось бы дважды по полной ставке.
+  const target = (base * schedule.targetAnnual) / 100 * years
+  const outperformanceBase =
+    schedule.outperformanceShare > 0 ? Math.max(0, afterManagement - target - recovered) : 0
+  const outperformance = (outperformanceBase * schedule.outperformanceShare) / 100
+
+  const total = management + result + outperformance
+  const net = grossProfit - total
 
   return {
     gross: grossProfit,
@@ -104,6 +174,9 @@ export function calcFees({ amount, months, grossProfit, schedule, drawdown = 0 }
     hurdle,
     resultBase,
     result,
+    target,
+    outperformanceBase,
+    outperformance,
     net,
     total,
     share: grossProfit > 0 ? (total / grossProfit) * 100 : 0,
@@ -115,5 +188,8 @@ export function feeLabel(schedule: FeeSchedule): string {
   const management = `${schedule.managementAnnual}% годовых за управление`
   if (schedule.netOfManagement) return `${management}, уже учтена в ставке`
   if (schedule.resultShare === 0) return `${management}, комиссии за результат нет`
+  if (schedule.outperformanceShare > 0) {
+    return `${management} + ${schedule.resultShare}% от прибыли, ${schedule.outperformanceShare}% сверх ${schedule.targetAnnual}%`
+  }
   return `${management} + ${schedule.resultShare}% от прибыли сверх ${schedule.hurdleAnnual}%`
 }
