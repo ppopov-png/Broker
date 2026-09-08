@@ -232,18 +232,21 @@ export interface GoalPlanResult {
 
 /**
  * Обратная задача: не «сколько вырастет», а «сколько завести». Комиссия за
- * управление удерживается с каждого взноса, поэтому входит в знаменатель, а
- * не вычитается из результата.
+ * управление разовая и удерживается с каждого взноса, поэтому вычитается из
+ * итога один раз на взнос, а не уменьшает ставку — так же, как её считает
+ * calcFees в кабинете.
  */
 export function planForGoal(plan: GoalPlan, goal: number, years: number): GoalPlanResult {
   const rate = plan.netAnnual / 100
-  const kept = 1 - plan.managementPct / 100
+  const fee = plan.managementPct / 100
   const months = Math.max(1, Math.round(years * 12))
   const monthlyRate = Math.pow(1 + rate, 1 / 12) - 1
 
-  const lump = goal / (kept * Math.pow(1 + rate, years))
+  // P × (1+r)^N − P × fee = goal
+  const lump = goal / (Math.pow(1 + rate, years) - fee)
+  // M × annuity − M × fee × months = goal
   const annuity = monthlyRate === 0 ? months : (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate
-  const monthly = goal / (kept * annuity)
+  const monthly = goal / (annuity - fee * months)
   const contributed = monthly * months
 
   return { lump, monthly, contributed, earned: Math.max(0, goal - contributed) }
