@@ -53,7 +53,7 @@ export interface LandingContent {
     subtitle: string
     note: string
     rows: ProductRow[]
-    columns: { rate: string; term: string; liquidity: string; min: string; fee: string; risk: string; open: string }
+    columns: { rate: string; term: string; liquidity: string; min: string; fee: string; risk: string; open: string; more: string }
   }
   how: { title: string; subtitle: string; steps: { title: string; text: string }[]; note: string }
   fees: {
@@ -93,6 +93,7 @@ const ru: LandingContent = {
       fee: 'Комиссия',
       risk: 'Риск',
       open: 'Открыть счёт',
+      more: 'Подробнее',
     },
     rows: [
       {
@@ -247,7 +248,7 @@ const en: LandingContent = {
     title: 'Three ways to deploy capital',
     subtitle: 'They differ not only in return, but in when you can take your money back.',
     note: 'Target returns for Strategies and Events are a guideline, not an obligation. Actual results are determined at the end of the period.',
-    columns: { rate: 'Return', term: 'Term', liquidity: 'Access', min: 'Minimum', fee: 'Fee', risk: 'Risk', open: 'Open account' },
+    columns: { rate: 'Return', term: 'Term', liquidity: 'Access', min: 'Minimum', fee: 'Fee', risk: 'Risk', open: 'Open account', more: 'Learn more' },
     rows: [
       { id: 'earn', name: 'Earn', tagline: 'Capital works, access stays', rate: PRODUCT_FACTS.earn.rate, rateNote: 'annual, fixed rate', term: 'Open-ended', liquidity: 'Weekly', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} annual, already in the rate`, risk: 'Low' },
       { id: 'strategies', name: 'Strategies', tagline: 'Three profiles: conservative, moderate, aggressive', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'target annual return', term: '3–12 months', liquidity: 'At term end', min: PRODUCT_FACTS.strategies.min, fee: `${PRODUCT_FACTS.strategies.fee} of profit`, risk: 'Conservative · high' },
@@ -367,7 +368,7 @@ const ky: LandingContent = {
     title: 'Капиталды жайгаштыруунун үч жолу',
     subtitle: 'Алар кирешеси менен гана эмес, акчаңызды качан кайра ала турганыңыз менен айырмаланат.',
     note: 'Strategies жана Events боюнча максаттуу киреше — багыт, милдеттенме эмес. Иш жүзүндөгү натыйжа мезгилдин аягында аныкталат.',
-    columns: { rate: 'Киреше', term: 'Мөөнөт', liquidity: 'Качан алам', min: 'Минимум', fee: 'Комиссия', risk: 'Тобокел', open: 'Эсеп ачуу' },
+    columns: { rate: 'Киреше', term: 'Мөөнөт', liquidity: 'Качан алам', min: 'Минимум', fee: 'Комиссия', risk: 'Тобокел', open: 'Эсеп ачуу', more: 'Толугураак' },
     rows: [
       { id: 'earn', name: 'Earn', tagline: 'Капитал иштейт, жетүү мүмкүнчүлүгү калат', rate: PRODUCT_FACTS.earn.rate, rateNote: 'жылдык, туруктуу ставка', term: 'Мөөнөтсүз', liquidity: 'Жумасына бир жолу', min: PRODUCT_FACTS.earn.min, fee: `${PRODUCT_FACTS.earn.fee} жылдык, ставкада эсептелген`, risk: 'Төмөн' },
       { id: 'strategies', name: 'Strategies', tagline: 'Тобокел деңгээлиңизге ылайык башкарылуучу стратегиялар', rate: PRODUCT_FACTS.strategies.rate, rateNote: 'максаттуу жылдык киреше', term: '3–12 ай', liquidity: 'Мөөнөт аягында', min: PRODUCT_FACTS.strategies.min, fee: `${PRODUCT_FACTS.strategies.fee} кирешеден`, risk: 'Консервативдүү · жогорку' },
