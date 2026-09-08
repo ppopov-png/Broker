@@ -88,12 +88,11 @@ export function GoalCalculator() {
               <th>{calculator.columns.plan}</th>
               <th>{calculator.columns.net}</th>
               <th>{calculator.columns.lump}</th>
-              <th>{calculator.columns.monthly}</th>
             </tr>
           </thead>
           <tbody>
             {GOAL_PLANS.map((plan) => {
-              const result = planForGoal(plan, goal, years)
+              const lump = planForGoal(plan, goal, years)
               return (
                 <tr key={plan.id}>
                   <th scope="row">
@@ -105,11 +104,7 @@ export function GoalCalculator() {
                     <small>{calculator.netNote}</small>
                   </td>
                   <td data-label={calculator.columns.lump}>
-                    <b>{usd(result.lump)}</b>
-                  </td>
-                  <td data-label={calculator.columns.monthly}>
-                    <b>{usd(result.monthly)}</b>
-                    <small>{calculator.monthlyNote}</small>
+                    <b>{usd(lump)}</b>
                   </td>
                 </tr>
               )

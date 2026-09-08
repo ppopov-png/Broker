@@ -175,16 +175,6 @@ export const PLATFORM_SUMMARY = {
   paidOut: EARN_STATS.paidOut + STRATEGIES_SUMMARY.netProfit + EVENTS_SUMMARY.netProfit,
 }
 
-/* --- Источники дохода ------------------------------------------------------ */
-
-/**
- * Вклад направлений в общий доход. Порядок совпадает с `how.steps` в контенте:
- * тексты живут в трёх языках, а числа — здесь, иначе они разъедутся между
- * переводами. У TAIS доли нет: это не источник дохода, а слой оценки риска,
- * через который проходят остальные три.
- */
-export const RETURN_SOURCE_SHARES: (number | null)[] = [38, 27, null, 35]
-
 /* --- Калькулятор цели ------------------------------------------------------ */
 
 export interface GoalPlan {
@@ -229,37 +219,17 @@ export const GOAL_PLANS: GoalPlan[] = [
   ...STRATEGIES.map(planFromStrategy),
 ]
 
-export interface GoalPlanResult {
-  /** Сколько внести одним платежом сегодня. */
-  lump: number
-  /** Сколько вносить ежемесячно, если начинать с нуля. */
-  monthly: number
-  /** Сумма всех ежемесячных взносов за срок. */
-  contributed: number
-  /** Разница между целью и внесённым при ежемесячном сценарии. */
-  earned: number
-}
-
 /**
- * Обратная задача: не «сколько вырастет», а «сколько завести». Комиссия за
- * управление разовая и удерживается с каждого взноса, поэтому вычитается из
- * итога один раз на взнос, а не уменьшает ставку — так же, как её считает
- * calcFees в кабинете.
+ * Обратная задача: не «сколько вырастет», а «сколько завести сегодня».
+ * Комиссия за управление разовая, поэтому вычитается из итога один раз, а не
+ * уменьшает ставку — так же, как её считает calcFees в кабинете.
+ *
+ *     P × (1 + r)^N − P × fee = goal
  */
-export function planForGoal(plan: GoalPlan, goal: number, years: number): GoalPlanResult {
+export function planForGoal(plan: GoalPlan, goal: number, years: number): number {
   const rate = plan.netAnnual / 100
   const fee = plan.managementPct / 100
-  const months = Math.max(1, Math.round(years * 12))
-  const monthlyRate = Math.pow(1 + rate, 1 / 12) - 1
-
-  // P × (1+r)^N − P × fee = goal
-  const lump = goal / (Math.pow(1 + rate, years) - fee)
-  // M × annuity − M × fee × months = goal
-  const annuity = monthlyRate === 0 ? months : (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate
-  const monthly = goal / (annuity - fee * months)
-  const contributed = monthly * months
-
-  return { lump, monthly, contributed, earned: Math.max(0, goal - contributed) }
+  return goal / (Math.pow(1 + rate, years) - fee)
 }
 
 /* --- Результаты инвесторов -------------------------------------------------- */

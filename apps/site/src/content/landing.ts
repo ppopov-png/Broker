@@ -63,7 +63,7 @@ export interface LandingContent {
     title: string
     subtitle: string
     steps: { title: string; text: string; metrics: { value: string; label: string }[] }[]
-    flow: { sources: string; core: string; products: string; share: string }
+    flow: { sources: string; core: string; products: string }
     /** Подписи внутри иллюстраций. Держим тут же, иначе картинки останутся русскими. */
     art: {
       algo: { venueA: string; venueB: string; close: string; spread: string }
@@ -103,9 +103,8 @@ export interface LandingContent {
     goalLabel: string
     yearsLabel: string
     yearsUnit: (n: number) => string
-    columns: { plan: string; net: string; lump: string; monthly: string }
+    columns: { plan: string; net: string; lump: string }
     netNote: string
-    monthlyNote: string
     tickerTitle: string
     tickerCaption: string
     tickerText: string
@@ -229,7 +228,7 @@ const ru: LandingContent = {
         ],
       },
     ],
-    flow: { sources: 'Источники дохода', core: 'Оценка риска', products: 'Продукты', share: 'доля в доходе' },
+    flow: { sources: 'Источники дохода', core: 'Платформа', products: 'Продукты' },
     art: {
       algo: { venueA: 'Площадка A', venueB: 'Площадка B', close: 'закрытие расхождения', spread: '+0,8%' },
       team: { committee: 'инвесткомитет', accepted: 'Идея принята', rejected: 'Отклонена' },
@@ -328,9 +327,8 @@ const ru: LandingContent = {
     goalLabel: 'Моя цель',
     yearsLabel: 'Срок',
     yearsUnit: (n: number) => (n === 1 ? 'год' : n < 5 ? 'года' : 'лет'),
-    columns: { plan: 'Куда размещаю', net: 'Чистыми в год', lump: 'Внести сразу', monthly: 'Или в месяц' },
+    columns: { plan: 'Куда размещаю', net: 'Чистыми в год', lump: 'Внести сразу' },
     netNote: 'после комиссии за результат',
-    monthlyNote: 'равными взносами весь срок',
     tickerTitle: 'Пока вы читаете эту страницу',
     tickerCaption: 'заработали инвесторы Trigonum — прямо сейчас, в реальном времени',
     tickerText: 'Ваша цель {goal} в {plan} принесла бы {app} за 25 минут, пока вы заполняете анкету, и {month} в месяц.',
@@ -440,7 +438,7 @@ const en: LandingContent = {
         ],
       },
     ],
-    flow: { sources: 'Income sources', core: 'Risk scoring', products: 'Products', share: 'share of income' },
+    flow: { sources: 'Income sources', core: 'Platform', products: 'Products' },
     art: {
       algo: { venueA: 'Venue A', venueB: 'Venue B', close: 'dislocation closes', spread: '+0.8%' },
       team: { committee: 'committee', accepted: 'Idea accepted', rejected: 'Rejected' },
@@ -533,9 +531,8 @@ const en: LandingContent = {
     goalLabel: 'My goal',
     yearsLabel: 'Horizon',
     yearsUnit: (n: number) => (n === 1 ? 'year' : 'years'),
-    columns: { plan: 'Where I place it', net: 'Net per year', lump: 'Deposit now', monthly: 'Or per month' },
+    columns: { plan: 'Where I place it', net: 'Net per year', lump: 'Deposit now' },
     netNote: 'after the result fee',
-    monthlyNote: 'equal instalments for the whole term',
     tickerTitle: 'While you read this page',
     tickerCaption: 'earned by Trigonum investors — right now, in real time',
     tickerText: 'Your goal of {goal} in {plan} would have earned {app} in the 25 minutes it takes to fill in the application, and {month} a month.',
@@ -650,7 +647,7 @@ const ky: LandingContent = {
         ],
       },
     ],
-    flow: { sources: 'Киреше булактары', core: 'Тобокелди баалоо', products: 'Продукттар', share: 'кирешедеги үлүш' },
+    flow: { sources: 'Киреше булактары', core: 'Платформа', products: 'Продукттар' },
     art: {
       algo: { venueA: 'A аянтчасы', venueB: 'B аянтчасы', close: 'айырма жабылат', spread: '+0,8%' },
       team: { committee: 'инвесткомитет', accepted: 'Идея кабыл алынды', rejected: 'Четке кагылды' },
@@ -743,9 +740,8 @@ const ky: LandingContent = {
     goalLabel: 'Менин максатым',
     yearsLabel: 'Мөөнөт',
     yearsUnit: () => 'жыл',
-    columns: { plan: 'Кайда жайгаштырам', net: 'Жылына таза', lump: 'Азыр киргизүү', monthly: 'Же айына' },
+    columns: { plan: 'Кайда жайгаштырам', net: 'Жылына таза', lump: 'Азыр киргизүү' },
     netNote: 'натыйжа комиссиясынан кийин',
-    monthlyNote: 'бүт мөөнөт бою бирдей төгүм',
     tickerTitle: 'Сиз бул бетти окуп жатканда',
     tickerCaption: 'Trigonum инвесторлору тапты — азыр, реалдуу убакытта',
     tickerText: 'Максатыңыз {goal} {plan} ичинде анкетаны толтурган 25 мүнөттө {app}, ал эми айына {month} алып келмек.',

@@ -186,11 +186,11 @@
 .how-layout { display: grid; grid-template-columns: minmax(0, 316px) minmax(0, 1fr); gap: 20px; align-items: stretch; }
 
 .how-rail { display: flex; flex-direction: column; justify-content: space-between; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.how-rail li:not(.how-rail-legend) { display: flex; }
+.how-rail li { display: flex; }
 .how-rail button {
   position: relative;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-template-columns: 24px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   width: 100%;
@@ -223,20 +223,22 @@
 }
 .how-rail button.is-active .how-rail-index { background: var(--site-navy); color: #fff; }
 .how-rail-name { font-size: 13.5px; font-weight: 600; line-height: 1.3; color: var(--site-navy); }
-.how-rail-share { font-size: 13px; font-weight: 700; color: var(--site-indigo); }
-/* Полоса доли — цифра «38%» ничего не весит, пока её не с чем сравнить. */
+/* Полоса выбранного пункта: она же связывает рельсу с подсветкой на схеме. */
 .how-rail-bar {
   position: absolute;
   left: 0;
+  right: 0;
   bottom: 0;
   height: 3px;
-  border-radius: 0 3px 3px 0;
+  border-radius: 3px;
   background: var(--site-indigo);
-  opacity: .28;
-  transition: opacity .2s;
+  opacity: 0;
+  transform: scaleX(.2);
+  transform-origin: left;
+  transition: opacity .2s, transform .25s;
 }
-.how-rail button.is-active .how-rail-bar { opacity: 1; }
-.how-rail-legend { padding: 4px 16px; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--site-muted); }
+.how-rail button:hover .how-rail-bar { opacity: .3; transform: scaleX(1); }
+.how-rail button.is-active .how-rail-bar { opacity: 1; transform: scaleX(1); }
 
 .how-panel {
   display: grid;
@@ -332,15 +334,12 @@
 
 .flow-node rect { fill: #fff; stroke: var(--site-line-strong); stroke-width: 1; transition: stroke .25s, fill .25s; }
 .flow-node-name { font-size: 13px; font-weight: 600; fill: var(--site-navy); }
-.flow-node-share { font-size: 11px; font-weight: 700; fill: var(--site-indigo); }
 .flow-node.is-active rect { stroke: var(--site-indigo); fill: color-mix(in srgb, var(--site-indigo) 7%, white); }
 .flow-node-product rect { fill: color-mix(in srgb, var(--site-navy) 5%, white); }
 
-.flow-core-halo { fill: color-mix(in srgb, var(--site-indigo) 8%, transparent); opacity: 0; transition: opacity .25s; }
-.flow-core.is-active .flow-core-halo { opacity: 1; }
-.flow-core-shape { fill: var(--site-navy); transition: fill .25s; }
-.flow-core.is-active .flow-core-shape { fill: var(--site-indigo-deep); }
-.flow-core-text { font-size: 17px; font-weight: 700; letter-spacing: .08em; fill: #fff; }
+.flow-core-shape { fill: var(--site-navy); }
+.flow-core-name { font-size: 17px; font-weight: 700; letter-spacing: .1em; fill: #fff; }
+.flow-core-product { font-size: 11px; font-weight: 600; letter-spacing: .26em; fill: var(--site-periwinkle); }
 
 @media (prefers-reduced-motion: reduce) {
   .flow-link.is-live { animation: none; stroke-dasharray: none; }
@@ -445,7 +444,9 @@
 
 /* --- Как открыть счёт ---------------------------------------------------- */
 
-.open-section { padding: 62px 2.4vw; background: rgba(255,255,255,.62); border-block: 1px solid var(--site-line); }
+.open-section { padding: 58px 2.4vw; background: rgba(255,255,255,.62); border-block: 1px solid var(--site-line); }
+.open-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.open-steps-column { display: flex; flex-direction: column; }
 .open-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
 .open-steps li {
   display: grid;
@@ -479,7 +480,7 @@
   white-space: nowrap;
   color: var(--site-indigo-deep);
 }
-.open-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; margin-top: 26px; }
+.open-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; margin-top: auto; padding-top: 24px; }
 .open-footer p { margin: 0; max-width: 60ch; font-size: 13.5px; line-height: 1.6; color: var(--site-body); }
 
 /* --- Комплаенс ----------------------------------------------------------- */
@@ -551,8 +552,9 @@
   .how-layout { grid-template-columns: minmax(0, 1fr); }
   .how-rail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .how-rail button.is-active { transform: none; }
-  .how-rail-legend { grid-column: 1 / -1; }
   .fees-layout { grid-template-columns: 1fr; }
+  .open-layout { grid-template-columns: minmax(0, 1fr); }
+  .open-footer { margin-top: 26px; }
   .custody-section { grid-template-columns: 1fr; }
   .tier-ladder { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tier-ladder li { transform: none; }
@@ -584,8 +586,8 @@
   .how-rail { grid-template-columns: minmax(0, 1fr); }
   .how-panel { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 18px; }
   .how-flow { padding: 16px; overflow-x: auto; }
-  /* Схема не сжимается ниже этой ширины — узлы налезли бы друг на друга. */
-  .flow-svg { min-width: 640px; }
+  /* Схема не сжимается ниже этой ширины — подписи узлов стали бы нечитаемыми. */
+  .flow-svg { min-width: 820px; }
   .custody-points, .compliance-grid, .tier-ladder { grid-template-columns: 1fr; }
   .open-steps li { grid-template-columns: 30px minmax(0, 1fr); }
   .open-time { grid-column: 2; justify-self: start; }
@@ -793,8 +795,7 @@
 /* --- Калькулятор цели ----------------------------------------------------- */
 
 .goal-calc {
-  max-width: 900px;
-  margin: 0 0 34px;
+  margin: 0;
   padding: 22px;
   border: 1px solid var(--site-line-strong);
   border-radius: 18px;
