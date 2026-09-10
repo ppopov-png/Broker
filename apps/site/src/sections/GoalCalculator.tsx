@@ -30,7 +30,7 @@ export function GoalCalculator() {
         </div>
         <label className="goal-years">
           <span>{calculator.yearsLabel}: <b>{years}</b> {calculator.yearsUnit(years)}</span>
-          <input type="range" min={1} max={15} step={1} value={years} onChange={(event) => setYears(Number(event.target.value))} />
+          <input type="range" min={1} max={5} step={1} value={years} onChange={(event) => setYears(Number(event.target.value))} />
         </label>
       </div>
 
