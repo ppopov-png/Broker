@@ -1,11 +1,6 @@
 import { useI18n } from '../i18n/I18nProvider'
-import { landingContent } from '../content/landing'
+import { landingContent } from '../content/landingOfficial'
 
-/**
- * Полоса фактов вместо полосы абстракций. Числа здесь только проверяемые:
- * придуманный счётчик, который не растёт между визитами, обнаруживается за
- * день и стоит дороже, чем его отсутствие (docs/landing-structure.md §3).
- */
 export function StatsStrip() {
   const { language } = useI18n()
   const { stats } = landingContent(language)
