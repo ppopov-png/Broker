@@ -1,0 +1,215 @@
+.how-v2-card {
+  transition: transform .28s ease, border-color .28s ease, box-shadow .28s ease, background .28s ease;
+}
+
+.how-v2-card:hover,
+.how-v2-card:focus-within {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--pillar) 42%, var(--site-line));
+  box-shadow: 0 20px 48px color-mix(in srgb, var(--pillar) 12%, transparent);
+}
+
+.how-v2-card-icon {
+  transition: transform .28s ease, box-shadow .28s ease, background .28s ease;
+}
+
+.how-v2-card:hover .how-v2-card-icon,
+.how-v2-card:focus-within .how-v2-card-icon {
+  transform: translateY(-2px) rotate(-4deg) scale(1.04);
+  background: color-mix(in srgb, var(--pillar) 15%, white);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--pillar) 15%, transparent);
+}
+
+.how-v2-scene {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 230px;
+  isolation: isolate;
+}
+
+.how-v2-scene-main,
+.how-v2-scene-node {
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--pillar) 22%, white);
+  background: rgba(255,255,255,.9);
+  color: var(--pillar);
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--pillar) 10%, transparent);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease, background .35s ease, opacity .35s ease;
+}
+
+.how-v2-scene-main {
+  position: relative;
+  z-index: 3;
+  width: 106px;
+  height: 106px;
+  border-radius: 28px;
+  background: linear-gradient(145deg, rgba(255,255,255,.98), color-mix(in srgb, var(--pillar) 10%, white));
+}
+
+.how-v2-scene-main svg {
+  width: 47px;
+  height: 47px;
+  stroke-width: 1.45;
+}
+
+.how-v2-scene-node {
+  position: absolute;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  opacity: .88;
+}
+
+.how-v2-scene-node svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.65;
+}
+
+.how-v2-scene-node--1 { transform: translate(-88px,-58px) rotate(-8deg); }
+.how-v2-scene-node--2 { transform: translate(92px,-48px) rotate(7deg); }
+.how-v2-scene-node--3 { transform: translate(76px,72px) rotate(-5deg); }
+
+.how-v2-card:hover .how-v2-scene-main,
+.how-v2-card:focus-within .how-v2-scene-main {
+  transform: translateY(-5px) scale(1.06) rotate(-3deg);
+  background: linear-gradient(145deg, #fff, color-mix(in srgb, var(--pillar) 16%, white));
+  box-shadow: 0 24px 48px color-mix(in srgb, var(--pillar) 18%, transparent);
+}
+
+.how-v2-card:hover .how-v2-scene-node--1,
+.how-v2-card:focus-within .how-v2-scene-node--1 {
+  transform: translate(-104px,-70px) rotate(-14deg) scale(1.08);
+}
+
+.how-v2-card:hover .how-v2-scene-node--2,
+.how-v2-card:focus-within .how-v2-scene-node--2 {
+  transform: translate(108px,-60px) rotate(13deg) scale(1.08);
+}
+
+.how-v2-card:hover .how-v2-scene-node--3,
+.how-v2-card:focus-within .how-v2-scene-node--3 {
+  transform: translate(92px,84px) rotate(-10deg) scale(1.08);
+}
+
+.how-v2-card--team .how-v2-scene-main svg { animation: how-v2-team-breathe 3.4s ease-in-out infinite; }
+.how-v2-card--algo .how-v2-scene-node--1 svg { animation: how-v2-flash 1.7s ease-in-out infinite; }
+.how-v2-card--algo .how-v2-scene-main svg { animation: how-v2-machine 4.2s ease-in-out infinite; }
+.how-v2-card--tais .how-v2-scene-main svg { animation: how-v2-ai-pulse 2.8s ease-in-out infinite; }
+.how-v2-card--tais .how-v2-scene-node { animation: how-v2-node-pulse 3.2s ease-in-out infinite; }
+.how-v2-card--tais .how-v2-scene-node--2 { animation-delay: -.9s; }
+.how-v2-card--tais .how-v2-scene-node--3 { animation-delay: -1.8s; }
+.how-v2-card--liquidity .how-v2-scene-main svg { animation: how-v2-capital-rise 3.1s ease-in-out infinite; }
+
+@keyframes how-v2-team-breathe {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+@keyframes how-v2-flash {
+  0%,100% { opacity: .45; transform: scale(.92); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+@keyframes how-v2-machine {
+  0%,100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@keyframes how-v2-ai-pulse {
+  0%,100% { opacity: .72; transform: scale(.96); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes how-v2-node-pulse {
+  0%,100% { opacity: .58; }
+  50% { opacity: 1; }
+}
+
+@keyframes how-v2-capital-rise {
+  0%,100% { transform: translateY(2px); }
+  50% { transform: translateY(-5px); }
+}
+
+.how-v2-card:hover .how-v2-visual-badges span,
+.how-v2-card:focus-within .how-v2-visual-badges span {
+  border-color: color-mix(in srgb, var(--pillar) 24%, var(--site-line));
+  box-shadow: 0 9px 24px color-mix(in srgb, var(--pillar) 11%, transparent);
+}
+
+.how-v2-card:hover .how-v2-visual-badges span:nth-child(1),
+.how-v2-card:focus-within .how-v2-visual-badges span:nth-child(1) { transform: translate(-5px,-4px); }
+.how-v2-card:hover .how-v2-visual-badges span:nth-child(2),
+.how-v2-card:focus-within .how-v2-visual-badges span:nth-child(2) { transform: translate(5px,0); }
+.how-v2-card:hover .how-v2-visual-badges span:nth-child(3),
+.how-v2-card:focus-within .how-v2-visual-badges span:nth-child(3) { transform: translate(-4px,4px); }
+
+.how-v2-visual-badges span { transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
+
+.how-v2-tag { transition: transform .22s ease, background .22s ease, border-color .22s ease; }
+.how-v2-tag:hover {
+  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--pillar) 10%, white);
+  border-color: color-mix(in srgb, var(--pillar) 28%, var(--site-line));
+}
+
+.how-v2-formula-item {
+  transition: background .24s ease, transform .24s ease;
+}
+
+.how-v2-formula-item:hover {
+  background: rgba(90,90,196,.035);
+}
+
+.how-v2-formula-icon {
+  transition: transform .26s cubic-bezier(.2,.8,.2,1), box-shadow .26s ease;
+}
+
+.how-v2-formula-item:hover .how-v2-formula-icon {
+  transform: translateY(-3px) rotate(-5deg) scale(1.06);
+  box-shadow: 0 9px 20px rgba(90,90,196,.10);
+}
+
+.how-v2-result {
+  transition: transform .28s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease;
+}
+
+.how-v2-result:hover {
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 16px 34px rgba(90,90,196,.26);
+}
+
+@media (max-width: 720px) {
+  .how-v2-scene { min-height: 195px; }
+  .how-v2-scene-main { width: 92px; height: 92px; border-radius: 24px; }
+  .how-v2-scene-main svg { width: 40px; height: 40px; }
+  .how-v2-scene-node--1 { transform: translate(-74px,-50px) rotate(-8deg); }
+  .how-v2-scene-node--2 { transform: translate(78px,-44px) rotate(7deg); }
+  .how-v2-scene-node--3 { transform: translate(64px,62px) rotate(-5deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .how-v2-card,
+  .how-v2-card-icon,
+  .how-v2-scene-main,
+  .how-v2-scene-node,
+  .how-v2-visual-badges span,
+  .how-v2-tag,
+  .how-v2-formula-item,
+  .how-v2-formula-icon,
+  .how-v2-result {
+    transition: none;
+  }
+  .how-v2-card--team .how-v2-scene-main svg,
+  .how-v2-card--algo .how-v2-scene-node--1 svg,
+  .how-v2-card--algo .how-v2-scene-main svg,
+  .how-v2-card--tais .how-v2-scene-main svg,
+  .how-v2-card--tais .how-v2-scene-node,
+  .how-v2-card--liquidity .how-v2-scene-main svg {
+    animation: none;
+  }
+}
