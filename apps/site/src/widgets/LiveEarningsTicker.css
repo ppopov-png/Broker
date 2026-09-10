@@ -1,0 +1,133 @@
+.live-earnings {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.live-earnings-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.live-earnings-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.live-earnings-copy {
+  min-width: 0;
+}
+
+.live-earnings-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: .02em;
+}
+
+.live-earnings strong {
+  display: block;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+
+.live-earnings-note {
+  display: block;
+  margin-top: 5px;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.live-earnings-panel {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--site-navy);
+  color: #fff;
+}
+
+.live-earnings-panel .live-earnings-icon {
+  background: rgba(166,227,77,.12);
+  color: var(--site-lime-bright);
+}
+
+.live-earnings-panel .live-earnings-title {
+  color: rgba(255,255,255,.76);
+}
+
+.live-earnings-panel strong {
+  margin-top: 4px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--site-lime-bright);
+}
+
+.live-earnings-panel .live-earnings-note {
+  color: rgba(255,255,255,.56);
+}
+
+.live-earnings-panel .button {
+  flex: none;
+  margin-left: auto;
+}
+
+.live-earnings-header {
+  flex: 0 1 250px;
+  max-width: 250px;
+  padding: 7px 12px;
+  border: 1px solid rgba(90,90,196,.14);
+  border-radius: 12px;
+  background: rgba(90,90,196,.055);
+}
+
+.live-earnings-header .live-earnings-icon {
+  width: 28px;
+  height: 28px;
+  background: rgba(79,138,11,.10);
+  color: var(--site-lime);
+}
+
+.live-earnings-header .live-earnings-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.live-earnings-header .live-earnings-title {
+  overflow: hidden;
+  font-size: 9.5px;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--site-muted);
+}
+
+.live-earnings-header strong {
+  margin-top: 1px;
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--site-lime);
+}
+
+@media (max-width: 1440px) {
+  .live-earnings-header {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .live-earnings-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .live-earnings-panel .button {
+    width: 100%;
+    margin-left: 0;
+  }
+}

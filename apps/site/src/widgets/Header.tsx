@@ -4,6 +4,7 @@ import trigonumIcon from '../assets/trigonum-icon.svg'
 import trigonumWordmark from '../assets/trigonum-wordmark.svg'
 import { useI18n, type Language } from '../i18n/I18nProvider'
 import { cabinetUrl, onboardingUrl } from '../lib/appLinks'
+import { LiveEarningsTicker } from './LiveEarningsTicker'
 
 const languageNames: Record<Language, string> = { ru: 'RU', en: 'EN', ky: 'KG' }
 const languageFullNames: Record<Language, string> = { ru: 'Русский', en: 'English', ky: 'Кыргызча' }
@@ -31,6 +32,8 @@ export function Header() {
         <a href="#tiers">{t('nav.tiers')}</a>
         <a href="#faq">FAQ</a>
       </nav>
+
+      <LiveEarningsTicker variant="header" />
 
       <div className="header-actions">
         <div className="language-switcher">
