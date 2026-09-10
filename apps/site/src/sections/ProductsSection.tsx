@@ -1,4 +1,5 @@
 import { ArrowRight, ArrowUpRight, CalendarDays, ChartNoAxesCombined, Target } from 'lucide-react'
+import { FEE_SCHEDULES, feeLabel } from '@trigonum/shared/fees'
 import { useState } from 'react'
 import { useI18n } from '../i18n/I18nProvider'
 import { landingContent, type LandingContent, type ProductRow } from '../content/landingOfficial'
@@ -15,6 +16,12 @@ const icons = {
 } as const
 
 const ORDER: ProductId[] = ['earn', 'strategies', 'events']
+
+function productFee(id: ProductId): string {
+  if (id === 'earn') return feeLabel(FEE_SCHEDULES.earn)
+  if (id === 'events') return feeLabel(FEE_SCHEDULES.event)
+  return feeLabel(FEE_SCHEDULES.balanced)
+}
 
 function proofValues(id: ProductId, daysWord: string): [string, string, string] {
   if (id === 'events') {
@@ -76,7 +83,7 @@ function ProductBlock({ product, products, daysWord, onOpen }: { product: Produc
     [columns.term, product.term],
     [columns.liquidity, product.liquidity],
     [columns.min, product.min],
-    [columns.fee, product.fee],
+    [columns.fee, productFee(id)],
     [columns.risk, product.risk],
   ]
 
