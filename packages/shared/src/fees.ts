@@ -3,7 +3,7 @@
  *
  * Модель одна на все продукты и держится на двух числах:
  *
- * - За управление — 1% от суммы пополнения, разово, в момент зачисления
+ * - За управление — 2% от суммы пополнения, разово, в момент зачисления
  *   средств на продукт. Не годовые: срок размещения на неё не влияет, и
  *   клиент видит цену входа сразу, а не находит её в выписке через месяц.
  * - За результат — доля брокера в фактической прибыли: Earn 0%, стратегии
@@ -42,7 +42,7 @@ export interface FeeSchedule {
 }
 
 /** Комиссия за управление одна на все продукты. */
-export const MANAGEMENT_ON_DEPOSIT = 1
+export const MANAGEMENT_ON_DEPOSIT = 2
 
 export const FEE_SCHEDULES: Record<FeeFamily, FeeSchedule> = {
   earn: { managementOnDeposit: MANAGEMENT_ON_DEPOSIT, resultShare: 0, netOfManagement: true, highWaterMark: false },
