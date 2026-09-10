@@ -1,0 +1,95 @@
+.custody-section.custody-v2 {
+  display: block;
+  grid-template-columns: none;
+  gap: 0;
+  width: 100%;
+}
+
+.custody-v2-shell {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: minmax(320px, .78fr) minmax(0, 1.5fr);
+  gap: clamp(42px, 5vw, 92px);
+  align-items: center;
+}
+
+.custody-v2-intro {
+  min-width: 0;
+}
+
+.custody-v2-flow {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.custody-v2-step {
+  min-width: 0;
+  min-height: 178px;
+  padding: 22px;
+}
+
+.custody-v2-step h3 {
+  line-height: 1.25;
+}
+
+.custody-v2-step p {
+  max-width: 42ch;
+}
+
+@media (min-width: 1500px) {
+  .custody-v2-shell {
+    grid-template-columns: minmax(360px, .72fr) minmax(0, 1.62fr);
+    gap: 76px;
+  }
+
+  .custody-v2-flow {
+    grid-template-columns: repeat(2, minmax(320px, 1fr));
+  }
+}
+
+@media (max-width: 1050px) {
+  .custody-v2-shell {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .custody-v2-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 28px;
+    align-items: center;
+  }
+
+  .custody-v2-kicker,
+  .custody-v2-intro h2,
+  .custody-v2-intro > p,
+  .custody-v2-cta {
+    grid-column: 1;
+  }
+
+  .custody-v2-core {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    margin: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .custody-v2-intro {
+    display: block;
+  }
+
+  .custody-v2-core {
+    margin: 24px auto 20px;
+  }
+
+  .custody-v2-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .custody-v2-flow::before {
+    display: none;
+  }
+}
