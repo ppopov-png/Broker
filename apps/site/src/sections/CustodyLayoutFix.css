@@ -3,86 +3,222 @@
   grid-template-columns: none;
   gap: 0;
   width: 100%;
+  padding-top: 48px;
+  padding-bottom: 48px;
 }
 
 .custody-v2-shell {
   width: 100%;
   max-width: none;
-  grid-template-columns: minmax(320px, .78fr) minmax(0, 1.5fr);
-  gap: clamp(42px, 5vw, 92px);
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(520px, .95fr) minmax(0, 1.35fr);
+  gap: clamp(30px, 3vw, 54px);
+  align-items: stretch;
 }
 
+/*
+ * На широком экране орбита больше не стоит под текстом и не растягивает
+ * всю секцию по высоте. Она становится второй колонкой внутри intro.
+ */
 .custody-v2-intro {
   min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) 220px;
+  grid-template-rows: auto auto auto 1fr auto;
+  column-gap: 24px;
+  align-items: start;
+}
+
+.custody-v2-kicker,
+.custody-v2-intro h2,
+.custody-v2-intro > p,
+.custody-v2-cta {
+  grid-column: 1;
+}
+
+.custody-v2-kicker {
+  font-size: 11px;
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+
+.custody-v2-intro h2 {
+  font-size: clamp(32px, 2.7vw, 44px);
+  line-height: 1.02;
+}
+
+.custody-v2-intro > p {
+  margin-top: 12px;
+  max-width: 48ch;
+  font-size: 14.5px;
+  line-height: 1.58;
+}
+
+.custody-v2-core {
+  grid-column: 2;
+  grid-row: 1 / span 5;
+  align-self: center;
+  width: 210px;
+  height: 210px;
+  margin: 0;
+}
+
+.custody-v2-orbit--one {
+  width: 154px;
+  height: 154px;
+}
+
+.custody-v2-orbit--two {
+  width: 202px;
+  height: 202px;
+}
+
+.custody-v2-core-card {
+  width: 132px;
+  min-height: 132px;
+  padding: 17px;
+  border-radius: 24px;
+}
+
+.custody-v2-core-card b {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.custody-v2-core-card small {
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.custody-v2-node {
+  width: 36px;
+  height: 36px;
+}
+
+.custody-v2-node--a { top: 8px; left: 87px; }
+.custody-v2-node--b { right: 0; bottom: 48px; }
+.custody-v2-node--c { left: 0; bottom: 40px; }
+
+.custody-v2-cta {
+  align-self: end;
+  justify-self: start;
+  margin-top: 18px;
+  font-size: 12.5px;
+  padding: 11px 15px;
 }
 
 .custody-v2-flow {
   width: 100%;
   min-width: 0;
-  grid-template-columns: repeat(2, minmax(260px, 1fr));
-  gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 14px;
+  align-self: stretch;
 }
 
 .custody-v2-step {
   min-width: 0;
-  min-height: 178px;
-  padding: 22px;
+  min-height: 0;
+  height: 100%;
+  padding: 20px 22px;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px 14px;
+}
+
+.custody-v2-step-icon {
+  width: 44px;
+  height: 44px;
+}
+
+.custody-v2-step-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.custody-v2-step-index {
+  font-size: 10.5px;
+  line-height: 1;
 }
 
 .custody-v2-step h3 {
+  margin-top: 1px;
+  margin-bottom: 8px;
+  font-size: 15.5px;
   line-height: 1.25;
 }
 
 .custody-v2-step p {
-  max-width: 42ch;
+  max-width: 48ch;
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.58;
 }
 
 @media (min-width: 1500px) {
   .custody-v2-shell {
-    grid-template-columns: minmax(360px, .72fr) minmax(0, 1.62fr);
-    gap: 76px;
-  }
-
-  .custody-v2-flow {
-    grid-template-columns: repeat(2, minmax(320px, 1fr));
-  }
-}
-
-@media (max-width: 1050px) {
-  .custody-v2-shell {
-    grid-template-columns: 1fr;
-    gap: 34px;
+    grid-template-columns: minmax(570px, .9fr) minmax(0, 1.45fr);
+    gap: 46px;
   }
 
   .custody-v2-intro {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0 28px;
-    align-items: center;
+    grid-template-columns: minmax(285px, 1fr) 230px;
+    column-gap: 28px;
   }
 
-  .custody-v2-kicker,
-  .custody-v2-intro h2,
-  .custody-v2-intro > p,
-  .custody-v2-cta {
-    grid-column: 1;
+  .custody-v2-core {
+    width: 220px;
+    height: 220px;
+  }
+
+  .custody-v2-orbit--one { width: 162px; height: 162px; }
+  .custody-v2-orbit--two { width: 212px; height: 212px; }
+
+  .custody-v2-step {
+    padding: 22px 24px;
+  }
+
+  .custody-v2-step h3 {
+    font-size: 16px;
+  }
+
+  .custody-v2-step p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .custody-v2-shell {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .custody-v2-intro {
+    grid-template-columns: minmax(0, 1fr) 220px;
+    min-height: 220px;
   }
 
   .custody-v2-core {
     grid-column: 2;
-    grid-row: 1 / span 4;
-    margin: 0;
+    grid-row: 1 / span 5;
   }
 }
 
 @media (max-width: 760px) {
+  .custody-section.custody-v2 {
+    padding-top: 42px;
+    padding-bottom: 42px;
+  }
+
   .custody-v2-intro {
     display: block;
+    min-height: 0;
   }
 
   .custody-v2-core {
-    margin: 24px auto 20px;
+    width: 210px;
+    height: 210px;
+    margin: 22px auto 18px;
   }
 
   .custody-v2-flow {
@@ -91,5 +227,18 @@
 
   .custody-v2-flow::before {
     display: none;
+  }
+
+  .custody-v2-step {
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .custody-v2-step h3 {
+    font-size: 15px;
+  }
+
+  .custody-v2-step p {
+    font-size: 13.5px;
   }
 }
