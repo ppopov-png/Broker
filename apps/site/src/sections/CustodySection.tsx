@@ -3,6 +3,7 @@ import { useI18n } from '../i18n/I18nProvider'
 import { landingContent } from '../content/landingOfficial'
 import { onboardingUrl } from '../lib/appLinks'
 import './FeesCustody.css'
+import './CustodyLayoutFix.css'
 
 const custodyIcons = [UserRound, FileCheck2, Network, ArrowDownToLine]
 
