@@ -1,7 +1,6 @@
 import { useI18n } from '../i18n/I18nProvider'
-import { landingContent } from '../content/landing'
+import { landingContent } from '../content/landingOfficial'
 
-/** Оттенки лестницы уровней — те же, что в кабинете, чтобы не было двух Diamond. */
 const tierTone: Record<string, string> = {
   Member: 'linear-gradient(135deg,#f3f4f6,#babfca)',
   Silver: 'linear-gradient(135deg,#f8f9fb,#aeb5c2)',
@@ -17,21 +16,15 @@ export function TiersSection() {
 
   return (
     <section className="tiers-section" id="tiers">
-      <header className="section-head">
-        <h2>{tiers.title}</h2>
-        <p>{tiers.subtitle}</p>
-      </header>
-
+      <header className="section-head"><h2>{tiers.title}</h2><p>{tiers.subtitle}</p></header>
       <ol className="tier-ladder">
         {tiers.rows.map((tier, index) => (
           <li key={tier.name} style={{ ['--tier-step' as string]: `${index}` }}>
             <span className="tier-chip" style={{ background: tierTone[tier.name] }} aria-hidden="true" />
-            <h3>{tier.name}</h3>
-            <p>{tier.perk}</p>
+            <h3>{tier.name}</h3><p>{tier.perk}</p>
           </li>
         ))}
       </ol>
-
       <p className="section-note">{tiers.note}</p>
     </section>
   )
