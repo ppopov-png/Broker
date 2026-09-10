@@ -1,7 +1,7 @@
 import { ArrowRight, ArrowUpRight, CalendarDays, ChartNoAxesCombined, Target } from 'lucide-react'
 import { useState } from 'react'
 import { useI18n } from '../i18n/I18nProvider'
-import { landingContent, type LandingContent, type ProductRow } from '../content/landing'
+import { landingContent, type LandingContent, type ProductRow } from '../content/landingOfficial'
 import { EARN_STATS, EVENTS_SUMMARY, STRATEGIES_SUMMARY } from '../content/products'
 import { onboardingUrl } from '../lib/appLinks'
 import { ProductModal, type ProductId } from './ProductModal'
@@ -14,21 +14,8 @@ const icons = {
   events: CalendarDays,
 } as const
 
-/**
- * Продукты идут блоками, а не тремя карточками в ряд: у каждого своя
- * механика, и ряд одинаковых плиток заставляет сравнивать их по ставке —
- * единственному, что в них выглядит сопоставимым.
- *
- * В каждом блоке правая половина — график на реальных данных продукта.
- * Пустое место там раньше занимал воздух, а теперь занимает доказательство:
- * ставку на слово не берут, а десять закрытых сделок со столбиками — берут.
- *
- * Порядок ведёт от самого спокойного продукта к самому активному: человек
- * читает сверху вниз и наращивает риск по мере чтения, а не наоборот.
- */
 const ORDER: ProductId[] = ['earn', 'strategies', 'events']
 
-/** Три числа доказательства. Считаются из тех же строк, что и таблицы в попапах. */
 function proofValues(id: ProductId, daysWord: string): [string, string, string] {
   if (id === 'events') {
     return [
@@ -78,17 +65,7 @@ export function ProductsSection() {
   )
 }
 
-function ProductBlock({
-  product,
-  products,
-  daysWord,
-  onOpen,
-}: {
-  product: ProductRow
-  products: LandingContent['products']
-  daysWord: string
-  onOpen: () => void
-}) {
+function ProductBlock({ product, products, daysWord, onOpen }: { product: ProductRow; products: LandingContent['products']; daysWord: string; onOpen: () => void }) {
   const id = product.id as ProductId
   const Icon = icons[id]
   const { columns } = products
@@ -107,46 +84,22 @@ function ProductBlock({
     <article className={`product-card product-${product.id}`}>
       <div className="product-body">
         <div className="product-head">
-          <span className="product-icon">
-            <Icon strokeWidth={1.7} />
-          </span>
-          <div className="product-title">
-            <h3>{product.name}</h3>
-            <p>{product.tagline}</p>
-          </div>
-          <p className="product-rate">
-            <b>{product.rate}</b>
-            <span>{product.rateNote}</span>
-          </p>
+          <span className="product-icon"><Icon strokeWidth={1.7} /></span>
+          <div className="product-title"><h3>{product.name}</h3><p>{product.tagline}</p></div>
+          <p className="product-rate"><b>{product.rate}</b><span>{product.rateNote}</span></p>
         </div>
 
         <dl className="product-proof">
-          {products.proof[product.id].map((label, index) => (
-            <div key={label}>
-              <dt>{values[index]}</dt>
-              <dd>{label}</dd>
-            </div>
-          ))}
+          {products.proof[product.id].map((label, index) => <div key={label}><dt>{values[index]}</dt><dd>{label}</dd></div>)}
         </dl>
 
         <dl className="product-facts">
-          {facts.map(([label, value]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
+          {facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
         </dl>
 
         <div className="product-actions">
-          <button type="button" className="product-more" onClick={onOpen}>
-            {columns.more}
-            <ArrowRight size={15} />
-          </button>
-          <a className="product-cta" href={onboardingUrl()}>
-            {columns.open}
-            <ArrowUpRight size={15} />
-          </a>
+          <button type="button" className="product-more" onClick={onOpen}>{columns.more}<ArrowRight size={15} /></button>
+          <a className="product-cta" href={onboardingUrl()}>{columns.open}<ArrowUpRight size={15} /></a>
         </div>
       </div>
 
