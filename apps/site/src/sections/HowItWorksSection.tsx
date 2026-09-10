@@ -1,6 +1,7 @@
-import { Bot, BrainCircuit, Coins, UsersRound } from 'lucide-react'
+import { Activity, BarChart3, Bot, BrainCircuit, BriefcaseBusiness, Coins, Cpu, DatabaseZap, Network, Radar, ShieldCheck, Sparkles, Target, TrendingUp, UsersRound, Zap } from 'lucide-react'
 import { useI18n, type Language } from '../i18n/I18nProvider'
 import './HowItWorksSection.css'
+import './HowItWorksVisuals.css'
 
 type PillarId = 'team' | 'algo' | 'tais' | 'liquidity'
 
@@ -188,6 +189,13 @@ const icons = {
   liquidity: Coins,
 } as const
 
+const sceneIcons = {
+  team: [BriefcaseBusiness, Target, ShieldCheck],
+  algo: [Zap, Radar, Cpu],
+  tais: [DatabaseZap, Network, Sparkles],
+  liquidity: [TrendingUp, BarChart3, Activity],
+} as const
+
 export function HowItWorksSection() {
   const { language } = useI18n()
   const t = copy[language]
@@ -212,7 +220,7 @@ export function HowItWorksSection() {
         {t.pillars.map((pillar) => {
           const Icon = icons[pillar.id]
           return (
-            <article className={`how-v2-card how-v2-card--${pillar.id}`} key={pillar.id}>
+            <article className={`how-v2-card how-v2-card--${pillar.id}`} key={pillar.id} tabIndex={0}>
               <div className="how-v2-card-copy">
                 <div className="how-v2-card-head">
                   <span className="how-v2-card-icon"><Icon strokeWidth={1.7} /></span>
@@ -227,12 +235,7 @@ export function HowItWorksSection() {
                 </div>
               </div>
 
-              <div className="how-v2-card-visual" aria-hidden="true">
-                <div className="how-v2-visual-core"><Icon strokeWidth={1.5} /></div>
-                <div className="how-v2-visual-badges">
-                  {pillar.badges.map((badge) => <span key={badge}>{badge}</span>)}
-                </div>
-              </div>
+              <PillarScene pillar={pillar} />
             </article>
           )
         })}
@@ -240,6 +243,25 @@ export function HowItWorksSection() {
 
       <Formula copy={t.formula} />
     </section>
+  )
+}
+
+function PillarScene({ pillar }: { pillar: Pillar }) {
+  const MainIcon = icons[pillar.id]
+  const [NodeOne, NodeTwo, NodeThree] = sceneIcons[pillar.id]
+
+  return (
+    <div className="how-v2-card-visual" aria-hidden="true">
+      <div className="how-v2-scene">
+        <span className="how-v2-scene-node how-v2-scene-node--1"><NodeOne /></span>
+        <span className="how-v2-scene-node how-v2-scene-node--2"><NodeTwo /></span>
+        <span className="how-v2-scene-node how-v2-scene-node--3"><NodeThree /></span>
+        <span className="how-v2-scene-main"><MainIcon /></span>
+        <div className="how-v2-visual-badges">
+          {pillar.badges.map((badge) => <span key={badge}>{badge}</span>)}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -264,7 +286,7 @@ function Formula({ copy }: { copy: Copy['formula'] }) {
       ))}
       <span className="how-v2-op" aria-hidden="true">=</span>
       <div className="how-v2-result">
-        <span className="how-v2-result-icon"><Coins strokeWidth={1.7} /></span>
+        <span className="how-v2-result-icon"><TrendingUp strokeWidth={1.7} /></span>
         <span><b>{copy.result[0]}</b><span>{copy.result[1]}</span></span>
       </div>
     </div>
