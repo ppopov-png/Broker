@@ -1,4 +1,4 @@
-import type { ClientType } from '@trigonum/shared'
+import { readClientProfile, type ClientType } from '@trigonum/shared'
 import type { OnboardingHistoryEntry, OnboardingState } from '../../../shared/lib/onboarding/types'
 import { ONBOARDING_ROUTES } from '../../../shared/lib/onboarding/useOnboarding'
 
@@ -17,7 +17,7 @@ export interface OnboardingStep {
  * Для юрлица персональная самосертификация не используется. После проверки
  * уполномоченного подписанта идут соглашения, корпоративное досье и KYB/EDD.
  */
-export function onboardingSteps(clientType: ClientType = 'individual'): OnboardingStep[] {
+export function onboardingSteps(clientType: ClientType = readClientProfile().clientType): OnboardingStep[] {
   const commonStart: OnboardingStep[] = [
     { key: 'registration', title: 'Регистрация', states: ['REGISTERED'] },
     { key: 'email', title: 'Подтверждение email', states: ['EMAIL_VERIFIED'] },
@@ -106,13 +106,12 @@ function resolveAnchorIndex(current: OnboardingState, clientType: ClientType): n
   const ownerIndex = steps.findIndex((step) => step.states.includes(current))
   if (ownerIndex !== -1) return COMPLETING_STATES.includes(current) ? Math.min(ownerIndex + 1, steps.length - 1) : ownerIndex
 
-  // Состояния, которых нет в конкретной ветке, считаем техническими мостами.
   if (clientType === 'company' && current === 'SELF_CERT_COMPLETED') return steps.findIndex((step) => step.key === 'agreements')
   if (clientType === 'individual' && current === 'DOCUMENTS_SUBMITTED') return steps.findIndex((step) => step.key === 'edd')
   return -1
 }
 
-export function resolveCurrentStep(current: OnboardingState, clientType: ClientType = 'individual'): OnboardingStep | null {
+export function resolveCurrentStep(current: OnboardingState, clientType: ClientType = readClientProfile().clientType): OnboardingStep | null {
   const steps = onboardingSteps(clientType)
   const index = resolveAnchorIndex(current, clientType)
   return index === -1 ? null : (steps[index] ?? null)
@@ -121,7 +120,7 @@ export function resolveCurrentStep(current: OnboardingState, clientType: ClientT
 export function resolveStepStatuses(
   current: OnboardingState,
   history: OnboardingHistoryEntry[] = [],
-  clientType: ClientType = 'individual',
+  clientType: ClientType = readClientProfile().clientType,
 ): StepStatus[] {
   const steps = onboardingSteps(clientType)
   const anchorIndex = resolveAnchorIndex(current, clientType)
