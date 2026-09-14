@@ -9,47 +9,75 @@ export interface OnboardingStep {
   actionPath?: string
 }
 
+/**
+ * Флоу физлица следует инструкции инвестора:
+ * регистрация → email → верификация личности → самосертификация → соглашения
+ * → углублённая проверка (анкета) → рассмотрение → одобрение.
+ *
+ * Для юрлица персональная самосертификация не используется. После проверки
+ * уполномоченного подписанта идут соглашения, корпоративное досье и KYB/EDD.
+ */
 export function onboardingSteps(clientType: ClientType = 'individual'): OnboardingStep[] {
-  const company = clientType === 'company'
-  return [
+  const commonStart: OnboardingStep[] = [
     { key: 'registration', title: 'Регистрация', states: ['REGISTERED'] },
     { key: 'email', title: 'Подтверждение email', states: ['EMAIL_VERIFIED'] },
     {
       key: 'identity',
-      title: company ? 'Проверка уполномоченного подписанта' : 'Проверка личности',
+      title: clientType === 'company' ? 'Проверка уполномоченного подписанта' : 'Верификация личности',
       states: ['IDENTITY_IN_PROGRESS', 'IDENTITY_VERIFIED', 'IDENTITY_FAILED'],
       actionPath: ONBOARDING_ROUTES.identity,
     },
-    {
-      key: 'self-cert',
-      title: company ? 'Декларации юридического лица' : 'Самосертификация',
-      states: ['SELF_CERT_COMPLETED'],
-      actionPath: ONBOARDING_ROUTES.selfCertification,
-    },
-    {
-      key: 'agreements',
-      title: 'Соглашения',
-      states: ['AGREEMENTS_ACCEPTED'],
-      actionPath: ONBOARDING_ROUTES.agreements,
-    },
-    {
-      key: 'documents',
-      title: company ? 'Корпоративное досье' : 'Документы',
-      states: ['DOCUMENTS_SUBMITTED'],
-      actionPath: ONBOARDING_ROUTES.documents,
-    },
-    {
-      key: 'edd',
-      title: company ? 'Комплаенс-анкета компании' : 'Углублённая проверка',
-      states: ['EDD_IN_PROGRESS', 'EDD_SUBMITTED'],
-      actionPath: ONBOARDING_ROUTES.edd,
-    },
+  ]
+
+  const middle: OnboardingStep[] = clientType === 'company'
+    ? [
+        {
+          key: 'agreements',
+          title: 'Соглашения',
+          states: ['AGREEMENTS_ACCEPTED'],
+          actionPath: ONBOARDING_ROUTES.agreements,
+        },
+        {
+          key: 'documents',
+          title: 'Корпоративное досье',
+          states: ['DOCUMENTS_SUBMITTED'],
+          actionPath: ONBOARDING_ROUTES.documents,
+        },
+        {
+          key: 'edd',
+          title: 'Углублённая проверка компании',
+          states: ['EDD_IN_PROGRESS', 'EDD_SUBMITTED'],
+          actionPath: ONBOARDING_ROUTES.edd,
+        },
+      ]
+    : [
+        {
+          key: 'self-cert',
+          title: 'Самосертификация',
+          states: ['SELF_CERT_COMPLETED'],
+          actionPath: ONBOARDING_ROUTES.selfCertification,
+        },
+        {
+          key: 'agreements',
+          title: 'Соглашения',
+          states: ['AGREEMENTS_ACCEPTED'],
+          actionPath: ONBOARDING_ROUTES.agreements,
+        },
+        {
+          key: 'edd',
+          title: 'Углублённая проверка',
+          states: ['EDD_IN_PROGRESS', 'EDD_SUBMITTED'],
+          actionPath: ONBOARDING_ROUTES.edd,
+        },
+      ]
+
+  return [
+    ...commonStart,
+    ...middle,
     { key: 'review', title: 'На рассмотрении', states: ['UNDER_REVIEW'] },
     { key: 'approved', title: 'Одобрено', states: ['APPROVED'], actionPath: '/' },
   ]
 }
-
-export const ONBOARDING_STEPS: OnboardingStep[] = onboardingSteps()
 
 const COMPLETING_STATES: OnboardingState[] = [
   'EMAIL_VERIFIED',
@@ -70,27 +98,38 @@ const OFF_TRACK: Partial<Record<OnboardingState, { anchorKey: string; status: St
   SUSPENDED: { anchorKey: 'review', status: 'blocked' },
 }
 
-export function resolveCurrentStep(current: OnboardingState): OnboardingStep | null {
-  const index = resolveAnchorIndex(current)
-  return index === -1 ? null : (ONBOARDING_STEPS[index] ?? null)
-}
-
-function resolveAnchorIndex(current: OnboardingState): number {
+function resolveAnchorIndex(current: OnboardingState, clientType: ClientType): number {
+  const steps = onboardingSteps(clientType)
   const offTrack = OFF_TRACK[current]
-  if (offTrack) return ONBOARDING_STEPS.findIndex((step) => step.key === offTrack.anchorKey)
+  if (offTrack) return steps.findIndex((step) => step.key === offTrack.anchorKey)
 
-  const ownerIndex = ONBOARDING_STEPS.findIndex((step) => step.states.includes(current))
-  if (ownerIndex === -1) return -1
-  return COMPLETING_STATES.includes(current) ? ownerIndex + 1 : ownerIndex
+  const ownerIndex = steps.findIndex((step) => step.states.includes(current))
+  if (ownerIndex !== -1) return COMPLETING_STATES.includes(current) ? Math.min(ownerIndex + 1, steps.length - 1) : ownerIndex
+
+  // Состояния, которых нет в конкретной ветке, считаем техническими мостами.
+  if (clientType === 'company' && current === 'SELF_CERT_COMPLETED') return steps.findIndex((step) => step.key === 'agreements')
+  if (clientType === 'individual' && current === 'DOCUMENTS_SUBMITTED') return steps.findIndex((step) => step.key === 'edd')
+  return -1
 }
 
-export function resolveStepStatuses(current: OnboardingState, history: OnboardingHistoryEntry[] = []): StepStatus[] {
-  const anchorIndex = resolveAnchorIndex(current)
-  if (anchorIndex === -1) return ONBOARDING_STEPS.map(() => 'pending')
+export function resolveCurrentStep(current: OnboardingState, clientType: ClientType = 'individual'): OnboardingStep | null {
+  const steps = onboardingSteps(clientType)
+  const index = resolveAnchorIndex(current, clientType)
+  return index === -1 ? null : (steps[index] ?? null)
+}
+
+export function resolveStepStatuses(
+  current: OnboardingState,
+  history: OnboardingHistoryEntry[] = [],
+  clientType: ClientType = 'individual',
+): StepStatus[] {
+  const steps = onboardingSteps(clientType)
+  const anchorIndex = resolveAnchorIndex(current, clientType)
+  if (anchorIndex === -1) return steps.map(() => 'pending')
 
   const reached = new Set(history.map((entry) => entry.toState))
 
-  return ONBOARDING_STEPS.map((step, index) => {
+  return steps.map((step, index) => {
     if (index < anchorIndex) return 'completed'
     if (index === anchorIndex) {
       if (current === 'APPROVED') return 'completed'
