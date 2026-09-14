@@ -22,7 +22,7 @@ export {
   type DocumentForm,
   type Jurisdiction,
   type RequiredDocument,
-} from './documents'
+} from './documents-regulatory'
 
 export type AppArea = 'site' | 'onboarding' | 'cabinet'
 
