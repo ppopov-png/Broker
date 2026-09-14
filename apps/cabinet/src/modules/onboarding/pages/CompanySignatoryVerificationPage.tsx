@@ -34,11 +34,7 @@ function writeSessionId(value: string) {
   }
 }
 
-/**
- * Для юрлица KYC-сессия относится к физическому лицу, действующему от имени
- * компании. Сама компания, структура владения и UBO проверяются по
- * корпоративному досье на отдельном шаге.
- */
+/** Для юрлица KYC-сессия относится к физическому лицу, действующему от имени компании. */
 export function CompanySignatoryVerificationPage() {
   const { allowed } = useOnboardingStepGuard('EMAIL_VERIFIED')
   const { status } = useOnboardingState(false)
@@ -100,7 +96,7 @@ export function CompanySignatoryVerificationPage() {
       <PageHeader
         back={<BackToStatus />}
         title="Проверка уполномоченного подписанта"
-        description="Юридическое лицо не проходит селфи-проверку как человек. На этом шаге подтверждаем личность директора или иного лица, уполномоченного открывать и вести счёт. Компания, структура владения и бенефициары проверяются по корпоративному досье далее."
+        description="Подтверждаем личность директора или иного лица, уполномоченного открывать и вести счёт. Компания, структура владения и бенефициары проверяются по корпоративному досье."
       />
 
       {loading ? (
@@ -122,7 +118,7 @@ export function CompanySignatoryVerificationPage() {
                   {approved ? 'Личность подписанта подтверждена' : inProgress ? 'Проверка выполняется' : 'Проверка ещё не начата'}
                 </p>
                 <p className="mt-1 text-xs text-[var(--trigonum-muted)]">
-                  Следующим этапом будут декларации, соглашения и корпоративное досье.
+                  Следующим этапом будут соглашения и корпоративное досье.
                 </p>
               </div>
               <Pill tone={approved ? 'success' : inProgress ? 'info' : undefined}>
@@ -163,10 +159,10 @@ export function CompanySignatoryVerificationPage() {
             <Card>
               <p className="flex items-start gap-2 text-sm text-[var(--trigonum-text)]">
                 <BadgeCheck size={17} className="mt-0.5 shrink-0 text-[var(--trigonum-success)]" />
-                Проверка подписанта завершена. Корпоративные документы и сведения о бенефициарах будут проверяться отдельно.
+                Проверка подписанта завершена. Дальше — соглашения и корпоративное досье.
               </p>
               <Link
-                to={ONBOARDING_ROUTES.selfCertification}
+                to={ONBOARDING_ROUTES.agreements}
                 className="mt-4 inline-flex rounded-lg bg-[var(--trigonum-ink)] px-4 py-2.5 text-sm font-semibold text-white"
               >
                 Продолжить оформление
