@@ -9,8 +9,8 @@ import type { ClientProfile, ClientType, Jurisdiction } from './documents-regula
 
 export const ONBOARDING_STORE_KEY = 'trigonum-onboarding-v1'
 export const PROTOTYPE_ACCOUNTS_KEY = 'trigonum-accounts-v1'
+const SESSION_STORE_KEY = 'trigonum-session-v1'
 
-/** Профиль по умолчанию: физлицо-резидент — только для старых демо-состояний. */
 export const DEFAULT_CLIENT_PROFILE: ClientProfile = { clientType: 'individual', jurisdiction: 'KG' }
 
 export type OnboardingState =
@@ -54,6 +54,26 @@ function readStore(): StoreShape | null {
   } catch {
     return null
   }
+}
+
+function readSessionProfile(): ClientProfile | null {
+  try {
+    const raw = window.localStorage.getItem(SESSION_STORE_KEY)
+    if (!raw) return null
+    const session = JSON.parse(raw) as Partial<ClientProfile>
+    if (
+      (session.clientType === 'individual' || session.clientType === 'company') &&
+      typeof session.jurisdiction === 'string'
+    ) {
+      return {
+        clientType: session.clientType,
+        jurisdiction: session.jurisdiction as Jurisdiction,
+      }
+    }
+  } catch {
+    return null
+  }
+  return null
 }
 
 function accountKey(email: string): string {
@@ -113,6 +133,9 @@ export function markClientProfile(profile: ClientProfile): void {
 }
 
 export function readClientProfile(): ClientProfile {
+  const sessionProfile = readSessionProfile()
+  if (sessionProfile) return sessionProfile
+
   const store = readStore()
   return {
     clientType: store?.clientType ?? DEFAULT_CLIENT_PROFILE.clientType,
