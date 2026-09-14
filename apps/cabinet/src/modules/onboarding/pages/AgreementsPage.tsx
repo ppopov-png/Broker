@@ -27,6 +27,15 @@ const categoryLabels: Record<AgreementCategory, string> = {
   OTHER: 'Прочее',
 }
 
+const PLACEHOLDER_TEMPLATE_IDS = new Set([
+  'agr-am-v1', 'agr-am-v2', 'agr-bd-v1', 'agr-va-v1', 'agr-va-v2',
+  'agr-risk-v1', 'agr-pp-v1', 'agr-pp-v2', 'agr-mkt-v1',
+])
+
+function verifiedAgreements(items: Agreement[]): Agreement[] {
+  return filterRetired(items).filter((item) => !PLACEHOLDER_TEMPLATE_IDS.has(item.template.id))
+}
+
 export function AgreementsPage() {
   const profile = useMemo(() => readClientProfile(), [])
   const { allowed } = useOnboardingStepGuard(profile.clientType === 'company' ? 'IDENTITY_VERIFIED' : 'SELF_CERT_COMPLETED')
@@ -41,8 +50,7 @@ export function AgreementsPage() {
 
   const load = useCallback(async () => {
     try {
-      const list = await getAgreements()
-      setAgreements(filterRetired(list))
+      setAgreements(verifiedAgreements(await getAgreements()))
       setError(false)
     } catch {
       setError(true)
@@ -66,13 +74,9 @@ export function AgreementsPage() {
     try {
       await consentAgreement(templateId)
       toast('success', 'Согласие зафиксировано')
-
-      const refreshed = filterRetired(await getAgreements())
+      const refreshed = verifiedAgreements(await getAgreements())
       setAgreements(refreshed)
-
-      const allRequiredSigned = refreshed
-        .filter((item) => item.template.isRequired)
-        .every((item) => item.consented)
+      const allRequiredSigned = refreshed.filter((item) => item.template.isRequired).every((item) => item.consented)
       if (allRequiredSigned) await goNext()
     } catch {
       toast('error', 'Не удалось зафиксировать согласие')
@@ -85,7 +89,7 @@ export function AgreementsPage() {
     setPending(agreement.template.id)
     try {
       await revokeAgreement(agreement.template.id)
-      setAgreements(filterRetired(await getAgreements()))
+      setAgreements(verifiedAgreements(await getAgreements()))
       notifyOnboardingChanged()
       toast('success', 'Согласие отозвано, запись добавлена в журнал')
     } catch {
@@ -105,8 +109,8 @@ export function AgreementsPage() {
     <div className="pb-10">
       <PageHeader
         back={<BackToStatus />}
-        title="Юридические документы"
-        description="Ознакомьтесь с документами и подтвердите согласие. Без обязательных соглашений счёт открыть нельзя."
+        title="Соглашения"
+        description="Ознакомьтесь с документами, предоставленными оператором, и подтвердите согласие."
         action={required.length > 0 ? <Pill tone={signedCount === required.length ? 'success' : 'info'}>Подписано {signedCount} из {required.length}</Pill> : undefined}
       />
 
@@ -118,9 +122,9 @@ export function AgreementsPage() {
           <OutlineButton type="button" className="mt-4" onClick={() => void load()}>Повторить</OutlineButton>
         </Card>
       ) : agreements.length === 0 ? (
-        <Card>
-          <p className="text-sm text-[var(--trigonum-text)]">Сейчас подписывать нечего — можно перейти к следующему шагу.</p>
-          <PrimaryButton type="button" className="mt-4" onClick={() => void goNext()}>Продолжить</PrimaryButton>
+        <Card title="Список документов ещё не подключён">
+          <p className="text-sm leading-relaxed text-[var(--trigonum-text)]">В инструкции инвестора конкретные названия и версии соглашений не указаны, поэтому демонстрационные названия скрыты. В рабочем контуре список должен приходить из утверждённого серверного реестра.</p>
+          <PrimaryButton type="button" className="mt-4" onClick={() => void goNext()}>Продолжить прототип</PrimaryButton>
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
