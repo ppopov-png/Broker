@@ -1,5 +1,5 @@
 name: Deploy Trigonum Broker to GitHub Pages
-# Single production deployment: build the Vite apps from main and publish one Pages artifact.
+# Single production deployment from main. Rebuild all three Vite apps on every push.
 
 on:
   push:
