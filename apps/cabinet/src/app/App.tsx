@@ -14,7 +14,7 @@ import { LevelsPage } from '../modules/levels/pages/LevelsPage'
 import { AgreementsPage } from '../modules/onboarding/pages/AgreementsPage'
 import { DocumentsChecklistPage } from '../modules/onboarding/pages/DocumentsChecklistPage'
 import { EddQuestionnairePage } from '../modules/onboarding/pages/EddQuestionnairePage'
-import { IdentityVerificationPage } from '../modules/onboarding/pages/IdentityVerificationPage'
+import { IdentityVerificationRoute } from '../modules/onboarding/pages/IdentityVerificationRoute'
 import { OnboardingStatusPage } from '../modules/onboarding/pages/OnboardingStatusPage'
 import { SelfCertificationPage } from '../modules/onboarding/pages/SelfCertificationPage'
 import { ProfilePage } from '../modules/profile/pages/ProfilePage'
@@ -40,7 +40,7 @@ export function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/levels" element={<LevelsPage />} />
           <Route path="/onboarding" element={<OnboardingStatusPage />} />
-          <Route path="/onboarding/identity" element={<IdentityVerificationPage />} />
+          <Route path="/onboarding/identity" element={<IdentityVerificationRoute />} />
           <Route path="/onboarding/self-certification" element={<SelfCertificationPage />} />
           <Route path="/onboarding/agreements" element={<AgreementsPage />} />
           <Route path="/onboarding/documents" element={<DocumentsChecklistPage />} />
