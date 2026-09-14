@@ -1,6 +1,7 @@
 import { Check, Download, FileText, TriangleAlert } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { readClientProfile } from '@trigonum/shared'
 import { consentAgreement, finalizeAgreements, getAgreements, revokeAgreement } from '../../../shared/lib/onboarding/api'
 import type { Agreement, AgreementCategory } from '../../../shared/lib/onboarding/types'
 import {
@@ -27,7 +28,8 @@ const categoryLabels: Record<AgreementCategory, string> = {
 }
 
 export function AgreementsPage() {
-  const { allowed } = useOnboardingStepGuard('SELF_CERT_COMPLETED')
+  const profile = useMemo(() => readClientProfile(), [])
+  const { allowed } = useOnboardingStepGuard(profile.clientType === 'company' ? 'IDENTITY_VERIFIED' : 'SELF_CERT_COMPLETED')
   const navigate = useNavigate()
   const toast = useToast()
 
@@ -40,7 +42,6 @@ export function AgreementsPage() {
   const load = useCallback(async () => {
     try {
       const list = await getAgreements()
-      // Ту же фильтрацию применяем и здесь, и при проверке перехода.
       setAgreements(filterRetired(list))
       setError(false)
     } catch {
@@ -57,8 +58,8 @@ export function AgreementsPage() {
   const goNext = useCallback(async () => {
     await finalizeAgreements()
     notifyOnboardingChanged()
-    navigate(ONBOARDING_ROUTES.documents)
-  }, [navigate])
+    navigate(profile.clientType === 'company' ? ONBOARDING_ROUTES.documents : ONBOARDING_ROUTES.edd)
+  }, [navigate, profile.clientType])
 
   const accept = async (templateId: string) => {
     setPending(templateId)
@@ -106,13 +107,7 @@ export function AgreementsPage() {
         back={<BackToStatus />}
         title="Юридические документы"
         description="Ознакомьтесь с документами и подтвердите согласие. Без обязательных соглашений счёт открыть нельзя."
-        action={
-          required.length > 0 ? (
-            <Pill tone={signedCount === required.length ? 'success' : 'info'}>
-              Подписано {signedCount} из {required.length}
-            </Pill>
-          ) : undefined
-        }
+        action={required.length > 0 ? <Pill tone={signedCount === required.length ? 'success' : 'info'}>Подписано {signedCount} из {required.length}</Pill> : undefined}
       />
 
       {loading ? (
@@ -120,18 +115,12 @@ export function AgreementsPage() {
       ) : error ? (
         <Card>
           <p className="text-sm text-[var(--trigonum-muted)]">Не удалось загрузить соглашения</p>
-          <OutlineButton type="button" className="mt-4" onClick={() => void load()}>
-            Повторить
-          </OutlineButton>
+          <OutlineButton type="button" className="mt-4" onClick={() => void load()}>Повторить</OutlineButton>
         </Card>
       ) : agreements.length === 0 ? (
         <Card>
-          <p className="text-sm text-[var(--trigonum-text)]">
-            Сейчас подписывать нечего — можно перейти к следующему шагу.
-          </p>
-          <PrimaryButton type="button" className="mt-4" onClick={() => void goNext()}>
-            Продолжить
-          </PrimaryButton>
+          <p className="text-sm text-[var(--trigonum-text)]">Сейчас подписывать нечего — можно перейти к следующему шагу.</p>
+          <PrimaryButton type="button" className="mt-4" onClick={() => void goNext()}>Продолжить</PrimaryButton>
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
@@ -142,69 +131,24 @@ export function AgreementsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-[15px] font-semibold text-[var(--trigonum-ink)]">{item.template.name}</h2>
                     <span className="text-xs tabular-nums text-[var(--trigonum-muted)]">v{item.template.version}</span>
-                    {item.template.isRequired ? (
-                      <Pill tone="warning">Обязательное</Pill>
-                    ) : (
-                      <Pill tone="neutral">По желанию</Pill>
-                    )}
+                    {item.template.isRequired ? <Pill tone="warning">Обязательное</Pill> : <Pill tone="neutral">По желанию</Pill>}
                   </div>
-                  <p className="mt-1.5 max-w-[70ch] text-sm text-[var(--trigonum-muted)]">
-                    {item.template.description}
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--trigonum-muted)]">
-                    {categoryLabels[item.template.category]}
-                  </p>
+                  <p className="mt-1.5 max-w-[70ch] text-sm text-[var(--trigonum-muted)]">{item.template.description}</p>
+                  <p className="mt-1 text-xs text-[var(--trigonum-muted)]">{categoryLabels[item.template.category]}</p>
                 </div>
-
                 <div className="flex shrink-0 gap-2">
-                  <a
-                    href={`#/documents?template=${item.template.mediaId}`}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--trigonum-border)] px-3 py-1.5 text-xs font-semibold text-[var(--trigonum-ink)] transition hover:border-[var(--trigonum-ink)]"
-                  >
-                    <FileText size={13} />
-                    Открыть
-                  </a>
-                  <a
-                    href={`#/documents?download=${item.template.mediaId}`}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--trigonum-border)] px-3 py-1.5 text-xs font-semibold text-[var(--trigonum-ink)] transition hover:border-[var(--trigonum-ink)]"
-                  >
-                    <Download size={13} />
-                    Скачать
-                  </a>
+                  <a href={`#/documents?template=${item.template.mediaId}`} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--trigonum-border)] px-3 py-1.5 text-xs font-semibold text-[var(--trigonum-ink)] transition hover:border-[var(--trigonum-ink)]"><FileText size={13} />Открыть</a>
+                  <a href={`#/documents?download=${item.template.mediaId}`} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--trigonum-border)] px-3 py-1.5 text-xs font-semibold text-[var(--trigonum-ink)] transition hover:border-[var(--trigonum-ink)]"><Download size={13} />Скачать</a>
                 </div>
               </div>
-
               <div className="mt-4 border-t border-[var(--trigonum-border)] pt-4">
                 {item.consented ? (
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="flex items-center gap-2 text-sm font-semibold text-[var(--trigonum-success)]">
-                      <Check size={15} strokeWidth={2.5} />
-                      Согласие зафиксировано
-                      {item.consentedAt &&
-                        ` · ${new Date(item.consentedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}`}
-                    </p>
-                    <button
-                      type="button"
-                      disabled={pending === item.template.id}
-                      onClick={() => setRevoking(item)}
-                      className="shrink-0 text-xs font-semibold text-[var(--trigonum-muted)] transition hover:text-[var(--trigonum-danger)] disabled:opacity-50"
-                    >
-                      Отозвать
-                    </button>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-[var(--trigonum-success)]"><Check size={15} strokeWidth={2.5} />Согласие зафиксировано{item.consentedAt && ` · ${new Date(item.consentedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}`}</p>
+                    <button type="button" disabled={pending === item.template.id} onClick={() => setRevoking(item)} className="shrink-0 text-xs font-semibold text-[var(--trigonum-muted)] transition hover:text-[var(--trigonum-danger)] disabled:opacity-50">Отозвать</button>
                   </div>
                 ) : (
-                  <label className="flex cursor-pointer items-start gap-3">
-                    <input
-                      type="checkbox"
-                      checked={false}
-                      disabled={pending === item.template.id}
-                      onChange={() => void accept(item.template.id)}
-                      className="mt-0.5 size-4 shrink-0 accent-[var(--trigonum-ink)]"
-                    />
-                    <span className="text-sm text-[var(--trigonum-text)]">
-                      Я прочитал документ и принимаю его условия
-                    </span>
-                  </label>
+                  <label className="flex cursor-pointer items-start gap-3"><input type="checkbox" checked={false} disabled={pending === item.template.id} onChange={() => void accept(item.template.id)} className="mt-0.5 size-4 shrink-0 accent-[var(--trigonum-ink)]" /><span className="text-sm text-[var(--trigonum-text)]">Я прочитал документ и принимаю его условия</span></label>
                 )}
               </div>
             </Card>
@@ -212,49 +156,14 @@ export function AgreementsPage() {
         </div>
       )}
 
-      <Modal
-        open={Boolean(revoking)}
-        onClose={() => setRevoking(null)}
-        title="Отозвать согласие"
-        subtitle={revoking ? `${revoking.template.name} v${revoking.template.version}` : undefined}
-      >
+      <Modal open={Boolean(revoking)} onClose={() => setRevoking(null)} title="Отозвать согласие" subtitle={revoking ? `${revoking.template.name} v${revoking.template.version}` : undefined}>
         {revoking?.template.isRequired ? (
-          <div
-            className="rounded-xl border p-3.5"
-            style={{
-              borderColor: 'color-mix(in srgb, var(--trigonum-warning) 45%, white)',
-              background: 'color-mix(in srgb, var(--trigonum-warning) 8%, white)',
-            }}
-          >
-            <p className="flex items-start gap-2 text-sm text-[var(--trigonum-text)]">
-              <TriangleAlert size={16} className="mt-0.5 shrink-0 text-[var(--trigonum-warning)]" />
-              Документ обязательный. Без него счёт не может обслуживаться, поэтому заявка вернётся на шаг соглашений,
-              а операции будут недоступны до повторного подписания.
-            </p>
+          <div className="rounded-xl border p-3.5" style={{ borderColor: 'color-mix(in srgb, var(--trigonum-warning) 45%, white)', background: 'color-mix(in srgb, var(--trigonum-warning) 8%, white)' }}>
+            <p className="flex items-start gap-2 text-sm text-[var(--trigonum-text)]"><TriangleAlert size={16} className="mt-0.5 shrink-0 text-[var(--trigonum-warning)]" />Документ обязательный. Без него счёт не может обслуживаться, поэтому заявка вернётся на шаг соглашений, а операции будут недоступны до повторного подписания.</p>
           </div>
-        ) : (
-          <p className="text-sm text-[var(--trigonum-text)]">
-            Документ не обязателен — отзыв не влияет на обслуживание счёта.
-          </p>
-        )}
-
-        <p className="mt-3 text-xs text-[var(--trigonum-muted)]">
-          Отзыв и дата попадут в журнал согласий в разделе «Документы». Ранее подписанная версия остаётся в истории.
-        </p>
-
-        <div className="mt-5 flex justify-end gap-2">
-          <OutlineButton type="button" onClick={() => setRevoking(null)}>
-            Отмена
-          </OutlineButton>
-          <button
-            type="button"
-            disabled={pending !== null}
-            onClick={() => revoking && void revoke(revoking)}
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-danger)] px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-50"
-          >
-            Отозвать согласие
-          </button>
-        </div>
+        ) : <p className="text-sm text-[var(--trigonum-text)]">Документ не обязателен — отзыв не влияет на обслуживание счёта.</p>}
+        <p className="mt-3 text-xs text-[var(--trigonum-muted)]">Отзыв и дата попадут в журнал согласий в разделе «Документы». Ранее подписанная версия остаётся в истории.</p>
+        <div className="mt-5 flex justify-end gap-2"><OutlineButton type="button" onClick={() => setRevoking(null)}>Отмена</OutlineButton><button type="button" disabled={pending !== null} onClick={() => revoking && void revoke(revoking)} className="inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-danger)] px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-50">Отозвать согласие</button></div>
       </Modal>
     </div>
   )
