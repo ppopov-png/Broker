@@ -5,8 +5,8 @@ import {
   DOCUMENT_FORMS,
   JURISDICTIONS,
   documentChecklist,
-  markClientProfile,
   markOnboardingState,
+  registerPrototypeAccount,
   type ClientType,
   type Jurisdiction,
 } from '@trigonum/shared'
@@ -42,8 +42,6 @@ export function RegisterPage() {
   const isCompany = clientType === 'company'
 
   const [values, setValues] = useState({ name: '', email: '', password: '' })
-  // Юрисдикция определяет перечень документов, поэтому спрашивается здесь,
-  // а не в анкете: клиент должен увидеть состав досье до регистрации.
   const [jurisdiction, setJurisdiction] = useState<Jurisdiction>('KG')
   const [errors, setErrors] = useState<Errors>({})
   const [submitting, setSubmitting] = useState(false)
@@ -59,7 +57,12 @@ export function RegisterPage() {
 
     setSubmitting(true)
     await new Promise((resolve) => setTimeout(resolve, 600))
-    markClientProfile({ clientType, jurisdiction })
+    registerPrototypeAccount({
+      email: values.email.trim(),
+      name: values.name.trim(),
+      clientType,
+      jurisdiction,
+    })
     setRegisteredEmail(values.email.trim())
     setSubmitting(false)
   }
@@ -71,8 +74,8 @@ export function RegisterPage() {
       title={isCompany ? 'Счёт для компании' : 'Счёт частного инвестора'}
       subtitle={
         isCompany
-          ? 'Заполните форму — и мы отправим письмо для подтверждения. Проверка компании, подписанта и документы будут на следующих шагах.'
-          : 'Заполните форму — и мы отправим письмо для подтверждения. Проверка личности и документы будут на следующих шагах.'
+          ? 'Создаётся аккаунт юридического лица. После подтверждения email мы проверим личность уполномоченного подписанта, затем корпоративное досье и бенефициаров.'
+          : 'Создаётся аккаунт физического лица. После подтверждения email пройдите проверку личности и загрузите документы.'
       }
       back={
         <Link to="/" className="mb-4 inline-flex text-xs font-semibold text-[var(--trigonum-blue)]">
@@ -80,8 +83,15 @@ export function RegisterPage() {
         </Link>
       }
     >
+      <div className="mb-4 rounded-xl border border-[var(--trigonum-border)] bg-[var(--trigonum-bg)] px-4 py-3">
+        <p className="text-[11px] font-bold uppercase tracking-[.08em] text-[var(--trigonum-muted)]">Тип создаваемого аккаунта</p>
+        <p className="mt-1 text-sm font-semibold text-[var(--trigonum-ink)]">
+          {isCompany ? 'Юридическое лицо' : 'Физическое лицо'}
+        </p>
+      </div>
+
       <form className="flex flex-col gap-4" onSubmit={submit} noValidate>
-        <Field label={isCompany ? 'Название компании' : 'Имя и фамилия'} error={errors.name}>
+        <Field label={isCompany ? 'Полное наименование компании' : 'Имя и фамилия'} error={errors.name}>
           <input
             value={values.name}
             maxLength={MAX_NAME}
@@ -95,8 +105,8 @@ export function RegisterPage() {
           label={isCompany ? 'Юрисдикция регистрации компании' : 'Гражданство'}
           helper={
             isCompany
-              ? 'От неё зависит перечень учредительных документов и требования к их легализации.'
-              : 'Для граждан Кыргызстана перечень короче: паспорт нерезидента подаётся нотариальной копией и с подтверждением адреса.'
+              ? 'От неё зависит состав корпоративного досье, нотариальное заверение, перевод и легализация документов.'
+              : 'Для граждан Кыргызстана перечень короче; иностранному гражданину также потребуется подтверждение адреса.'
           }
         >
           <select
@@ -114,7 +124,7 @@ export function RegisterPage() {
           </select>
         </Field>
 
-        <Field label="Email" error={errors.email}>
+        <Field label="Email аккаунта" error={errors.email}>
           <input
             type="email"
             value={values.email}
@@ -146,8 +156,8 @@ export function RegisterPage() {
         </button>
 
         <p className="text-xs leading-relaxed text-[var(--trigonum-muted)]">
-          Нажимая «Создать счёт», вы соглашаетесь с политикой обработки персональных данных. Юридические документы
-          нужно будет подписать отдельно на шаге соглашений.
+          Тип клиента сохраняется вместе с аккаунтом и после входа определяет маршрут проверки и состав документов.
+          Юридические документы подписываются отдельно на шаге соглашений.
         </p>
       </form>
 
@@ -156,11 +166,6 @@ export function RegisterPage() {
   )
 }
 
-/**
- * Состав досье показывается до регистрации, а не после четырёх пройденных
- * шагов. Юрлицо из Турции увидит шестнадцать позиций с апостилем сразу —
- * и решит, готово ли оно их собрать, до того как заведёт аккаунт.
- */
 function ChecklistPreview({ items }: { items: ReturnType<typeof documentChecklist> }) {
   const mandatory = items.filter((item) => !item.optional)
 
@@ -168,11 +173,11 @@ function ChecklistPreview({ items }: { items: ReturnType<typeof documentChecklis
     <div className="mt-7 rounded-xl border border-[var(--trigonum-border)] bg-[var(--trigonum-bg)] p-5">
       <p className="flex items-center gap-2 text-sm font-bold text-[var(--trigonum-ink)]">
         <FileText size={15} />
-        Что понадобится: {mandatory.length} {plural(mandatory.length, 'документ', 'документа', 'документов')}
+        Обязательных позиций: {mandatory.length}
       </p>
       <p className="mt-1 text-xs leading-relaxed text-[var(--trigonum-muted)]">
-        Перечень приложения №1.1. Собирать заранее не нужно — досье загружается на отдельном шаге после подписания
-        соглашений.
+        Перечень сформирован по приложению №1.1 для выбранного типа клиента и юрисдикции. Условные позиции отмечены
+        отдельно. На шаге досье к одной позиции можно приложить несколько файлов.
       </p>
 
       <ol className="mt-4 flex flex-col gap-2.5">
@@ -184,7 +189,7 @@ function ChecklistPreview({ items }: { items: ReturnType<typeof documentChecklis
             <span className="min-w-0">
               <span className="block text-[13px] leading-snug text-[var(--trigonum-text)]">
                 {item.title}
-                {item.optional && <span className="text-[var(--trigonum-muted)]"> — при наличии</span>}
+                {item.optional && <span className="text-[var(--trigonum-muted)]"> — если применимо / при наличии</span>}
               </span>
               <span className="mt-0.5 block text-[11px] text-[var(--trigonum-muted)]">
                 {DOCUMENT_FORMS[item.form].label}
@@ -198,14 +203,6 @@ function ChecklistPreview({ items }: { items: ReturnType<typeof documentChecklis
   )
 }
 
-function plural(count: number, one: string, few: string, many: string): string {
-  const mod10 = count % 10
-  const mod100 = count % 100
-  if (mod10 === 1 && mod100 !== 11) return one
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few
-  return many
-}
-
 function CheckMailbox({ email, isCompany }: { email: string; isCompany: boolean }) {
   return (
     <Shell title="Проверьте почту" subtitle={`Мы отправили ссылку для подтверждения на ${email}.`}>
@@ -213,31 +210,30 @@ function CheckMailbox({ email, isCompany }: { email: string; isCompany: boolean 
         <div className="flex items-start gap-3 rounded-xl border border-[var(--trigonum-border)] bg-[var(--trigonum-bg)] p-4">
           <Mail size={18} className="mt-0.5 shrink-0 text-[var(--trigonum-blue)]" />
           <p className="text-sm text-[var(--trigonum-text)]">
-            Перейдите по ссылке из письма — после этого откроется проверка личности. Ссылка действует 24 часа.
+            Перейдите по ссылке из письма. После подтверждения {isCompany ? 'начнётся проверка уполномоченного подписанта' : 'откроется проверка личности'}. Ссылка действует 24 часа.
           </p>
         </div>
 
         <div className="flex flex-col gap-2.5">
           <Step done text="Регистрация" />
           <Step text="Подтверждение email" current />
-          <Step text={isCompany ? 'Проверка компании и подписанта' : 'Проверка личности'} />
-          <Step text="Самосертификация и соглашения" />
-          <Step text={isCompany ? 'Документы компании' : 'Документы'} />
+          <Step text={isCompany ? 'Проверка уполномоченного подписанта' : 'Проверка личности'} />
+          <Step text="Декларации и соглашения" />
+          <Step text={isCompany ? 'Корпоративное досье и бенефициары' : 'Документы'} />
+          <Step text="Комплаенс-проверка" />
         </div>
 
         <p className="text-xs text-[var(--trigonum-muted)]">
           Письмо не пришло? Проверьте папку со спамом или напишите на support@trigonum.broker.
         </p>
 
-        {/* Бэкенда нет — письмо не придёт, поэтому даём пройти шаг вручную. */}
         <div className="rounded-xl border border-dashed border-[var(--trigonum-border)] p-4">
           <p className="flex items-center gap-2 text-xs font-semibold text-[var(--trigonum-ink)]">
             <FlaskConical size={13} />
             Прототип без бэкенда
           </p>
           <p className="mt-1 text-xs text-[var(--trigonum-muted)]">
-            Настоящее письмо не отправляется. Нажмите, чтобы отметить почту подтверждённой и перейти к проверке
-            личности.
+            Настоящее письмо не отправляется. Нажмите, чтобы отметить email подтверждённым и перейти к следующему шагу.
           </p>
           <a
             href="../app/#/onboarding/identity"
