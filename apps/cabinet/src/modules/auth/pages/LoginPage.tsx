@@ -1,10 +1,15 @@
-import { ArrowRight, Eye, EyeOff, FlaskConical, Lock, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Building2, Eye, EyeOff, FlaskConical, Lock, ShieldCheck, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { signIn, useSession } from '../../../shared/lib/session'
+import {
+  DEMO_COMPANY_EMAIL,
+  DEMO_INDIVIDUAL_EMAIL,
+  resolveLoginAccount,
+  signIn,
+  useSession,
+} from '../../../shared/lib/session'
 import { Logo } from '../../../shared/ui/Logo'
 
-const DEMO_EMAIL = 'artem@trigonum.broker'
 const MIN_PASSWORD = 8
 
 type Errors = Partial<Record<'email' | 'password', string>>
@@ -30,15 +35,19 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [resetSent, setResetSent] = useState(false)
 
-  // Куда возвращаться после входа: страница, с которой выбросил гард.
   const from = (location.state as { from?: string } | null)?.from ?? '/'
-
-  // Уже вошли (например, открыли /login по прямой ссылке) — незачем спрашивать пароль.
   if (session) return <Navigate to={from} replace />
 
+  const resolvedAccount = values.email.trim() ? resolveLoginAccount(values.email) : null
+
   const enter = (email: string) => {
-    signIn(email)
+    const nextSession = signIn(email)
+    if (!nextSession) {
+      setErrors((current) => ({ ...current, email: 'Аккаунт не найден. Сначала откройте счёт или используйте демо-аккаунт.' }))
+      return false
+    }
     navigate(from, { replace: true })
+    return true
   }
 
   const submit = async (event: React.FormEvent) => {
@@ -48,9 +57,9 @@ export function LoginPage() {
     if (Object.keys(next).length > 0) return
 
     setSubmitting(true)
-    // Бэкенда нет: пауза только чтобы кнопка не мигала мгновенным переходом.
     await new Promise((resolve) => setTimeout(resolve, 500))
     enter(values.email)
+    setSubmitting(false)
   }
 
   return (
@@ -63,7 +72,7 @@ export function LoginPage() {
         <div className="rounded-[var(--trigonum-radius-lg)] border border-[var(--trigonum-border)] bg-[var(--trigonum-surface)] p-6 shadow-[var(--trigonum-shadow-card)]">
           <h1 className="text-2xl font-bold text-[var(--trigonum-ink)]">Вход в кабинет</h1>
           <p className="mt-1.5 text-sm text-[var(--trigonum-muted)]">
-            Введите данные счёта Trigonum, чтобы продолжить.
+            Введите данные счёта Trigonum. Тип аккаунта — физическое или юридическое лицо — хранится в самом аккаунте и восстанавливается автоматически.
           </p>
 
           <form className="mt-6 flex flex-col gap-4" onSubmit={submit} noValidate>
@@ -73,10 +82,27 @@ export function LoginPage() {
                 value={values.email}
                 autoComplete="email"
                 autoFocus
-                onChange={(event) => setValues((current) => ({ ...current, email: event.target.value }))}
+                onChange={(event) => {
+                  setValues((current) => ({ ...current, email: event.target.value }))
+                  setErrors((current) => ({ ...current, email: undefined }))
+                }}
                 className={inputClass(Boolean(errors.email))}
               />
             </Field>
+
+            {resolvedAccount && (
+              <div className="flex items-center gap-3 rounded-xl border border-[var(--trigonum-border)] bg-[var(--trigonum-bg)] px-3.5 py-3">
+                <span className={`grid size-9 shrink-0 place-items-center rounded-lg ${resolvedAccount.clientType === 'company' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}>
+                  {resolvedAccount.clientType === 'company' ? <Building2 size={17} /> : <UserRound size={17} />}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-[var(--trigonum-ink)]">{resolvedAccount.name}</p>
+                  <p className="mt-0.5 text-xs text-[var(--trigonum-muted)]">
+                    {resolvedAccount.clientType === 'company' ? 'Юридическое лицо' : 'Физическое лицо'}
+                  </p>
+                </div>
+              </div>
+            )}
 
             <Field label="Пароль" error={errors.password}>
               <div className="relative">
@@ -114,8 +140,7 @@ export function LoginPage() {
 
             {resetSent && (
               <p className="rounded-lg bg-[color-mix(in_srgb,var(--trigonum-blue)_8%,white)] px-3 py-2.5 text-xs text-[var(--trigonum-text)]">
-                Ссылку для сброса пароля отправим на указанный email. В прототипе письма не уходят — войдите
-                демо-счётом ниже.
+                Ссылку для сброса пароля отправим на указанный email. В прототипе письма не уходят.
               </p>
             )}
 
@@ -135,23 +160,32 @@ export function LoginPage() {
             Соединение защищено, вход подтверждается вторым фактором
           </p>
 
-          {/* Бэкенда нет — паролей на проверку тоже, поэтому даём войти одним нажатием. */}
           <div className="mt-5 rounded-xl border border-dashed border-[var(--trigonum-border)] p-4">
             <p className="flex items-center gap-2 text-xs font-semibold text-[var(--trigonum-ink)]">
               <FlaskConical size={13} />
               Прототип без бэкенда
             </p>
             <p className="mt-1 text-xs text-[var(--trigonum-muted)]">
-              Пароль не проверяется — подойдёт любой из 8 символов. Или войдите демо-счётом.
+              Зарегистрированный через «Открыть счёт» email уже помнит свой тип. Для проверки обеих веток доступны два демо-аккаунта.
             </p>
-            <button
-              type="button"
-              onClick={() => enter(DEMO_EMAIL)}
-              className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-125"
-            >
-              <ShieldCheck size={15} />
-              Войти демо-счётом
-            </button>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => enter(DEMO_INDIVIDUAL_EMAIL)}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--trigonum-ink)] px-3 py-2.5 text-xs font-semibold text-white transition hover:brightness-125"
+              >
+                <UserRound size={14} />
+                Физлицо
+              </button>
+              <button
+                type="button"
+                onClick={() => enter(DEMO_COMPANY_EMAIL)}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-violet-700 px-3 py-2.5 text-xs font-semibold text-white transition hover:brightness-125"
+              >
+                <Building2 size={14} />
+                Юрлицо
+              </button>
+            </div>
           </div>
         </div>
 
