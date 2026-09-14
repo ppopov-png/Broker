@@ -8,8 +8,9 @@
 import type { ClientProfile, ClientType, Jurisdiction } from './documents'
 
 export const ONBOARDING_STORE_KEY = 'trigonum-onboarding-v1'
+export const PROTOTYPE_ACCOUNTS_KEY = 'trigonum-accounts-v1'
 
-/** Профиль по умолчанию: физлицо-резидент — самый короткий перечень документов. */
+/** Профиль по умолчанию: физлицо-резидент — только для старых демо-состояний. */
 export const DEFAULT_CLIENT_PROFILE: ClientProfile = { clientType: 'individual', jurisdiction: 'KG' }
 
 export type OnboardingState =
@@ -40,6 +41,12 @@ interface StoreShape {
   [key: string]: unknown
 }
 
+export interface PrototypeAccount extends ClientProfile {
+  email: string
+  name: string
+  createdAt: string
+}
+
 function readStore(): StoreShape | null {
   try {
     const raw = window.localStorage.getItem(ONBOARDING_STORE_KEY)
@@ -47,6 +54,51 @@ function readStore(): StoreShape | null {
   } catch {
     return null
   }
+}
+
+function accountKey(email: string): string {
+  return email.trim().toLowerCase()
+}
+
+function readPrototypeAccounts(): Record<string, PrototypeAccount> {
+  try {
+    const raw = window.localStorage.getItem(PROTOTYPE_ACCOUNTS_KEY)
+    return raw ? (JSON.parse(raw) as Record<string, PrototypeAccount>) : {}
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Прототипный аналог записи пользователя в БД. В реальном API clientType и
+ * jurisdiction должны быть полями аккаунта на сервере, а не вычисляться после входа.
+ */
+export function registerPrototypeAccount(input: {
+  email: string
+  name: string
+  clientType: ClientType
+  jurisdiction: Jurisdiction
+}): PrototypeAccount {
+  const account: PrototypeAccount = {
+    email: input.email.trim(),
+    name: input.name.trim(),
+    clientType: input.clientType,
+    jurisdiction: input.jurisdiction,
+    createdAt: new Date().toISOString(),
+  }
+  try {
+    const accounts = readPrototypeAccounts()
+    accounts[accountKey(account.email)] = account
+    window.localStorage.setItem(PROTOTYPE_ACCOUNTS_KEY, JSON.stringify(accounts))
+  } catch {
+    // Приватный режим — регистрация останется только в текущем онбординг-профиле.
+  }
+  markClientProfile(account)
+  return account
+}
+
+export function findPrototypeAccount(email: string): PrototypeAccount | null {
+  return readPrototypeAccounts()[accountKey(email)] ?? null
 }
 
 /**
