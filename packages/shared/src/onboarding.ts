@@ -5,7 +5,7 @@
  * localStorage у них общий.
  */
 
-import type { ClientProfile, ClientType, Jurisdiction } from './documents'
+import type { ClientProfile, ClientType, Jurisdiction } from './documents-regulatory'
 
 export const ONBOARDING_STORE_KEY = 'trigonum-onboarding-v1'
 export const PROTOTYPE_ACCOUNTS_KEY = 'trigonum-accounts-v1'
@@ -69,10 +69,6 @@ function readPrototypeAccounts(): Record<string, PrototypeAccount> {
   }
 }
 
-/**
- * Прототипный аналог записи пользователя в БД. В реальном API clientType и
- * jurisdiction должны быть полями аккаунта на сервере, а не вычисляться после входа.
- */
 export function registerPrototypeAccount(input: {
   email: string
   name: string
@@ -101,12 +97,6 @@ export function findPrototypeAccount(email: string): PrototypeAccount | null {
   return readPrototypeAccounts()[accountKey(email)] ?? null
 }
 
-/**
- * Тип клиента и юрисдикция выбираются до регистрации и определяют весь
- * дальнейший маршрут: состав документов, формулировки шагов и то, чью
- * личность проверяет провайдер. Пишутся сюда, потому что выбор делает
- * приложение открытия счёта, а читает его кабинет.
- */
 export function markClientProfile(profile: ClientProfile): void {
   try {
     const store = readStore() ?? {
@@ -130,10 +120,6 @@ export function readClientProfile(): ClientProfile {
   }
 }
 
-/**
- * Переводит онбординг в указанное состояние и дописывает переход в историю.
- * Используется и для реальных доменных событий, и пультом прототипа.
- */
 export function markOnboardingState(next: OnboardingState, reason?: string): void {
   try {
     const raw = window.localStorage.getItem(ONBOARDING_STORE_KEY)
