@@ -4,6 +4,7 @@ import type { SubmittedDocument } from './types'
 interface StoreShape {
   documents?: Record<string, SubmittedDocument>
   documentFiles?: Record<string, SubmittedDocument[]>
+  companyQuestionnaire?: { submittedAt?: string }
   [key: string]: unknown
 }
 
@@ -17,18 +18,21 @@ function readStore(): StoreShape {
 }
 
 function writeStore(store: StoreShape) {
-  try {
-    window.localStorage.setItem(ONBOARDING_STORE_KEY, JSON.stringify(store))
-  } catch {
-    // Приватный режим — интерфейс продолжает работать без персистентности.
-  }
+  try { window.localStorage.setItem(ONBOARDING_STORE_KEY, JSON.stringify(store)) } catch {}
 }
 
-/** Миграция старого прототипа: один файл на позицию превращается в массив. */
 function normalize(store: StoreShape): Record<string, SubmittedDocument[]> {
-  if (store.documentFiles) return store.documentFiles
-  const legacy = store.documents ?? {}
-  return Object.fromEntries(Object.entries(legacy).map(([id, document]) => [id, [document]]))
+  const files = store.documentFiles ? { ...store.documentFiles } : Object.fromEntries(Object.entries(store.documents ?? {}).map(([id, document]) => [id, [document]]))
+  if (store.companyQuestionnaire && !(files['company-form'] ?? []).length) {
+    files['company-form'] = [{
+      documentId: 'company-form',
+      fileName: 'Анкета юридического лица — заполнена онлайн',
+      mediaId: 'generated-company-questionnaire',
+      uploadedAt: store.companyQuestionnaire.submittedAt ?? new Date().toISOString(),
+      status: 'UPLOADED',
+    }]
+  }
+  return files
 }
 
 const wait = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -37,10 +41,8 @@ export async function getDocumentFiles(): Promise<Record<string, SubmittedDocume
   await wait()
   const store = readStore()
   const files = normalize(store)
-  if (!store.documentFiles) {
-    store.documentFiles = files
-    writeStore(store)
-  }
+  store.documentFiles = files
+  writeStore(store)
   return files
 }
 
@@ -48,13 +50,7 @@ export async function attachDocumentFile(documentId: string, fileName: string): 
   await wait(160)
   const store = readStore()
   const files = normalize(store)
-  const entry: SubmittedDocument = {
-    documentId,
-    fileName,
-    mediaId: `media_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    uploadedAt: new Date().toISOString(),
-    status: 'UPLOADED',
-  }
+  const entry: SubmittedDocument = { documentId, fileName, mediaId: `media_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, uploadedAt: new Date().toISOString(), status: 'UPLOADED' }
   files[documentId] = [...(files[documentId] ?? []), entry]
   store.documentFiles = files
   writeStore(store)
@@ -63,6 +59,7 @@ export async function attachDocumentFile(documentId: string, fileName: string): 
 
 export async function removeDocumentFile(documentId: string, mediaId: string): Promise<void> {
   await wait(100)
+  if (documentId === 'company-form' && mediaId === 'generated-company-questionnaire') return
   const store = readStore()
   const files = normalize(store)
   files[documentId] = (files[documentId] ?? []).filter((entry) => entry.mediaId !== mediaId)
