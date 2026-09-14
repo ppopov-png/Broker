@@ -5,17 +5,10 @@ import { ONBOARDING_ROUTES } from '../../../shared/lib/onboarding/useOnboarding'
 export interface OnboardingStep {
   key: string
   title: string
-  /** Состояния, которые относятся к этому этапу. */
   states: OnboardingState[]
   actionPath?: string
 }
 
-/**
- * Маршрут один, формулировки — разные. У компании проверяется не «личность
- * клиента», а компания и её подписант, и самосертификацию заполняют за
- * бенефициаров, а не за себя. Подменять при этом состояния было бы дороже:
- * машина, гард и история переходов остаются общими.
- */
 export function onboardingSteps(clientType: ClientType = 'individual'): OnboardingStep[] {
   const company = clientType === 'company'
   return [
@@ -23,13 +16,13 @@ export function onboardingSteps(clientType: ClientType = 'individual'): Onboardi
     { key: 'email', title: 'Подтверждение email', states: ['EMAIL_VERIFIED'] },
     {
       key: 'identity',
-      title: company ? 'Проверка компании и подписанта' : 'Проверка личности',
+      title: company ? 'Проверка уполномоченного подписанта' : 'Проверка личности',
       states: ['IDENTITY_IN_PROGRESS', 'IDENTITY_VERIFIED', 'IDENTITY_FAILED'],
       actionPath: ONBOARDING_ROUTES.identity,
     },
     {
       key: 'self-cert',
-      title: 'Самосертификация',
+      title: company ? 'Декларации юридического лица' : 'Самосертификация',
       states: ['SELF_CERT_COMPLETED'],
       actionPath: ONBOARDING_ROUTES.selfCertification,
     },
@@ -41,13 +34,13 @@ export function onboardingSteps(clientType: ClientType = 'individual'): Onboardi
     },
     {
       key: 'documents',
-      title: company ? 'Документы компании' : 'Документы',
+      title: company ? 'Корпоративное досье' : 'Документы',
       states: ['DOCUMENTS_SUBMITTED'],
       actionPath: ONBOARDING_ROUTES.documents,
     },
     {
       key: 'edd',
-      title: 'Углублённая проверка',
+      title: company ? 'Комплаенс-анкета компании' : 'Углублённая проверка',
       states: ['EDD_IN_PROGRESS', 'EDD_SUBMITTED'],
       actionPath: ONBOARDING_ROUTES.edd,
     },
@@ -56,13 +49,8 @@ export function onboardingSteps(clientType: ClientType = 'individual'): Onboardi
   ]
 }
 
-/** Список для мест, где тип клиента не важен: ключи и порядок у веток общие. */
 export const ONBOARDING_STEPS: OnboardingStep[] = onboardingSteps()
 
-/**
- * Эти состояния означают «этап завершён»: сам этап красится завершённым,
- * а текущим становится следующий.
- */
 const COMPLETING_STATES: OnboardingState[] = [
   'EMAIL_VERIFIED',
   'IDENTITY_VERIFIED',
@@ -74,12 +62,6 @@ const COMPLETING_STATES: OnboardingState[] = [
 
 export type StepStatus = 'completed' | 'current' | 'pending' | 'action-required' | 'failed' | 'rejected' | 'blocked'
 
-/**
- * Состояния, которые выпадают из линейного трека. У каждого есть шаг-якорь —
- * этап, на котором заявка остановилась. Без якоря ни один шаг не совпадал бы
- * с состоянием, и весь трек рисовался «Ожидает», хотя регистрация и почта
- * давно пройдены.
- */
 const OFF_TRACK: Partial<Record<OnboardingState, { anchorKey: string; status: StepStatus }>> = {
   IDENTITY_FAILED: { anchorKey: 'identity', status: 'failed' },
   REVERIFICATION_REQUIRED: { anchorKey: 'identity', status: 'action-required' },
@@ -88,7 +70,6 @@ const OFF_TRACK: Partial<Record<OnboardingState, { anchorKey: string; status: St
   SUSPENDED: { anchorKey: 'review', status: 'blocked' },
 }
 
-/** Шаг, на котором заявка стоит прямо сейчас: к нему привязаны баннер и CTA. */
 export function resolveCurrentStep(current: OnboardingState): OnboardingStep | null {
   const index = resolveAnchorIndex(current)
   return index === -1 ? null : (ONBOARDING_STEPS[index] ?? null)
@@ -107,8 +88,6 @@ export function resolveStepStatuses(current: OnboardingState, history: Onboardin
   const anchorIndex = resolveAnchorIndex(current)
   if (anchorIndex === -1) return ONBOARDING_STEPS.map(() => 'pending')
 
-  // История нужна для шагов за якорем: анкету могли отправить, а потом
-  // комплаенс запросил уточнения — отправка от этого не отменяется.
   const reached = new Set(history.map((entry) => entry.toState))
 
   return ONBOARDING_STEPS.map((step, index) => {
