@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { readClientProfile } from '@trigonum/shared'
 import { CabinetLayout } from '../layouts/CabinetLayout'
 import { RequireAuth } from '../modules/auth/RequireAuth'
 import { LoginPage } from '../modules/auth/pages/LoginPage'
@@ -22,6 +23,14 @@ import { SecurityPage } from '../modules/security/pages/SecurityPage'
 import { SupportPage } from '../modules/support/pages/SupportPage'
 import { TransactionsPage } from '../modules/transactions/pages/TransactionsPage'
 
+function AgreementsRoute() {
+  return readClientProfile().clientType === 'company' ? <Navigate to="/onboarding/self-certification" replace /> : <AgreementsPage />
+}
+
+function EddRoute() {
+  return readClientProfile().clientType === 'company' ? <Navigate to="/onboarding" replace /> : <EddQuestionnairePage />
+}
+
 export function App() {
   return (
     <Routes>
@@ -42,9 +51,9 @@ export function App() {
           <Route path="/onboarding" element={<OnboardingStatusPage />} />
           <Route path="/onboarding/identity" element={<IdentityVerificationRoute />} />
           <Route path="/onboarding/self-certification" element={<SelfCertificationRoute />} />
-          <Route path="/onboarding/agreements" element={<AgreementsPage />} />
+          <Route path="/onboarding/agreements" element={<AgreementsRoute />} />
           <Route path="/onboarding/documents" element={<DocumentsChecklistPage />} />
-          <Route path="/onboarding/edd" element={<EddQuestionnairePage />} />
+          <Route path="/onboarding/edd" element={<EddRoute />} />
           <Route path="/security" element={<SecurityPage />} />
           <Route path="/support" element={<SupportPage />} />
         </Route>
