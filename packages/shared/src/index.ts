@@ -1,10 +1,14 @@
 export {
   DEFAULT_CLIENT_PROFILE,
   ONBOARDING_STORE_KEY,
+  PROTOTYPE_ACCOUNTS_KEY,
+  findPrototypeAccount,
   markClientProfile,
   markOnboardingState,
   readClientProfile,
+  registerPrototypeAccount,
   type OnboardingState,
+  type PrototypeAccount,
 } from './onboarding'
 export {
   DOCUMENT_FORMS,
