@@ -14,6 +14,25 @@ export function ResultsSection() {
         <p>В разделе представлены обезличенные данные по счетам и завершённым операциям за год. Финансовый результат указан после применимых комиссий.</p>
       </header>
 
+      {TOP_INVESTORS[0] && (
+        <article className="history-mobile-card">
+          <header>
+            <span className="history-mobile-rank">01</span>
+            <div>
+              <h3>{TOP_INVESTORS[0].alias}</h3>
+              <p>{results.columns.since} {TOP_INVESTORS[0].since}</p>
+            </div>
+          </header>
+          <dl>
+            <div><dt>Чистый результат</dt><dd className="positive">+{usd(TOP_INVESTORS[0].profit)} ({pct(investorReturn(TOP_INVESTORS[0]))})</dd></div>
+            <div><dt>Средний капитал</dt><dd>{usd(TOP_INVESTORS[0].capital)}</dd></div>
+            <div><dt>Уровень</dt><dd>{TOP_INVESTORS[0].tier}</dd></div>
+            <div><dt>Продукты</dt><dd>{TOP_INVESTORS[0].mix}</dd></div>
+          </dl>
+        </article>
+      )}
+      <div className="history-mobile-dots" aria-hidden="true"><span className="active"/><span/><span/><span/><span/></div>
+
       <div className="history-table-wrap">
         <table className="history-table">
           <thead>
