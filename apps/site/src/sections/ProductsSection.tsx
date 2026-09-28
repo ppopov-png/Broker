@@ -1,27 +1,12 @@
-import { ArrowRight, ArrowUpRight, CalendarDays, ChartNoAxesCombined, Target } from 'lucide-react'
-import { FEE_SCHEDULES, feeLabel } from '@trigonum/shared/fees'
 import { useState } from 'react'
 import { useI18n } from '../i18n/I18nProvider'
 import { landingContent, type LandingContent, type ProductRow } from '../content/landingOfficial'
 import { EARN_STATS, EVENTS_SUMMARY, STRATEGIES_SUMMARY } from '../content/products'
 import { onboardingUrl } from '../lib/appLinks'
 import { ProductModal, type ProductId } from './ProductModal'
-import { ProductVisual } from './ProductVisual'
 import { usd } from '../lib/format'
 
-const icons = {
-  earn: ChartNoAxesCombined,
-  strategies: Target,
-  events: CalendarDays,
-} as const
-
 const ORDER: ProductId[] = ['earn', 'strategies', 'events']
-
-function productFee(id: ProductId): string {
-  if (id === 'earn') return feeLabel(FEE_SCHEDULES.earn)
-  if (id === 'events') return feeLabel(FEE_SCHEDULES.event)
-  return feeLabel(FEE_SCHEDULES.balanced)
-}
 
 function proofValues(id: ProductId, daysWord: string): [string, string, string] {
   if (id === 'events') {
@@ -49,8 +34,7 @@ export function ProductsSection() {
   return (
     <section className="products-section" id="products">
       <header className="section-head">
-        <h2>{products.title}</h2>
-        <p>{products.subtitle}</p>
+        <h2>ИНВЕСТИЦИОННЫЕ ПРОДУКТЫ</h2>
       </header>
 
       <div className="product-stack">
@@ -66,55 +50,59 @@ export function ProductsSection() {
       </div>
 
       <p className="section-note">{products.note}</p>
-
       <ProductModal product={open} onClose={() => setOpen(null)} />
     </section>
   )
 }
 
-function ProductBlock({ product, products, daysWord, onOpen }: { product: ProductRow; products: LandingContent['products']; daysWord: string; onOpen: () => void }) {
+function ProductBlock({
+  product,
+  products,
+  daysWord,
+  onOpen,
+}: {
+  product: ProductRow
+  products: LandingContent['products']
+  daysWord: string
+  onOpen: () => void
+}) {
   const id = product.id as ProductId
-  const Icon = icons[id]
-  const { columns } = products
   const values = proofValues(id, daysWord)
-  const visual = products.visual[product.id]
-
-  const facts: [string, string][] = [
-    [columns.term, product.term],
-    [columns.liquidity, product.liquidity],
-    [columns.min, product.min],
-    [columns.fee, productFee(id)],
-    [columns.risk, product.risk],
-  ]
+  const badge = id === 'events' ? 'ОТ $5000' : 'ОТ $1000'
 
   return (
     <article className={`product-card product-${product.id}`}>
+      <span className="product-glow" aria-hidden="true" />
       <div className="product-body">
         <div className="product-head">
-          <span className="product-icon"><Icon strokeWidth={1.7} /></span>
-          <div className="product-title"><h3>{product.name}</h3><p>{product.tagline}</p></div>
-          <p className="product-rate"><b>{product.rate}</b><span>{product.rateNote}</span></p>
+          <div className="product-title">
+            <div className="product-title-line">
+              <h3>{product.name}</h3>
+              <span className="product-badge">{badge}</span>
+            </div>
+            <p>{product.tagline}</p>
+          </div>
         </div>
 
-        <dl className="product-proof">
-          {products.proof[product.id].map((label, index) => <div key={label}><dt>{values[index]}</dt><dd>{label}</dd></div>)}
-        </dl>
+        <p className="product-rate">
+          <b>{product.rate}</b>
+          <span>{product.rateNote}</span>
+        </p>
 
-        <dl className="product-facts">
-          {facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+        <dl className="product-proof">
+          {products.proof[product.id].map((label, index) => (
+            <div key={label}>
+              <dt>{values[index]}</dt>
+              <dd>{label}</dd>
+            </div>
+          ))}
         </dl>
 
         <div className="product-actions">
-          <button type="button" className="product-more" onClick={onOpen}>{columns.more}<ArrowRight size={15} /></button>
-          <a className="product-cta" href={onboardingUrl()}>{columns.open}<ArrowUpRight size={15} /></a>
+          <button type="button" className="product-more" onClick={onOpen}>Условия продукта</button>
+          <a className="product-cta" href={onboardingUrl()}>Открыть счёт</a>
         </div>
       </div>
-
-      <aside className="product-visual">
-        <p className="product-visual-title">{visual.title}</p>
-        <ProductVisual id={id} />
-        <p className="product-visual-hint">{visual.hint}</p>
-      </aside>
     </article>
   )
 }
