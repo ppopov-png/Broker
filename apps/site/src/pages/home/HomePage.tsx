@@ -11,6 +11,7 @@ import { ResultsSection } from '../../sections/ResultsSection'
 import { SiteFooter } from '../../sections/SiteFooter'
 import { StatsStrip } from '../../sections/StatsStrip'
 import { TiersSection } from '../../sections/TiersSection'
+import '../../styles/figma.css'
 
 export function HomePage() {
   return (
