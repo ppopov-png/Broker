@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import { useI18n } from '../i18n/I18nProvider'
 import { landingContent } from '../content/landingOfficial'
 import { BEST_EVENTS, DATA_AS_OF, eventNetProfit, investorReturn, TOP_INVESTORS } from '../content/products'
@@ -6,6 +7,29 @@ import { usd, pct } from '../lib/format'
 export function ResultsSection() {
   const { language } = useI18n()
   const { results } = landingContent(language)
+  const [investorSlide, setInvestorSlide] = useState(0)
+  const investorTrack = useRef<HTMLDivElement>(null)
+  const goInvestor = (index: number) => {
+    const track = investorTrack.current
+    if (!track) return
+    const card = track.children[index] as HTMLElement | undefined
+    card?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })
+    setInvestorSlide(index)
+  }
+  const syncInvestorSlide = () => {
+    const track = investorTrack.current
+    if (!track) return
+    const cards = Array.from(track.children) as HTMLElement[]
+    if (!cards.length) return
+    const x = track.scrollLeft
+    let best = 0
+    let distance = Infinity
+    cards.forEach((card, index) => {
+      const d = Math.abs(card.offsetLeft - track.offsetLeft - x)
+      if (d < distance) { distance = d; best = index }
+    })
+    setInvestorSlide(best)
+  }
 
   return (
     <section className="results-section history-section" id="results">
@@ -14,24 +38,30 @@ export function ResultsSection() {
         <p>В разделе представлены обезличенные данные по счетам и завершённым операциям за год. Финансовый результат указан после применимых комиссий.</p>
       </header>
 
-      {TOP_INVESTORS[0] && (
-        <article className="history-mobile-card">
-          <header>
-            <span className="history-mobile-rank">01</span>
-            <div>
-              <h3>{TOP_INVESTORS[0].alias}</h3>
-              <p>{results.columns.since} {TOP_INVESTORS[0].since}</p>
-            </div>
-          </header>
-          <dl>
-            <div><dt>Чистый результат</dt><dd className="positive">+{usd(TOP_INVESTORS[0].profit)} ({pct(investorReturn(TOP_INVESTORS[0]))})</dd></div>
-            <div><dt>Средний капитал</dt><dd>{usd(TOP_INVESTORS[0].capital)}</dd></div>
-            <div><dt>Уровень</dt><dd>{TOP_INVESTORS[0].tier}</dd></div>
-            <div><dt>Продукты</dt><dd>{TOP_INVESTORS[0].mix}</dd></div>
-          </dl>
-        </article>
-      )}
-      <div className="history-mobile-dots" aria-hidden="true"><span className="active"/><span/><span/><span/><span/></div>
+      <div className="history-mobile-carousel">
+        <div className="history-mobile-track" ref={investorTrack} onScroll={syncInvestorSlide}>
+          {TOP_INVESTORS.map((investor, index) => (
+            <article className="history-mobile-card" key={investor.alias}>
+              <header>
+                <span className="history-mobile-rank">{String(index + 1).padStart(2, '0')}</span>
+                <div>
+                  <h3>{investor.alias}</h3>
+                  <p>{results.columns.since} {investor.since}</p>
+                </div>
+              </header>
+              <dl>
+                <div><dt>Чистый результат</dt><dd className="positive">+{usd(investor.profit)} ({pct(investorReturn(investor))})</dd></div>
+                <div><dt>Средний капитал</dt><dd>{usd(investor.capital)}</dd></div>
+                <div><dt>Уровень</dt><dd>{investor.tier}</dd></div>
+                <div><dt>Продукты</dt><dd>{investor.mix}</dd></div>
+              </dl>
+            </article>
+          ))}
+        </div>
+        <div className="history-mobile-dots" aria-label="Счета инвесторов">
+          {TOP_INVESTORS.map((investor, index) => <button key={investor.alias} className={index === investorSlide ? 'active' : ''} onClick={() => goInvestor(index)} aria-label={`Счёт ${index + 1}`} />)}
+        </div>
+      </div>
 
       <div className="history-table-wrap">
         <table className="history-table">
