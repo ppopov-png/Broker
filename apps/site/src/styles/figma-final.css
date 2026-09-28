@@ -877,3 +877,46 @@ html,body,#root,.broker-site{background:var(--fx-bg)!important;color:var(--fx-in
   .conditions-list dd small{display:block!important;margin-top:3px!important;color:#7f8b9c!important;font-size:9.5px!important;font-weight:400!important}
   .conditions-note{margin:22px 0 0!important;color:#14233d!important;font-size:10px!important;line-height:1.18!important;font-weight:600!important}
 }
+
+
+/* Mobile corrections from direct site/Figma comparison, 390px frame. */
+@media (max-width:640px){
+  /* Figma headline: blue line stays on ONE line. */
+  .figma-hero h1{
+    max-width:100%!important;
+    font-size:40px!important;
+    line-height:.94!important;
+    letter-spacing:-.045em!important;
+  }
+  .figma-hero h1 span{
+    display:block!important;
+    white-space:nowrap!important;
+    color:#159ff2!important;
+  }
+  .figma-hero h1 b{display:block!important;white-space:nowrap!important}
+
+  /* Product card palette from Figma: tinted product surfaces, not white cards. */
+  .product-card{
+    border:0!important;
+    box-shadow:none!important;
+  }
+  .product-card.product-earn{
+    --product:#27a6e8!important;
+    background:linear-gradient(180deg,#cceeff 0%,#e8f7ff 100%)!important;
+  }
+  .product-card.product-strategies{
+    --product:#9850f1!important;
+    background:linear-gradient(180deg,#e6d9ff 0%,#f1ebff 100%)!important;
+  }
+  .product-card.product-events{
+    --product:#48bf5a!important;
+    background:linear-gradient(180deg,#d9f2dc 0%,#edf8ee 100%)!important;
+  }
+  .product-glow{display:none!important}
+  .product-badge{
+    background:rgba(255,255,255,.62)!important;
+    color:var(--product)!important;
+  }
+  .product-rate b{color:var(--product)!important}
+  .product-proof>div{border-color:rgba(18,63,122,.13)!important}
+}
