@@ -1,73 +1,179 @@
-import { ArrowRight, BarChart3, Globe2, GraduationCap, UsersRound } from 'lucide-react'
-import { useI18n } from '../i18n/I18nProvider'
-import { landingContent } from '../content/landingOfficial'
+import { X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { onboardingUrl } from '../lib/appLinks'
 import './ComplianceTiers.css'
 
+type Level = {
+  id: 'launch' | 'orbit' | 'lunar' | 'solar' | 'stellar'
+  ru: string
+  en: string
+  lead: string
+  get: string
+  keep: string
+  protection: string
+  benefits: string[]
+}
+
+const LEVELS: Level[] = [
+  {
+    id: 'launch',
+    ru: 'СТАРТ',
+    en: 'LAUNCH',
+    lead: 'Первый шаг в инвестиционное путешествие.',
+    get: '0',
+    keep: '—',
+    protection: '—',
+    benefits: ['Базовые возможности', 'Доступ к рынкам', 'Обучающие материалы'],
+  },
+  {
+    id: 'orbit',
+    ru: 'ОРБИТА',
+    en: 'ORBIT',
+    lead: 'Вы на орбите новых возможностей.',
+    get: '5 000',
+    keep: '4 000',
+    protection: '—',
+    benefits: ['Расширенные инструменты', 'Аналитика и идеи', 'Приоритетная поддержка'],
+  },
+  {
+    id: 'lunar',
+    ru: 'ЛУННЫЙ РУБЕЖ',
+    en: 'LUNAR',
+    lead: 'Ближе к целям. Дальше привычных границ.',
+    get: '15 000',
+    keep: '12 000',
+    protection: '1 пересмотр',
+    benefits: ['Персональная аналитика', 'Больше рыночных данных', 'Эксклюзивные обзоры'],
+  },
+  {
+    id: 'solar',
+    ru: 'СОЛНЕЧНЫЙ ГОРИЗОНТ',
+    en: 'SOLAR',
+    lead: 'Больше пространства для ваших решений.',
+    get: '40 000',
+    keep: '32 000',
+    protection: '2 пересмотра',
+    benefits: ['Индивидуальные решения', 'Персональный менеджер', 'Расширенная аналитика'],
+  },
+  {
+    id: 'stellar',
+    ru: 'К ЗВЁЗДАМ',
+    en: 'STELLAR',
+    lead: 'У вашего путешествия больше нет границ.',
+    get: '90 000',
+    keep: '72 000',
+    protection: '4 пересмотра',
+    benefits: ['Максимум возможностей', 'Персональные условия', 'Приоритетный сервис'],
+  },
+]
+
 export function TiersSection() {
-  const { language } = useI18n()
-  const { tiers } = landingContent(language)
-
-  const kicker = language === 'ru' ? 'Доступ к рынкам' : language === 'ky' ? 'Рынокторго жетүү' : 'Market access'
-  const principles = language === 'ru'
-    ? [
-        ['Гибкие условия', 'для разных задач'],
-        ['Доступ к глобальным', 'рынкам'],
-        ['Профессиональная', 'поддержка'],
-      ]
-    : language === 'ky'
-      ? [
-          ['Ийкемдүү шарттар', 'ар кандай милдеттер үчүн'],
-          ['Глобалдык', 'рынокторго жетүү'],
-          ['Кесипкөй', 'колдоо'],
-        ]
-      : [
-          ['Flexible terms', 'for different objectives'],
-          ['Access to global', 'markets'],
-          ['Professional', 'support'],
-        ]
-
-  const footLabel = language === 'ru' ? 'Подробнее' : language === 'ky' ? 'Кененирээк' : 'Details'
+  const [open, setOpen] = useState<Level | null>(null)
 
   return (
     <section className="tiers-v2" id="tiers">
-      <div className="tiers-v2-head">
-        <div className="tiers-v2-copy">
-          <p className="tiers-v2-kicker">{kicker}</p>
-          <h2>{tiers.title}</h2>
-          <p>{tiers.subtitle}</p>
-        </div>
-
-        <div className="tiers-v2-principles" aria-label={kicker}>
-          {principles.map(([lineOne, lineTwo], index) => {
-            const Icon = index === 0 ? BarChart3 : index === 1 ? Globe2 : UsersRound
-            return (
-              <div className="tiers-v2-principle" key={`${lineOne}-${lineTwo}`}>
-                <span className="tiers-v2-principle-icon"><Icon strokeWidth={1.7} /></span>
-                <span>{lineOne}<br />{lineTwo}</span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      <header className="section-head">
+        <h2>УРОВНИ ИНВЕСТОРА</h2>
+      </header>
 
       <div className="tiers-v2-grid">
-        {tiers.rows.map((tier) => (
-          <article className="tiers-v2-card" data-tier={tier.name} key={tier.name} tabIndex={0}>
-            <span className="tiers-v2-strip" aria-hidden="true" />
-            <h3>{tier.name}</h3>
-            <p>{tier.perk}</p>
-            <div className="tiers-v2-card-foot">
-              <span>{footLabel}</span>
-              <span aria-hidden="true"><ArrowRight size={15} /></span>
-            </div>
-          </article>
+        {LEVELS.map((level, index) => (
+          <button
+            type="button"
+            className="tiers-v2-card"
+            data-tier={level.id}
+            key={level.id}
+            onClick={() => setOpen(level)}
+          >
+            <span className="tier-index">Уровень {index + 1}</span>
+            <strong>{level.ru}</strong>
+            <em>{level.en}</em>
+            <p>{level.lead}</p>
+            <ul>
+              {level.benefits.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+            <span className="tier-more">Подробнее</span>
+          </button>
         ))}
       </div>
 
-      <div className="tiers-v2-bottom">
-        <span className="tiers-v2-bottom-icon"><GraduationCap strokeWidth={1.7} /></span>
-        <p>{tiers.note}</p>
-      </div>
+      <LevelModal level={open} onClose={() => setOpen(null)} />
     </section>
+  )
+}
+
+function LevelModal({ level, onClose }: { level: Level | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!level) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = previous
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [level, onClose])
+
+  if (!level) return null
+
+  return createPortal(
+    <div className="level-modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <article className={`level-modal level-modal-${level.id}`} role="dialog" aria-modal="true">
+        <button className="level-modal-close" type="button" onClick={onClose} aria-label="Закрыть"><X size={18} /></button>
+
+        <header className="level-modal-head">
+          <span>Уровень</span>
+          <h2>{level.ru}</h2>
+          <b>{level.en}</b>
+          <p>{level.lead}</p>
+        </header>
+
+        <section className="level-modal-stats">
+          <div><span>Получить уровень</span><strong>{level.get}</strong><small>баллов</small></div>
+          <div><span>Удержать уровень</span><strong>{level.keep}</strong><small>{level.keep === '—' ? 'порог не установлен' : 'баллов · 80% порога'}</small></div>
+          <div><span>Защита после 1-го достижения</span><strong>{level.protection}</strong><small>{level.protection === '—' ? 'без защиты' : 'от планового понижения'}</small></div>
+        </section>
+
+        <section className="level-modal-section">
+          <h3>Возможности уровня</h3>
+          <p>Привилегии применяются только после одобрения заявки и с учётом условий продукта.</p>
+          <div className="level-benefits">
+            {level.benefits.map((item, index) => (
+              <div key={item}><span>0{index + 1}</span><b>{item}</b></div>
+            ))}
+          </div>
+        </section>
+
+        <section className="level-modal-section">
+          <h3>Как начисляются баллы</h3>
+          <p>Основная метрика — работающий капитал. Начисления учитываются в скользящем окне 12 месяцев.</p>
+          <div className="level-points">
+            <div><strong>$1000</strong><span>размещённого капитала за один месяц</span></div>
+            <dl>
+              <div><dt>Earn</dt><dd>10</dd></div>
+              <div><dt>Events</dt><dd>15</dd></div>
+              <div><dt>Strategies и Alpha</dt><dd>20</dd></div>
+            </dl>
+          </div>
+        </section>
+
+        <section className="level-modal-section">
+          <h3>Повышение и удержание</h3>
+          <dl className="level-rules">
+            <div><dt>Повышение — сразу</dt><dd>Когда баллов хватает, следующий уровень и его привилегии действуют в тот же день.</dd></div>
+            <div><dt>Пересмотр — раз в квартал</dt><dd>Понижение возможно при баллах ниже порога удержания, не более одной ступени за пересмотр.</dd></div>
+            <div><dt>Сначала предупреждение</dt><dd>При нехватке баллов клиент получает уведомление заранее.</dd></div>
+          </dl>
+        </section>
+
+        <footer className="level-modal-foot">
+          <p>Правила уровней — по регламенту программы лояльности. Индивидуальные условия подтверждаются договором.</p>
+          <a href={onboardingUrl()}>Перейти к открытию счёта</a>
+        </footer>
+      </article>
+    </div>,
+    document.body,
   )
 }
