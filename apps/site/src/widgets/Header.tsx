@@ -1,72 +1,34 @@
-import { Check, ChevronDown, Globe2 } from 'lucide-react'
-import { useState } from 'react'
-import trigonumIcon from '../assets/trigonum-icon.svg'
+import { ChevronDown } from 'lucide-react'
 import trigonumWordmark from '../assets/trigonum-wordmark.svg'
-import { useI18n, type Language } from '../i18n/I18nProvider'
 import { cabinetUrl, onboardingUrl } from '../lib/appLinks'
 
-const languageNames: Record<Language, string> = { ru: 'RU', en: 'EN', ky: 'KG' }
-const languageFullNames: Record<Language, string> = { ru: 'Русский', en: 'English', ky: 'Кыргызча' }
-
 export function Header() {
-  const { language, setLanguage, t } = useI18n()
-  const [languageOpen, setLanguageOpen] = useState(false)
-
   return (
     <header className="site-header">
       <a className="brand" href="#top" aria-label="Trigonum Broker">
-        <img className="brand-mark" src={trigonumIcon} alt="" aria-hidden="true" />
         <img className="brand-wordmark" src={trigonumWordmark} alt="TRIGONUM" />
-        <span className="brand-divider" />
-        <span className="brand-product">BROKER</span>
+        <span className="brand-product">Broker</span>
       </a>
 
       <nav className="main-nav" aria-label="Основная навигация">
-        <a href="#products">{t('nav.products')}</a>
-        <a href="#how">{t('nav.how')}</a>
-        <a href="#results">{t('nav.results')}</a>
-        <a href="#fees">{t('nav.fees')}</a>
-        <a href="#custody">{t('nav.custody')}</a>
-        <a href="#compliance">{t('nav.compliance')}</a>
-        <a href="#tiers">{t('nav.tiers')}</a>
+        <a href="#products">Продукты</a>
+        <a href="#how">Инвестпроцесс</a>
+        <a href="#results">Результаты</a>
+        <details className="nav-conditions">
+          <summary>Условия <ChevronDown size={16} /></summary>
+          <div className="nav-conditions-menu">
+            <a href="#fees">Комиссии</a>
+            <a href="#custody">Хранение</a>
+            <a href="#compliance">Комплаенс</a>
+          </div>
+        </details>
+        <a href="#tiers">Уровни</a>
         <a href="#faq">FAQ</a>
       </nav>
 
       <div className="header-actions">
-        <div className="language-switcher">
-          <button
-            className="language-button"
-            type="button"
-            aria-label={t('lang.label')}
-            aria-expanded={languageOpen}
-            onClick={() => setLanguageOpen((open) => !open)}
-          >
-            <Globe2 size={16} />
-            <span>{languageNames[language]}</span>
-            <ChevronDown size={12} className={languageOpen ? 'language-chevron open' : 'language-chevron'} />
-          </button>
-          {languageOpen && (
-            <div className="language-menu">
-              {(Object.keys(languageNames) as Language[]).map((item) => (
-                <button
-                  type="button"
-                  key={item}
-                  className={item === language ? 'language-option active' : 'language-option'}
-                  onClick={() => {
-                    setLanguage(item)
-                    setLanguageOpen(false)
-                  }}
-                >
-                  <span className="language-code">{languageNames[item]}</span>
-                  <span>{languageFullNames[item]}</span>
-                  {item === language && <Check size={14} />}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        <a className="button button-secondary compact" href={cabinetUrl()}>{t('nav.login')}</a>
-        <a className="button button-primary compact" href={onboardingUrl()}>{t('nav.open')}</a>
+        <a className="button button-secondary compact" href={cabinetUrl()}>Войти</a>
+        <a className="button button-primary compact" href={onboardingUrl()}>Открыть счёт</a>
       </div>
     </header>
   )
