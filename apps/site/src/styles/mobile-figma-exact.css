@@ -1270,3 +1270,25 @@
     margin-top:26px !important;
   }
 }
+
+
+@media (max-width:640px){
+  .result-process .result-process-visual{
+    height:auto !important;
+    min-height:0 !important;
+    background:none !important;
+    overflow:hidden !important;
+  }
+  .result-process .result-process-picture{
+    display:block !important;
+    width:100% !important;
+    line-height:0 !important;
+  }
+  .result-process .result-process-picture img{
+    display:block !important;
+    width:100% !important;
+    height:auto !important;
+    object-fit:contain !important;
+    object-position:center !important;
+  }
+}

@@ -1,3 +1,8 @@
+import resultXs from '../shared/ui/result-bg-xs 1.png'
+import resultS from '../shared/ui/result-bg-s 1.png'
+import resultM from '../shared/ui/result-bg-m 1.png'
+import resultL from '../shared/ui/result-bg-l 1.png'
+
 const RESULT_CARDS = [
   {
     index: '01',
@@ -30,10 +35,12 @@ export function HowItWorksSection() {
       </header>
 
       <div className="result-process-visual" aria-hidden="true">
-        <div className="result-process-grid" />
-        <div className="result-process-line result-process-line-a" />
-        <div className="result-process-line result-process-line-b" />
-        <div className="result-process-core">TAIS</div>
+        <picture className="result-process-picture">
+          <source media="(max-width: 480px)" srcSet={resultXs} />
+          <source media="(max-width: 768px)" srcSet={resultS} />
+          <source media="(max-width: 1280px)" srcSet={resultM} />
+          <img src={resultL} alt="" />
+        </picture>
       </div>
 
       <div className="result-process-cards">
