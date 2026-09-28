@@ -2204,3 +2204,123 @@ body { background: var(--site-bg); color: var(--site-navy); }
   .faq-v2-question { font-size:17px; }
   .faq-v2-content { padding-left:0; }
 }
+
+
+/* Exported Figma artwork ------------------------------------------------
+   Source: broker-2.0/src/shared/ui, exported from TRIGONUM-BROKER.
+   Keep the artwork responsive instead of recreating it with CSS. */
+
+.figma-hero {
+  background-image: url("../shared/ui/hero-bg 1.png") !important;
+  background-size: cover !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+}
+.figma-hero .hero-orbit,
+.figma-hero .hero-glow { display:none !important; }
+
+.result-process-visual {
+  background-image: url("../shared/ui/result-bg-l 1.png") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.result-process-visual > * { display:none !important; }
+
+.conditions-section {
+  background-image: url("../shared/ui/conditions-l 1.png") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+.conditions-art > * { visibility:hidden !important; }
+
+.custody-card-grid article:nth-child(1) { background:#fff url("../shared/ui/storage-1-l 1.png") right bottom/auto 100% no-repeat !important; }
+.custody-card-grid article:nth-child(2) { background:#fff url("../shared/ui/storage-2-l 1.png") right bottom/auto 100% no-repeat !important; }
+.custody-card-grid article:nth-child(3) { background:#fff url("../shared/ui/storage-3-l 1.png") right bottom/auto 100% no-repeat !important; }
+.custody-card-grid article:nth-child(4) { background:#fff url("../shared/ui/storage-4-l 1.png") right bottom/auto 100% no-repeat !important; }
+.custody-card-grid article::after { display:none !important; }
+
+.compliance-visual {
+  background-image: url("../shared/ui/compliance-l 1.png") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat:no-repeat !important;
+}
+.compliance-grid-art { display:none !important; }
+
+.tiers-v2-card[data-tier="launch"] { background-image:url("../shared/ui/level-1-bg 1.png") !important; }
+.tiers-v2-card[data-tier="orbit"] { background-image:url("../shared/ui/level-2-bg 1.png") !important; }
+.tiers-v2-card[data-tier="lunar"] { background-image:url("../shared/ui/level-3-bg 1.png") !important; }
+.tiers-v2-card[data-tier="solar"] { background-image:url("../shared/ui/level-4-bg 1.png") !important; }
+.tiers-v2-card[data-tier="stellar"] { background-image:url("../shared/ui/level-5-bg 1.png") !important; }
+.tiers-v2-card {
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+}
+
+.account-steps-section {
+  background-image:url("../shared/ui/steps-bg-l 1.png") !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+}
+.account-steps-art { display:none !important; }
+
+.faq-v2-video-frame {
+  background-image:url("../shared/ui/video-bg 1.png") !important;
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+}
+
+.site-footer {
+  background-image:url("../shared/ui/footer-bg-l 1.png") !important;
+  background-size:cover !important;
+  background-position:center top !important;
+  background-repeat:no-repeat !important;
+}
+
+@media (max-width: 1280px) {
+  .figma-hero { background-image:url("../shared/ui/hero-bg-l 1.png") !important; }
+  .conditions-section { background-image:url("../shared/ui/conditions-m 1.png") !important; }
+  .result-process-visual { background-image:url("../shared/ui/result-bg-m 1.png") !important; }
+  .compliance-visual { background-image:url("../shared/ui/compliance-m 1.png") !important; }
+  .account-steps-section { background-image:url("../shared/ui/steps-bg-m 1.png") !important; }
+  .custody-card-grid article:nth-child(1) { background-image:url("../shared/ui/storage-1-m 1.png") !important; }
+  .custody-card-grid article:nth-child(2) { background-image:url("../shared/ui/storage-2-m 1.png") !important; }
+  .custody-card-grid article:nth-child(3) { background-image:url("../shared/ui/storage-3-m 1.png") !important; }
+  .custody-card-grid article:nth-child(4) { background-image:url("../shared/ui/storage-4-m 1.png") !important; }
+  .site-footer { background-image:url("../shared/ui/footer-bg 1.png") !important; }
+}
+@media (max-width: 768px) {
+  .figma-hero { background-image:url("../shared/ui/hero-bg-s 1.png") !important; }
+  .conditions-section { background-image:url("../shared/ui/conditions-s 1.png") !important; }
+  .result-process-visual { background-image:url("../shared/ui/result-bg-s 1.png") !important; }
+  .compliance-visual { background-image:url("../shared/ui/compliance-s 1.png") !important; }
+  .account-steps-section { background-image:url("../shared/ui/steps-bg-s 1.png") !important; }
+  .tiers-v2-card[data-tier="launch"] { background-image:url("../shared/ui/level-1-bg-s 1.png") !important; }
+  .tiers-v2-card[data-tier="orbit"] { background-image:url("../shared/ui/level-2-bg-s 1.png") !important; }
+  .tiers-v2-card[data-tier="lunar"] { background-image:url("../shared/ui/level-3-bg-s 1.png") !important; }
+  .tiers-v2-card[data-tier="solar"] { background-image:url("../shared/ui/level-4-bg-s 1.png") !important; }
+  .tiers-v2-card[data-tier="stellar"] { background-image:url("../shared/ui/level-5-bg-s 1.png") !important; }
+  .site-footer { background-image:url("../shared/ui/footer-bg-s 1.png") !important; }
+}
+@media (max-width: 480px) {
+  .figma-hero { background-image:url("../shared/ui/hero-bg-xs 1.png") !important; }
+  .conditions-section { background-image:url("../shared/ui/conditions-xs 1.png") !important; }
+  .result-process-visual { background-image:url("../shared/ui/result-bg-xs 1.png") !important; }
+  .compliance-visual { background-image:url("../shared/ui/compliance-xs 1.png") !important; }
+  .account-steps-section { background-image:url("../shared/ui/steps-bg-xs 1.png") !important; }
+  .tiers-v2-card[data-tier="launch"] { background-image:url("../shared/ui/level-1-bg-xs 1.png") !important; }
+  .tiers-v2-card[data-tier="orbit"] { background-image:url("../shared/ui/level-2-bg-xs 1.png") !important; }
+  .tiers-v2-card[data-tier="lunar"] { background-image:url("../shared/ui/level-3-bg-xs 1.png") !important; }
+  .tiers-v2-card[data-tier="solar"] { background-image:url("../shared/ui/level-4-bg-xs 1.png") !important; }
+  .tiers-v2-card[data-tier="stellar"] { background-image:url("../shared/ui/level-5-bg-xs 1.png") !important; }
+  .custody-card-grid article:nth-child(1) { background-image:url("../shared/ui/storage-1-xs 1.png") !important; }
+  .custody-card-grid article:nth-child(2) { background-image:url("../shared/ui/storage-2-xs 1.png") !important; }
+  .custody-card-grid article:nth-child(3) { background-image:url("../shared/ui/storage-3-xs 1.png") !important; }
+  .custody-card-grid article:nth-child(4) { background-image:url("../shared/ui/storage-4-xs 1.png") !important; }
+  .site-footer { background-image:url("../shared/ui/footer-bg-xs 1.png") !important; }
+}
