@@ -4,7 +4,7 @@ import { useI18n } from '../i18n/I18nProvider'
 import { landingContent } from '../content/landingOfficial'
 import { GOAL_PLANS, planForGoal } from '../content/products'
 import { usd, pct } from '../lib/format'
-import { LiveEarningsTicker } from '../widgets/LiveEarningsTicker'
+import { onboardingUrl } from '../lib/appLinks'
 
 const PRESETS = [50_000, 100_000, 250_000, 1_000_000]
 
@@ -12,7 +12,7 @@ export function GoalCalculator() {
   const { language } = useI18n()
   const { calculator } = landingContent(language)
   const [goal, setGoal] = useState(100_000)
-  const [years, setYears] = useState(5)
+  const [years, setYears] = useState(3)
 
   return (
     <div className="goal-calc">
@@ -29,8 +29,9 @@ export function GoalCalculator() {
           {PRESETS.map((preset) => <button key={preset} type="button" className={goal === preset ? 'active' : undefined} onClick={() => setGoal(preset)}>{usd(preset)}</button>)}
         </div>
         <label className="goal-years">
-          <span>{calculator.yearsLabel}: <b>{years}</b> {calculator.yearsUnit(years)}</span>
+          <span>{calculator.yearsLabel} <b>{years} {calculator.yearsUnit(years)}</b></span>
           <input type="range" min={1} max={5} step={1} value={years} onChange={(event) => setYears(Number(event.target.value))} />
+          <i><span>1 год</span><span>3 года</span><span>5 лет</span></i>
         </label>
       </div>
 
@@ -46,7 +47,7 @@ export function GoalCalculator() {
         </table>
       </div>
 
-      <LiveEarningsTicker withCta />
+      <a className="goal-open-account" href={onboardingUrl()}>Открыть счёт</a>
       <p className="goal-note">{calculator.note}</p>
     </div>
   )

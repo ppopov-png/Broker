@@ -77,6 +77,10 @@ export function TiersSection() {
         <h2>УРОВНИ ИНВЕСТОРА</h2>
       </header>
 
+      <div className="tiers-progress" aria-hidden="true">
+        {LEVELS.map((level,index)=><span key={level.id} className={index===0?'active':undefined} />)}
+      </div>
+
       <div className="tiers-v2-grid">
         {LEVELS.map((level, index) => (
           <button
