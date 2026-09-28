@@ -26,6 +26,8 @@ export function Header() {
         <a href="#faq">FAQ</a>
       </nav>
 
+      <span className="mobile-nav-trigger" aria-hidden="true"><i/><i/><i/></span>
+
       <div className="header-actions">
         <a className="button button-secondary compact" href={cabinetUrl()}>Войти</a>
         <a className="button button-primary compact" href={onboardingUrl()}>Открыть счёт</a>
