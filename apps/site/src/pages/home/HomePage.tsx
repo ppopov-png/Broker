@@ -12,6 +12,7 @@ import { SiteFooter } from '../../sections/SiteFooter'
 import { StatsStrip } from '../../sections/StatsStrip'
 import { TiersSection } from '../../sections/TiersSection'
 import '../../styles/figma.css'
+import '../../styles/mobile-figma-exact.css'
 
 export function HomePage() {
   return (
