@@ -2560,3 +2560,260 @@ html,body,#root,.broker-site{background:var(--fx-bg)!important;color:var(--fx-in
   color:#48A65A!important;
   background:#E8F7E9!important;
 }
+
+
+/* =====================================================================
+   FIGMA VISUAL LOCK
+   Visual parity only: typography, colors, asset choice, image quality,
+   radii, shadows and control sizing. No section/grid restructuring.
+   Four responsive variants are mapped explicitly to the exported artwork.
+   ===================================================================== */
+
+:root{
+  --broker-font:"Golos Text",Arial,sans-serif;
+  --ink:#10142d;
+  --muted:#7f8b9c;
+  --blue:#27A6E8;
+  --purple:#9850F1;
+  --green:#48BF5A;
+  --line:#dbe3eb;
+  --card:#fff;
+}
+.broker-site,
+.broker-site button,
+.broker-site input,
+.broker-site select,
+.broker-site textarea{
+  font-family:var(--broker-font)!important;
+}
+
+/* PRODUCT COLOR SOURCE OF TRUTH — all breakpoints */
+.product-card.product-earn{--product-accent:var(--blue)!important}
+.product-card.product-strategies{--product-accent:var(--purple)!important}
+.product-card.product-events{--product-accent:var(--green)!important}
+.product-card .product-rate b{color:var(--product-accent)!important}
+.product-card .product-badge{
+  color:var(--product-accent)!important;
+  background:color-mix(in srgb,var(--product-accent) 11%,#fff)!important;
+}
+.product-card .product-more{
+  background:var(--product-accent)!important;
+  border-color:var(--product-accent)!important;
+  color:#fff!important;
+}
+.product-card .product-cta{
+  color:var(--product-accent)!important;
+  border-color:color-mix(in srgb,var(--product-accent) 72%,#fff)!important;
+  background:#fff!important;
+}
+.product-title h3,.product-title p{color:var(--ink)!important}
+.product-rate span,.product-proof dd{color:var(--muted)!important}
+
+/* Level accent source of truth — all breakpoints and popups */
+.tiers-v2-card[data-tier="launch"],.level-modal-launch{--tier:#22BFD7!important}
+.tiers-v2-card[data-tier="orbit"],.level-modal-orbit{--tier:#3C8DF6!important}
+.tiers-v2-card[data-tier="lunar"],.level-modal-lunar{--tier:#9A66F4!important}
+.tiers-v2-card[data-tier="solar"],.level-modal-solar{--tier:#F0B43B!important}
+.tiers-v2-card[data-tier="stellar"],.level-modal-stellar{--tier:#1B9EE8!important}
+.tiers-v2-card strong,.level-modal-head h2,.level-modal-progress span.active{color:var(--tier)!important}
+.tiers-v2-card li::before{background:var(--tier)!important}
+.level-modal-foot a{background:var(--tier)!important}
+
+/* Full-quality popup art: never substitute card/mobile exports here. */
+.level-modal-launch .level-modal-head{background-image:url("../shared/ui/level-1 1.png")!important}
+.level-modal-orbit .level-modal-head{background-image:url("../shared/ui/level-2 1.png")!important}
+.level-modal-lunar .level-modal-head{background-image:url("../shared/ui/level-3 1.png")!important}
+.level-modal-solar .level-modal-head{background-image:url("../shared/ui/level-4 1.png")!important}
+.level-modal-stellar .level-modal-head{background-image:url("../shared/ui/level-5 1.png")!important}
+.level-modal-head{
+  image-rendering:auto!important;
+  background-repeat:no-repeat!important;
+  background-size:cover!important;
+}
+
+/* ---------- 1. Large desktop ------------------------------------------------ */
+@media (min-width:1441px){
+  .figma-hero{background-image:url("../shared/ui/hero-bg 1.png")!important}
+  .conditions-section{background-image:url("../shared/ui/conditions-l 1.png")!important}
+  .compliance-visual{background-image:url("../shared/ui/compliance-l 1.png")!important}
+  .account-steps-section{background-image:url("../shared/ui/steps-bg-l 1.png")!important}
+  .site-footer{background-image:url("../shared/ui/footer-bg-l 1.png")!important}
+  .custody-card-grid article:nth-child(1){background-image:url("../shared/ui/storage-1-l 1.png")!important}
+  .custody-card-grid article:nth-child(2){background-image:url("../shared/ui/storage-2-l 1.png")!important}
+  .custody-card-grid article:nth-child(3){background-image:url("../shared/ui/storage-3-l 1.png")!important}
+  .custody-card-grid article:nth-child(4){background-image:url("../shared/ui/storage-4-l 1.png")!important}
+  .tiers-v2-card[data-tier="launch"]::before{background-image:url("../shared/ui/level-1-bg 1.png")!important}
+  .tiers-v2-card[data-tier="orbit"]::before{background-image:url("../shared/ui/level-2-bg 1.png")!important}
+  .tiers-v2-card[data-tier="lunar"]::before{background-image:url("../shared/ui/level-3-bg 1.png")!important}
+  .tiers-v2-card[data-tier="solar"]::before{background-image:url("../shared/ui/level-4-bg 1.png")!important}
+  .tiers-v2-card[data-tier="stellar"]::before{background-image:url("../shared/ui/level-5-bg 1.png")!important}
+
+  .section-head h2,.result-process-head h2,.history-head h2,.custody-head h2,
+  .compliance-figma>h2,.tiers-v2 .section-head h2,.account-steps-content>h2,
+  .faq-v2 .section-head h2{
+    font-size:42px!important;line-height:.96!important;font-weight:500!important;letter-spacing:-.035em!important;
+  }
+  .product-title h3{font-size:28px!important}
+  .product-title p{font-size:16px!important;line-height:1.32!important}
+  .product-rate b{font-size:54px!important}
+  .product-proof dt{font-size:16px!important}
+  .product-proof dd{font-size:12px!important}
+  .product-more,.product-cta{font-size:13px!important;min-height:46px!important}
+
+  .tiers-v2-card em{font-size:32px!important}
+  .tiers-v2-card>p{font-size:15px!important;line-height:1.3!important}
+  .tiers-v2-card li{font-size:13px!important;line-height:1.25!important}
+  .tier-more{font-size:13px!important}
+
+  .level-modal-head b{font-size:60px!important}
+  .level-modal-head p{font-size:18px!important;line-height:1.38!important}
+  .level-modal-stats span{font-size:12px!important}
+  .level-modal-stats strong{font-size:46px!important}
+  .level-modal-section h3{font-size:32px!important}
+  .level-modal-section>p{font-size:14px!important;line-height:1.4!important}
+  .level-benefits b{font-size:17px!important}
+  .level-rules dt{font-size:16px!important}
+  .level-rules dd{font-size:13px!important;line-height:1.4!important}
+}
+
+/* ---------- 2. Desktop / tablet landscape --------------------------------- */
+@media (min-width:1025px) and (max-width:1440px){
+  .figma-hero{background-image:url("../shared/ui/hero-bg-l 1.png")!important}
+  .conditions-section{background-image:url("../shared/ui/conditions-m 1.png")!important}
+  .compliance-visual{background-image:url("../shared/ui/compliance-m 1.png")!important}
+  .account-steps-section{background-image:url("../shared/ui/steps-bg-m 1.png")!important}
+  .site-footer{background-image:url("../shared/ui/footer-bg 1.png")!important}
+  .custody-card-grid article:nth-child(1){background-image:url("../shared/ui/storage-1-m 1.png")!important}
+  .custody-card-grid article:nth-child(2){background-image:url("../shared/ui/storage-2-m 1.png")!important}
+  .custody-card-grid article:nth-child(3){background-image:url("../shared/ui/storage-3-m 1.png")!important}
+  .custody-card-grid article:nth-child(4){background-image:url("../shared/ui/storage-4-m 1.png")!important}
+  .tiers-v2-card[data-tier="launch"]::before{background-image:url("../shared/ui/level-1-bg 1.png")!important}
+  .tiers-v2-card[data-tier="orbit"]::before{background-image:url("../shared/ui/level-2-bg 1.png")!important}
+  .tiers-v2-card[data-tier="lunar"]::before{background-image:url("../shared/ui/level-3-bg 1.png")!important}
+  .tiers-v2-card[data-tier="solar"]::before{background-image:url("../shared/ui/level-4-bg 1.png")!important}
+  .tiers-v2-card[data-tier="stellar"]::before{background-image:url("../shared/ui/level-5-bg 1.png")!important}
+
+  .section-head h2,.result-process-head h2,.history-head h2,.custody-head h2,
+  .compliance-figma>h2,.tiers-v2 .section-head h2,.account-steps-content>h2,
+  .faq-v2 .section-head h2{
+    font-size:38px!important;line-height:.98!important;font-weight:500!important;letter-spacing:-.033em!important;
+  }
+  .product-title h3{font-size:25px!important}
+  .product-title p{font-size:15px!important}
+  .product-rate b{font-size:48px!important}
+  .product-proof dt{font-size:15px!important}
+  .product-proof dd{font-size:11px!important}
+  .tiers-v2-card em{font-size:28px!important}
+  .tiers-v2-card>p{font-size:14px!important}
+  .tiers-v2-card li{font-size:12px!important}
+}
+
+/* ---------- 3. Tablet / mobile landscape ---------------------------------- */
+@media (min-width:641px) and (max-width:1024px){
+  .figma-hero{background-image:url("../shared/ui/hero-bg-s 1.png")!important}
+  .conditions-section{background-image:url("../shared/ui/conditions-s 1.png")!important}
+  .compliance-visual{background-image:url("../shared/ui/compliance-s 1.png")!important}
+  .account-steps-section{background-image:url("../shared/ui/steps-bg-s 1.png")!important}
+  .site-footer{background-image:url("../shared/ui/footer-bg-s 1.png")!important}
+  .custody-card-grid article:nth-child(1){background-image:url("../shared/ui/storage-1-m 1.png")!important}
+  .custody-card-grid article:nth-child(2){background-image:url("../shared/ui/storage-2-m 1.png")!important}
+  .custody-card-grid article:nth-child(3){background-image:url("../shared/ui/storage-3-m 1.png")!important}
+  .custody-card-grid article:nth-child(4){background-image:url("../shared/ui/storage-4-m 1.png")!important}
+  .tiers-v2-card[data-tier="launch"]::before{background-image:url("../shared/ui/level-1-bg-s 1.png")!important}
+  .tiers-v2-card[data-tier="orbit"]::before{background-image:url("../shared/ui/level-2-bg-s 1.png")!important}
+  .tiers-v2-card[data-tier="lunar"]::before{background-image:url("../shared/ui/level-3-bg-s 1.png")!important}
+  .tiers-v2-card[data-tier="solar"]::before{background-image:url("../shared/ui/level-4-bg-s 1.png")!important}
+  .tiers-v2-card[data-tier="stellar"]::before{background-image:url("../shared/ui/level-5-bg-s 1.png")!important}
+
+  .section-head h2,.result-process-head h2,.history-head h2,.custody-head h2,
+  .compliance-figma>h2,.tiers-v2 .section-head h2,.account-steps-content>h2,
+  .faq-v2 .section-head h2{
+    font-size:33px!important;line-height:.98!important;font-weight:500!important;
+  }
+  .product-title h3{font-size:24px!important}
+  .product-title p{font-size:14px!important}
+  .product-rate b{font-size:44px!important}
+  .product-proof dt{font-size:14px!important}
+  .product-proof dd{font-size:11px!important}
+  .tiers-v2-card em{font-size:27px!important}
+  .tiers-v2-card>p{font-size:15px!important}
+  .tiers-v2-card li{font-size:12px!important}
+}
+
+/* ---------- 4. Mobile portrait --------------------------------------------- */
+@media (max-width:640px){
+  .figma-hero{background-image:url("../shared/ui/hero-bg-xs 1.png")!important}
+  .conditions-section{background-image:url("../shared/ui/conditions-xs 1.png")!important}
+  .compliance-visual{background-image:url("../shared/ui/compliance-xs 1.png")!important}
+  .account-steps-section{background-image:url("../shared/ui/steps-bg-xs 1.png")!important}
+  .site-footer{background-image:url("../shared/ui/footer-bg-xs 1.png")!important}
+  .custody-card-grid article:nth-child(1){background-image:url("../shared/ui/storage-1-xs 1.png")!important}
+  .custody-card-grid article:nth-child(2){background-image:url("../shared/ui/storage-2-xs 1.png")!important}
+  .custody-card-grid article:nth-child(3){background-image:url("../shared/ui/storage-3-xs 1.png")!important}
+  .custody-card-grid article:nth-child(4){background-image:url("../shared/ui/storage-4-xs 1.png")!important}
+  .tiers-v2-card[data-tier="launch"]::before{background-image:url("../shared/ui/level-1-bg-xs 1.png")!important}
+  .tiers-v2-card[data-tier="orbit"]::before{background-image:url("../shared/ui/level-2-bg-xs 1.png")!important}
+  .tiers-v2-card[data-tier="lunar"]::before{background-image:url("../shared/ui/level-3-bg-xs 1.png")!important}
+  .tiers-v2-card[data-tier="solar"]::before{background-image:url("../shared/ui/level-4-bg-xs 1.png")!important}
+  .tiers-v2-card[data-tier="stellar"]::before{background-image:url("../shared/ui/level-5-bg-xs 1.png")!important}
+
+  .section-head h2,.result-process-head h2,.history-head h2,.custody-head h2,
+  .compliance-figma>h2,.tiers-v2 .section-head h2,.account-steps-content>h2,
+  .faq-v2 .section-head h2{
+    font-size:30px!important;line-height:.98!important;font-weight:500!important;
+  }
+  .product-title h3{font-size:25px!important}
+  .product-title p{font-size:14px!important;line-height:1.2!important}
+  .product-rate b{font-size:42px!important}
+  .product-proof dt{font-size:14px!important}
+  .product-proof dd{font-size:11px!important}
+  .tiers-v2-card em{font-size:29px!important}
+  .tiers-v2-card>p{font-size:18px!important;line-height:1.22!important}
+  .tiers-v2-card li{font-size:14px!important}
+  .tier-more{font-size:14px!important}
+
+  .level-modal-head{
+    background-size:cover!important;
+    background-position:center!important;
+  }
+  .level-modal-head b{font-size:28px!important}
+  .level-modal-head p{font-size:13px!important;line-height:1.22!important}
+  .level-modal-stats strong{font-size:30px!important}
+  .level-modal-section h3{font-size:25px!important}
+  .level-modal-section>p{font-size:12px!important}
+}
+
+/* Result artwork uses <picture>; never crop it via a background. */
+.result-process-visual{
+  background-image:none!important;
+}
+.result-process-picture{
+  display:block!important;
+  width:100%!important;
+  line-height:0!important;
+}
+.result-process-picture img{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  object-fit:contain!important;
+  image-rendering:auto!important;
+}
+
+/* Surface polish matching the supplied Figma screenshots */
+.product-card,.tiers-v2-card,.custody-card-grid article,.compliance-list,
+.history-table-wrap,.realized-events,.goal-calc{
+  border-color:var(--line)!important;
+}
+.product-card,.tiers-v2-card,.custody-card-grid article,.goal-calc{
+  border-radius:10px!important;
+  box-shadow:0 8px 24px rgba(54,78,108,.06)!important;
+}
+.product-title h3,.tiers-v2-card em,.custody-card-grid h3,.compliance-list h3,
+.result-process-cards h3,.history-table tbody th b,.faq-v2-question{
+  color:var(--ink)!important;
+}
+.product-proof dd,.custody-card-grid p,.compliance-list p,.result-process-cards p,
+.history-head p,.custody-head p,.result-process-head p,.faq-v2-answer p{
+  color:var(--muted)!important;
+}
