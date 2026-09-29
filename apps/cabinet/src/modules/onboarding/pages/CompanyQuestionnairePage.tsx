@@ -56,6 +56,17 @@ type CompanyQuestionnaire = {
   regulatedActivity: string
   licensesInfo: string
   otherCountries: string
+  taxClassification: string
+  taxResidencies: string
+  fatcaStatus: string
+  pepStatus: string
+  pepDetails: string
+  sanctionsStatus: string
+  sanctionsDetails: string
+  russianBankTransfer: string
+  currencyControlStatus: string
+  unk: string
+  currencyControlComment: string
   submittedAt: string
 }
 
@@ -105,6 +116,13 @@ export function CompanyQuestionnairePage() {
     regulatedActivity: 'no',
     licensesInfo: '',
     otherCountries: '',
+    taxClassification: '',
+    taxResidencies: '',
+    fatcaStatus: '',
+    pepStatus: 'no',
+    pepDetails: '',
+    sanctionsStatus: 'no',
+    sanctionsDetails: '',
   })
 
   const [signatory, setSignatory] = useState({
@@ -124,6 +142,10 @@ export function CompanyQuestionnairePage() {
     expectedMonthlyTurnover: '',
     expectedTransactionsCount: '',
     fundsPurpose: '',
+    russianBankTransfer: 'yes',
+    currencyControlStatus: 'checking',
+    unk: '',
+    currencyControlComment: '',
   })
 
   const [beneficialOwners, setBeneficialOwners] = useState<BeneficialOwner[]>([emptyOwner()])
@@ -150,9 +172,22 @@ export function CompanyQuestionnairePage() {
       company.mainActivity,
       company.contactEmail,
       company.phone,
+      company.taxClassification,
+      company.taxResidencies,
+      company.fatcaStatus,
     ]
     if (requiredCompany.some((value) => !value.trim())) {
       toast('error', 'Заполните обязательные сведения о компании')
+      return
+    }
+
+    if (company.pepStatus === 'yes' && !company.pepDetails.trim()) {
+      toast('error', 'Укажите сведения о PEP: лицо, должность/связь, страна и период')
+      return
+    }
+
+    if (company.sanctionsStatus === 'yes' && !company.sanctionsDetails.trim()) {
+      toast('error', 'Укажите сведения о санкционной связи: лицо/организация, страна, список или основание')
       return
     }
 
@@ -172,6 +207,12 @@ export function CompanyQuestionnairePage() {
       )
     ) {
       toast('error', 'Заполните сведения обо всех владельцах с долей 5% и более и основаниях контроля')
+      return
+    }
+
+    const isRussianCompany = profile.jurisdiction === 'RU'
+    if (isRussianCompany && (!banking.russianBankTransfer.trim() || !banking.currencyControlStatus.trim())) {
+      toast('error', 'Заполните сведения по валютному контролю РФ')
       return
     }
 
@@ -217,6 +258,17 @@ export function CompanyQuestionnairePage() {
         regulatedActivity: company.regulatedActivity,
         licensesInfo: company.licensesInfo.trim(),
         otherCountries: company.otherCountries.trim(),
+        taxClassification: company.taxClassification,
+        taxResidencies: company.taxResidencies.trim(),
+        fatcaStatus: company.fatcaStatus,
+        pepStatus: company.pepStatus,
+        pepDetails: company.pepDetails.trim(),
+        sanctionsStatus: company.sanctionsStatus,
+        sanctionsDetails: company.sanctionsDetails.trim(),
+        russianBankTransfer: banking.russianBankTransfer,
+        currencyControlStatus: banking.currencyControlStatus,
+        unk: banking.unk.trim(),
+        currencyControlComment: banking.currencyControlComment.trim(),
         submittedAt: new Date().toISOString(),
       })
       markOnboardingState('SELF_CERT_COMPLETED')
@@ -275,6 +327,62 @@ export function CompanyQuestionnairePage() {
             </Field>
             <Field label="Лицензии и разрешения"><input value={company.licensesInfo} onChange={(e) => patchCompany({ licensesInfo: e.target.value })} className={inputClass} placeholder="Номер, орган, срок действия" /></Field>
           </div>
+        </Card>
+
+        <Card title="Налоговая и международная классификация">
+          <p className="mb-4 text-xs leading-relaxed text-[var(--trigonum-muted)]">
+            Эти сведения используются для определения налогового статуса компании и применимых требований международного обмена налоговой информацией.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Классификация компании *">
+              <select value={company.taxClassification} onChange={(e) => patchCompany({ taxClassification: e.target.value })} className={inputClass}>
+                <option value="">Выберите</option>
+                <option value="financial_institution">Финансовая организация</option>
+                <option value="active_nfe">Активная нефинансовая организация (Active NFE/NFFE)</option>
+                <option value="passive_nfe">Пассивная нефинансовая организация (Passive NFE/NFFE)</option>
+                <option value="other">Иная / требуется уточнение</option>
+              </select>
+            </Field>
+            <Field label="Налоговые резидентства компании *">
+              <input value={company.taxResidencies} onChange={(e) => patchCompany({ taxResidencies: e.target.value })} className={inputClass} placeholder="Россия; при наличии — другие страны" />
+            </Field>
+            <Field label="FATCA / CRS статус *">
+              <select value={company.fatcaStatus} onChange={(e) => patchCompany({ fatcaStatus: e.target.value })} className={inputClass}>
+                <option value="">Выберите</option>
+                <option value="no_us">Нет налоговых обязательств США / обычный CRS-профиль</option>
+                <option value="us_person">Компания является US Person / имеет налоговые обязательства США</option>
+                <option value="giin">Финансовая организация с GIIN</option>
+                <option value="needs_review">Требуется уточнение налогового статуса</option>
+              </select>
+            </Field>
+          </div>
+        </Card>
+
+        <Card title="PEP и санкционные связи">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Есть ли PEP среди руководителей, подписантов или бенефициаров? *">
+              <select value={company.pepStatus} onChange={(e) => patchCompany({ pepStatus: e.target.value })} className={inputClass}>
+                <option value="no">Нет</option>
+                <option value="yes">Да</option>
+              </select>
+            </Field>
+            <Field label="Есть ли санкционные связи или ограничения? *">
+              <select value={company.sanctionsStatus} onChange={(e) => patchCompany({ sanctionsStatus: e.target.value })} className={inputClass}>
+                <option value="no">Нет</option>
+                <option value="yes">Да</option>
+              </select>
+            </Field>
+          </div>
+          {company.pepStatus === 'yes' && (
+            <Field label="Подробности по PEP *">
+              <textarea rows={3} value={company.pepDetails} onChange={(e) => patchCompany({ pepDetails: e.target.value })} className={inputClass} placeholder="Кто именно, должность или связь, страна, период исполнения публичной функции" />
+            </Field>
+          )}
+          {company.sanctionsStatus === 'yes' && (
+            <Field label="Подробности по санкционной связи *">
+              <textarea rows={3} value={company.sanctionsDetails} onChange={(e) => patchCompany({ sanctionsDetails: e.target.value })} className={inputClass} placeholder="Лицо или организация, страна, санкционный список / основание ограничения, характер связи" />
+            </Field>
+          )}
         </Card>
 
         <Card title="Лицо с правом подписи">
@@ -341,6 +449,37 @@ export function CompanyQuestionnairePage() {
             <textarea rows={3} value={banking.fundsPurpose} onChange={(e) => patchBanking({ fundsPurpose: e.target.value })} className={inputClass} placeholder="Например: размещение временно свободной ликвидности, диверсификация, инвестиционное управление" />
           </Field>
         </Card>
+
+        {profile.jurisdiction === 'RU' && (
+          <Card title="Валютный контроль РФ">
+            <p className="mb-4 text-xs leading-relaxed text-[var(--trigonum-muted)]">
+              Укажите сведения со стороны обслуживающего банка. Мы не определяем за банк необходимость постановки договора на учёт — фиксируем фактический статус, который сообщил банк клиента.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Расчёт с Trigonum Broker планируется напрямую с российского банковского счёта? *">
+                <select value={banking.russianBankTransfer} onChange={(e) => patchBanking({ russianBankTransfer: e.target.value })} className={inputClass}>
+                  <option value="yes">Да</option>
+                  <option value="no">Нет</option>
+                  <option value="unknown">Пока не определено</option>
+                </select>
+              </Field>
+              <Field label="Статус постановки договора на учёт / УНК *">
+                <select value={banking.currencyControlStatus} onChange={(e) => patchBanking({ currencyControlStatus: e.target.value })} className={inputClass}>
+                  <option value="checking">Уточняется в банке</option>
+                  <option value="required">Требуется постановка на учёт / УНК</option>
+                  <option value="not_required">Банк подтвердил, что не требуется</option>
+                  <option value="registered">Договор поставлен на учёт</option>
+                </select>
+              </Field>
+              <Field label="УНК / номер постановки на учёт">
+                <input value={banking.unk} onChange={(e) => patchBanking({ unk: e.target.value })} className={inputClass} placeholder="Если уже присвоен" />
+              </Field>
+              <Field label="Комментарий банка / валютного контроля">
+                <textarea rows={3} value={banking.currencyControlComment} onChange={(e) => patchBanking({ currencyControlComment: e.target.value })} className={inputClass} placeholder="Например: договор передан на проверку, ожидается ответ банка" />
+              </Field>
+            </div>
+          </Card>
+        )}
 
         <div className="flex justify-end">
           <PrimaryButton disabled={submitting} onClick={() => void submit()}>
