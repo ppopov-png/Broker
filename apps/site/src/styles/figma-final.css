@@ -2114,110 +2114,425 @@ html,body,#root,.broker-site{background:var(--fx-bg)!important;color:var(--fx-in
 }
 
 
-/* WIDE DESKTOP FIGMA FRAME
-   The approved desktop layout uses the viewport width, not a narrow centered 1320px canvas. */
+/* DESKTOP VISUAL PARITY ONLY
+   No layout/grid/container restructuring here: typography, colors, imagery and surface styling only. */
 @media (min-width:1100px){
-  .products-section,
-  .result-process,
-  .history-section,
-  .conditions-section,
-  .custody-section-figma,
-  .compliance-figma,
-  .tiers-v2,
-  .account-steps-section,
-  .calculator-section,
-  .faq-section.faq-v2{
-    width:calc(100% - 64px)!important;
-    max-width:none!important;
-    margin-left:32px!important;
-    margin-right:32px!important;
+  body{
+    background:#eef5fb!important;
+    color:#10142d!important;
   }
 
-  .products-grid{
-    width:100%!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    gap:16px!important;
+  /* section typography */
+  .section-head h2,
+  .products-section>.section-head h2,
+  .result-process-head h2,
+  .history-head h2,
+  .custody-head h2,
+  .compliance-figma>h2,
+  .tiers-v2 .section-head h2,
+  .account-steps-content>h2,
+  .calculator-copy h2,
+  .faq-v2 .section-head h2{
+    color:#0f1430!important;
+    font-size:42px!important;
+    line-height:.96!important;
+    letter-spacing:-.038em!important;
+    font-weight:500!important;
+  }
+  .section-head p,
+  .result-process-head p,
+  .history-head p,
+  .custody-head p,
+  .calculator-copy>p{
+    color:#8692a3!important;
+    font-size:16px!important;
+    line-height:1.42!important;
   }
 
-  .result-process-head,
-  .history-head,
-  .custody-head{
-    width:100%!important;
+  /* products */
+  .product-card{
+    border:1px solid #d9e2eb!important;
+    border-radius:10px!important;
+    box-shadow:0 8px 24px rgba(54,78,108,.06)!important;
+  }
+  .product-body{padding:26px!important}
+  .product-title h3{
+    color:#10142d!important;
+    font-size:27px!important;
+    line-height:1!important;
+    font-weight:500!important;
+  }
+  .product-title p{
+    margin-top:14px!important;
+    color:#10142d!important;
+    font-size:16px!important;
+    line-height:1.32!important;
+    font-weight:500!important;
+  }
+  .product-badge{
+    padding:6px 11px!important;
+    border-radius:999px!important;
+    font-size:11px!important;
+    font-weight:600!important;
+  }
+  .product-rate b{
+    font-size:52px!important;
+    line-height:1!important;
+    font-weight:500!important;
+  }
+  .product-rate span{
+    margin-top:7px!important;
+    color:#7e8999!important;
+    font-size:11px!important;
+  }
+  .product-proof dt{
+    color:#164a78!important;
+    font-size:16px!important;
+    font-weight:500!important;
+  }
+  .product-proof dd{
+    color:#8792a2!important;
+    font-size:12px!important;
+  }
+  .product-more,.product-cta{
+    min-height:46px!important;
+    border-radius:4px!important;
+    font-size:13px!important;
+    font-weight:600!important;
   }
 
-  .result-process-visual,
-  .result-process-picture,
-  .result-process-picture img,
-  .history-table-wrap,
-  .realized-events,
-  .custody-card-grid,
-  .compliance-figma-layout,
-  .account-steps-section,
-  .calculator-section,
-  .faq-v2 .faq-list{
-    width:100%!important;
-    max-width:none!important;
+  /* investment result */
+  .result-process-picture img{
+    image-rendering:auto!important;
+    filter:none!important;
+  }
+  .result-process-cards{
+    border-radius:0 0 10px 10px!important;
+    box-shadow:0 8px 24px rgba(54,78,108,.05)!important;
+  }
+  .result-process-cards article{
+    background:#fff!important;
+    border-color:#dce4ec!important;
+  }
+  .result-process-cards span{
+    color:#1f9eea!important;
+    font-size:14px!important;
+    font-weight:700!important;
+  }
+  .result-process-cards h3{
+    color:#164b78!important;
+    font-size:18px!important;
+    line-height:1.15!important;
+    font-weight:600!important;
+  }
+  .result-process-cards p{
+    color:#7f8b9c!important;
+    font-size:13px!important;
+    line-height:1.35!important;
   }
 
-  .tiers-v2-grid{
-    display:grid!important;
-    grid-template-columns:repeat(5,minmax(0,1fr))!important;
-    gap:14px!important;
-    overflow:visible!important;
+  /* account history */
+  .history-table-wrap{
+    border-color:#d9e2ea!important;
+    border-radius:10px!important;
+    box-shadow:0 8px 22px rgba(54,78,108,.05)!important;
   }
-  .tiers-v2-card{
-    width:100%!important;
-    min-width:0!important;
-    flex:none!important;
+  .history-table thead th{
+    color:#758194!important;
+    font-size:11px!important;
+    font-weight:700!important;
   }
+  .history-table tbody th,
+  .history-table tbody td{
+    color:#10142d!important;
+    font-size:13px!important;
+    line-height:1.3!important;
+  }
+  .history-table tbody th b{font-size:13px!important}
+  .history-table tbody th small{font-size:10px!important}
+  .history-rank{
+    width:32px!important;
+    height:32px!important;
+    font-size:11px!important;
+  }
+  .realized-events{
+    border-radius:10px!important;
+    box-shadow:0 8px 22px rgba(54,78,108,.05)!important;
+  }
+  .realized-events>div:first-child h3{
+    font-size:25px!important;
+    line-height:1!important;
+  }
+  .realized-events-grid strong{font-size:28px!important}
+  .realized-events-grid h4{font-size:14px!important}
+  .realized-events-grid p{font-size:10.5px!important}
+  .realized-events-grid b{font-size:14px!important}
 
+  /* conditions */
   .conditions-section{
-    grid-template-columns:minmax(0,1.08fr) minmax(520px,.92fr)!important;
+    border-radius:12px!important;
+    box-shadow:0 12px 30px rgba(71,102,134,.08)!important;
+  }
+  .conditions-content>header h2{
+    color:#11152d!important;
+    font-size:40px!important;
+    line-height:.98!important;
+    letter-spacing:-.035em!important;
+    font-weight:500!important;
+  }
+  .conditions-content>header p{
+    color:#65768a!important;
+    font-size:15px!important;
+    line-height:1.38!important;
+  }
+  .conditions-management strong{
+    color:#168ed7!important;
+    font-size:52px!important;
+    font-weight:500!important;
+  }
+  .conditions-management span{
+    color:#1b4f7d!important;
+    font-size:13px!important;
+    line-height:1.2!important;
+    font-weight:700!important;
+  }
+  .conditions-list article{
+    border-radius:10px!important;
+    background:rgba(255,255,255,.9)!important;
+    box-shadow:0 4px 14px rgba(67,91,118,.06)!important;
+  }
+  .conditions-product h3{
+    color:#10142d!important;
+    font-size:19px!important;
+    font-weight:600!important;
+  }
+  .conditions-product p{
+    color:#748196!important;
+    font-size:12px!important;
+    line-height:1.3!important;
+  }
+  .conditions-list dt{
+    color:#6e7c90!important;
+    font-size:10px!important;
+    font-weight:700!important;
+  }
+  .conditions-list dd{
+    color:#205c98!important;
+    font-size:24px!important;
+    font-weight:600!important;
+  }
+  .conditions-list dd small{
+    color:#8994a5!important;
+    font-size:10px!important;
+  }
+  .conditions-note{
+    color:#28415d!important;
+    font-size:10.5px!important;
+    line-height:1.35!important;
   }
 
-  .custody-card-grid{
-    grid-template-columns:repeat(4,minmax(0,1fr))!important;
-    gap:14px!important;
+  /* custody */
+  .custody-card-grid article{
+    border-radius:11px!important;
+    box-shadow:0 8px 22px rgba(54,78,108,.06)!important;
+  }
+  .custody-card-grid article h3{
+    color:#10142d!important;
+    font-size:21px!important;
+    line-height:1.05!important;
+    font-weight:600!important;
+  }
+  .custody-card-grid article p{
+    color:#7f8b9c!important;
+    font-size:13px!important;
+    line-height:1.35!important;
+  }
+  .custody-card-grid article small{
+    color:#205c98!important;
+    font-size:11px!important;
+    font-weight:700!important;
   }
 
+  /* compliance */
   .compliance-figma-layout{
-    grid-template-columns:minmax(0,1.05fr) minmax(520px,.95fr)!important;
-    gap:18px!important;
+    border-radius:12px!important;
+    overflow:hidden!important;
+    box-shadow:0 8px 24px rgba(54,78,108,.06)!important;
+  }
+  .compliance-visual{
+    image-rendering:auto!important;
+    filter:none!important;
+  }
+  .compliance-list article{
+    background:#fff!important;
+  }
+  .compliance-list span{
+    color:#2a9ee6!important;
+    font-size:12px!important;
+    font-weight:700!important;
+  }
+  .compliance-list h3{
+    color:#10142d!important;
+    font-size:20px!important;
+    line-height:1.05!important;
+    font-weight:600!important;
+  }
+  .compliance-list p{
+    color:#7f8b9c!important;
+    font-size:13px!important;
+    line-height:1.35!important;
   }
 
-  .calculator-section{
-    grid-template-columns:minmax(320px,.72fr) minmax(0,1.28fr)!important;
-    gap:42px!important;
-  }
-
-  .site-footer{
-    width:100%!important;
-    max-width:none!important;
-  }
-}
-
-@media (min-width:1600px){
-  .products-section,
-  .result-process,
-  .history-section,
-  .conditions-section,
-  .custody-section-figma,
-  .compliance-figma,
-  .tiers-v2,
-  .account-steps-section,
-  .calculator-section,
-  .faq-section.faq-v2{
-    width:calc(100% - 96px)!important;
-    margin-left:48px!important;
-    margin-right:48px!important;
-  }
-
+  /* investor levels */
   .tiers-v2-card{
-    min-height:560px!important;
-    padding-left:22px!important;
-    padding-right:22px!important;
+    border-radius:10px!important;
+    box-shadow:0 8px 24px rgba(54,78,108,.07)!important;
   }
-  .tiers-v2-card em{font-size:34px!important}
-  .tiers-v2-card>p{font-size:16px!important}
-  .tiers-v2-card li{font-size:13.5px!important}
+  .tiers-v2-card::before{
+    image-rendering:auto!important;
+    filter:none!important;
+  }
+  .tiers-v2-card strong{font-size:17px!important}
+  .tiers-v2-card em{font-size:31px!important}
+  .tiers-v2-card>p{
+    color:#10142d!important;
+    font-size:15px!important;
+    line-height:1.32!important;
+  }
+  .tiers-v2-card li{
+    color:#7f8b9c!important;
+    font-size:13px!important;
+    line-height:1.25!important;
+  }
+  .tier-more{
+    border-radius:4px!important;
+    font-size:13px!important;
+  }
+
+  /* opening account */
+  .account-steps-section{
+    border-radius:12px!important;
+    box-shadow:0 10px 28px rgba(54,78,108,.07)!important;
+  }
+  .account-step-index{
+    color:#164b78!important;
+    font-size:14px!important;
+    font-weight:700!important;
+  }
+  .account-step h3{
+    color:#10142d!important;
+    font-size:20px!important;
+    line-height:1.08!important;
+    font-weight:600!important;
+  }
+  .account-step strong{
+    color:#164b78!important;
+    font-size:12.5px!important;
+  }
+  .account-step p{
+    color:#788599!important;
+    font-size:13.5px!important;
+    line-height:1.36!important;
+  }
+
+  /* calculator */
+  .calculator-copy h2{
+    font-size:42px!important;
+    line-height:.95!important;
+  }
+  .goal-calc,
+  .calculator-card{
+    border-radius:11px!important;
+    box-shadow:0 10px 30px rgba(54,78,108,.08)!important;
+  }
+  .goal-calc label,
+  .calculator-card label{
+    color:#718095!important;
+    font-size:12px!important;
+    font-weight:700!important;
+  }
+  .goal-calc input,
+  .calculator-card input{
+    color:#174b79!important;
+    font-size:28px!important;
+    font-weight:600!important;
+  }
+  .goal-calc h3,
+  .calculator-card h3{
+    color:#10142d!important;
+    font-size:18px!important;
+  }
+
+  /* FAQ */
+  .faq-v2 .section-head h2{font-size:40px!important}
+  .faq-v2 details{
+    border-color:#d8e1ea!important;
+  }
+  .faq-v2 summary{
+    color:#10142d!important;
+    font-size:16px!important;
+    line-height:1.25!important;
+    font-weight:600!important;
+  }
+  .faq-v2 .faq-number{
+    color:#66758b!important;
+    font-size:13px!important;
+    font-weight:700!important;
+  }
+  .faq-v2 details p{
+    color:#6f7d91!important;
+    font-size:14px!important;
+    line-height:1.45!important;
+  }
+  .faq-v2-video-frame{
+    border-radius:9px!important;
+    overflow:hidden!important;
+    box-shadow:0 6px 18px rgba(36,72,113,.12)!important;
+  }
+
+  /* footer visual only */
+  .footer-cta>p{
+    font-size:42px!important;
+    line-height:.95!important;
+  }
+  .footer-cta h2{
+    font-size:50px!important;
+    line-height:.94!important;
+  }
+  .footer-cta>span{
+    color:#d3dce8!important;
+    font-size:14px!important;
+    line-height:1.4!important;
+  }
+  .footer-rights,.footer-risk{
+    font-size:11px!important;
+    line-height:1.4!important;
+  }
+  .footer-docs a{
+    font-size:11px!important;
+  }
+
+  /* level popups: sharper images and readable type, preserving existing popup structure */
+  .level-modal-head{
+    background-size:cover!important;
+    background-position:center!important;
+    image-rendering:auto!important;
+  }
+  .level-modal-head b{
+    font-size:60px!important;
+  }
+  .level-modal-head p{
+    font-size:18px!important;
+    line-height:1.38!important;
+  }
+  .level-modal-stats span{font-size:12px!important}
+  .level-modal-stats strong{font-size:46px!important}
+  .level-modal-stats small{font-size:11px!important}
+  .level-modal-section h3{font-size:32px!important}
+  .level-modal-section>p{font-size:14px!important}
+  .level-benefits b{font-size:17px!important}
+  .level-points dt{font-size:14px!important}
+  .level-points dd{font-size:19px!important}
+  .level-rules dt{font-size:16px!important}
+  .level-rules dd{font-size:13px!important}
 }
