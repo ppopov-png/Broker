@@ -126,6 +126,9 @@ function LevelModal({ level, onClose }: { level: Level | null; onClose: () => vo
     <div className="level-modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <article className={`level-modal level-modal-${level.id}`} role="dialog" aria-modal="true">
         <button className="level-modal-close" type="button" onClick={onClose} aria-label="Закрыть"><X size={18} /></button>
+        <div className="level-modal-progress" aria-hidden="true">
+          {LEVELS.map((item) => <span key={item.id} className={item.id === level.id ? 'active' : undefined} />)}
+        </div>
 
         <header className="level-modal-head">
           <span>Уровень</span>
