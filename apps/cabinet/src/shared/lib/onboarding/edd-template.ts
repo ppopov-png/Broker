@@ -3,7 +3,7 @@ import type { EddTemplate } from './types'
 
 const INDIVIDUAL_EDD_TEMPLATE: EddTemplate = {
   id: 'edd-individual',
-  version: '1.1',
+  version: '1.2',
   questions: [
     {
       id: 'q1', order: 1, type: 'SINGLE_SELECT', isRequired: true,
@@ -51,7 +51,7 @@ const INDIVIDUAL_EDD_TEMPLATE: EddTemplate = {
  */
 const COMPANY_EDD_TEMPLATE: EddTemplate = {
   id: 'edd-company',
-  version: '1.1',
+  version: '1.2',
   questions: [
     {
       id: 'c1', order: 1, type: 'SINGLE_SELECT', isRequired: true,
@@ -133,19 +133,45 @@ const COMPANY_EDD_TEMPLATE: EddTemplate = {
     },
     {
       id: 'c21', order: 21, type: 'TEXT', isRequired: false,
-      text: 'Если на вопросы о PEP, санкциях, юрисдикциях повышенного риска или регулируемой деятельности дан ответ «Да», опишите обстоятельства, страны, лиц и применимые лицензии',
+      text: 'Если среди руководителей, подписантов или бенефициаров есть PEP, укажите лицо, должность / связь, страну и период исполнения публичной функции',
     },
-    { id: 'c22', order: 22, type: 'SINGLE_SELECT', isRequired: true, text: 'Страна налогового учёта / регистрации компании', options: [] },
     {
-      id: 'c23', order: 23, type: 'YES_NO', isRequired: true,
+      id: 'c22', order: 22, type: 'TEXT', isRequired: false,
+      text: 'Если есть санкционные связи или ограничения, укажите лицо / организацию, страну, санкционный список или основание и характер связи',
+    },
+    {
+      id: 'c23', order: 23, type: 'TEXT', isRequired: false,
+      text: 'Если деятельность связана с юрисдикциями повышенного риска или регулируемой деятельностью, опишите страны, вид деятельности и применимые лицензии',
+    },
+    { id: 'c24', order: 24, type: 'SINGLE_SELECT', isRequired: true, text: 'Страна налогового учёта / регистрации компании', options: [] },
+    {
+      id: 'c25', order: 25, type: 'YES_NO', isRequired: true,
       text: 'Совпадает ли страна налогового резидентства компании со страной её регистрации?',
     },
     {
-      id: 'c24', order: 24, type: 'TEXT', isRequired: true,
+      id: 'c26', order: 26, type: 'SINGLE_SELECT', isRequired: true,
+      text: 'Налоговая классификация компании для целей CRS / FATCA',
+      options: ['Финансовая организация', 'Активная нефинансовая организация (Active NFE/NFFE)', 'Пассивная нефинансовая организация (Passive NFE/NFFE)', 'US Person / налоговые обязательства США', 'Требуется уточнение'],
+    },
+    {
+      id: 'c27', order: 27, type: 'TEXT', isRequired: false,
+      text: 'Укажите дополнительные страны налогового резидентства, TIN / налоговые номера или GIIN, если применимо',
+    },
+    {
+      id: 'c28', order: 28, type: 'SINGLE_SELECT', isRequired: true,
+      text: 'Для российского юридического лица: статус валютного контроля по договору с Trigonum Broker',
+      options: ['Не применимо', 'Уточняется в обслуживающем банке', 'Требуется постановка договора на учёт / УНК', 'Банк подтвердил, что постановка на учёт не требуется', 'Договор поставлен на учёт'],
+    },
+    {
+      id: 'c29', order: 29, type: 'TEXT', isRequired: false,
+      text: 'Если договор поставлен на учёт или находится на проверке банка, укажите УНК / номер учёта и комментарий обслуживающего банка',
+    },
+    {
+      id: 'c30', order: 30, type: 'TEXT', isRequired: true,
       text: 'Опишите экономический смысл открытия счёта в Trigonum Broker и предполагаемую модель использования средств',
     },
     {
-      id: 'c25', order: 25, type: 'FILE_UPLOAD', isRequired: false,
+      id: 'c31', order: 31, type: 'FILE_UPLOAD', isRequired: false,
       text: 'Дополнительный документ, подтверждающий источник средств, деятельность компании или экономический смысл операций',
     },
   ],
