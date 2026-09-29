@@ -2536,3 +2536,27 @@ html,body,#root,.broker-site{background:var(--fx-bg)!important;color:var(--fx-in
   .level-rules dt{font-size:16px!important}
   .level-rules dd{font-size:13px!important}
 }
+
+
+/* Product accent lock — Figma */
+.product-card.product-earn .product-rate b{
+  color:#27A6E8!important;
+}
+.product-card.product-strategies .product-rate b{
+  color:#9850F1!important;
+}
+.product-card.product-events .product-rate b{
+  color:#48BF5A!important;
+}
+.product-card.product-earn .product-badge{
+  color:#278BC6!important;
+  background:#E6F4FC!important;
+}
+.product-card.product-strategies .product-badge{
+  color:#9850F1!important;
+  background:#F0E8FD!important;
+}
+.product-card.product-events .product-badge{
+  color:#48A65A!important;
+  background:#E8F7E9!important;
+}
