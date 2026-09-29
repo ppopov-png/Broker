@@ -2112,3 +2112,112 @@ html,body,#root,.broker-site{background:var(--fx-bg)!important;color:var(--fx-in
     text-decoration:none!important;
   }
 }
+
+
+/* WIDE DESKTOP FIGMA FRAME
+   The approved desktop layout uses the viewport width, not a narrow centered 1320px canvas. */
+@media (min-width:1100px){
+  .products-section,
+  .result-process,
+  .history-section,
+  .conditions-section,
+  .custody-section-figma,
+  .compliance-figma,
+  .tiers-v2,
+  .account-steps-section,
+  .calculator-section,
+  .faq-section.faq-v2{
+    width:calc(100% - 64px)!important;
+    max-width:none!important;
+    margin-left:32px!important;
+    margin-right:32px!important;
+  }
+
+  .products-grid{
+    width:100%!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:16px!important;
+  }
+
+  .result-process-head,
+  .history-head,
+  .custody-head{
+    width:100%!important;
+  }
+
+  .result-process-visual,
+  .result-process-picture,
+  .result-process-picture img,
+  .history-table-wrap,
+  .realized-events,
+  .custody-card-grid,
+  .compliance-figma-layout,
+  .account-steps-section,
+  .calculator-section,
+  .faq-v2 .faq-list{
+    width:100%!important;
+    max-width:none!important;
+  }
+
+  .tiers-v2-grid{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:14px!important;
+    overflow:visible!important;
+  }
+  .tiers-v2-card{
+    width:100%!important;
+    min-width:0!important;
+    flex:none!important;
+  }
+
+  .conditions-section{
+    grid-template-columns:minmax(0,1.08fr) minmax(520px,.92fr)!important;
+  }
+
+  .custody-card-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:14px!important;
+  }
+
+  .compliance-figma-layout{
+    grid-template-columns:minmax(0,1.05fr) minmax(520px,.95fr)!important;
+    gap:18px!important;
+  }
+
+  .calculator-section{
+    grid-template-columns:minmax(320px,.72fr) minmax(0,1.28fr)!important;
+    gap:42px!important;
+  }
+
+  .site-footer{
+    width:100%!important;
+    max-width:none!important;
+  }
+}
+
+@media (min-width:1600px){
+  .products-section,
+  .result-process,
+  .history-section,
+  .conditions-section,
+  .custody-section-figma,
+  .compliance-figma,
+  .tiers-v2,
+  .account-steps-section,
+  .calculator-section,
+  .faq-section.faq-v2{
+    width:calc(100% - 96px)!important;
+    margin-left:48px!important;
+    margin-right:48px!important;
+  }
+
+  .tiers-v2-card{
+    min-height:560px!important;
+    padding-left:22px!important;
+    padding-right:22px!important;
+  }
+  .tiers-v2-card em{font-size:34px!important}
+  .tiers-v2-card>p{font-size:16px!important}
+  .tiers-v2-card li{font-size:13.5px!important}
+}
