@@ -10,8 +10,65 @@ import { PrimaryButton } from '../../../shared/ui/buttons'
 import { useToast } from '../../../shared/ui/Toast'
 import { BackToStatus } from '../ui/BackToStatus'
 
-type BeneficialOwner = { id: string; name: string; ownership: string; ownerType: 'individual' | 'company' }
-type CompanyQuestionnaire = { legalName: string; jurisdiction: string; signatoryName: string; signatoryAuthority: string; beneficialOwners: BeneficialOwner[]; submittedAt: string }
+type BeneficialOwner = {
+  id: string
+  name: string
+  ownership: string
+  ownerType: 'individual' | 'company'
+  citizenship: string
+  taxResidency: string
+  birthDate: string
+  controlBasis: string
+}
+
+type CompanyQuestionnaire = {
+  legalName: string
+  shortName: string
+  jurisdiction: string
+  legalForm: string
+  registrationNumber: string
+  registrationDate: string
+  taxId: string
+  kpp: string
+  legalAddress: string
+  actualAddress: string
+  website: string
+  phone: string
+  contactEmail: string
+  mainActivity: string
+  activityCode: string
+  employeesCount: string
+  annualRevenue: string
+  signatoryName: string
+  signatoryPosition: string
+  signatoryAuthority: string
+  signatoryTaxResidency: string
+  beneficialOwners: BeneficialOwner[]
+  bankName: string
+  bankCountry: string
+  bankAccount: string
+  bicSwift: string
+  plannedFundingSources: string
+  fundingCurrencies: string
+  expectedMonthlyTurnover: string
+  expectedTransactionsCount: string
+  fundsPurpose: string
+  regulatedActivity: string
+  licensesInfo: string
+  otherCountries: string
+  submittedAt: string
+}
+
+const emptyOwner = (): BeneficialOwner => ({
+  id: `owner-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+  name: '',
+  ownership: '',
+  ownerType: 'individual',
+  citizenship: '',
+  taxResidency: '',
+  birthDate: '',
+  controlBasis: '',
+})
 
 function saveQuestionnaire(payload: CompanyQuestionnaire) {
   try {
@@ -28,41 +85,279 @@ export function CompanyQuestionnairePage() {
   const profile = useMemo(() => readClientProfile(), [])
   const navigate = useNavigate()
   const toast = useToast()
-  const [signatoryName, setSignatoryName] = useState('')
-  const [signatoryAuthority, setSignatoryAuthority] = useState('')
-  const [beneficialOwners, setBeneficialOwners] = useState<BeneficialOwner[]>([{ id: 'owner-1', name: '', ownership: '', ownerType: 'individual' }])
+
+  const [company, setCompany] = useState({
+    shortName: '',
+    legalForm: '',
+    registrationNumber: '',
+    registrationDate: '',
+    taxId: '',
+    kpp: '',
+    legalAddress: '',
+    actualAddress: '',
+    website: '',
+    phone: '',
+    contactEmail: '',
+    mainActivity: '',
+    activityCode: '',
+    employeesCount: '',
+    annualRevenue: '',
+    regulatedActivity: 'no',
+    licensesInfo: '',
+    otherCountries: '',
+  })
+
+  const [signatory, setSignatory] = useState({
+    name: '',
+    position: '',
+    authority: '',
+    taxResidency: '',
+  })
+
+  const [banking, setBanking] = useState({
+    bankName: '',
+    bankCountry: '',
+    bankAccount: '',
+    bicSwift: '',
+    plannedFundingSources: '',
+    fundingCurrencies: 'RUB',
+    expectedMonthlyTurnover: '',
+    expectedTransactionsCount: '',
+    fundsPurpose: '',
+  })
+
+  const [beneficialOwners, setBeneficialOwners] = useState<BeneficialOwner[]>([emptyOwner()])
   const [submitting, setSubmitting] = useState(false)
 
   if (!allowed) return null
 
-  const updateOwner = (id: string, patch: Partial<BeneficialOwner>) => setBeneficialOwners((current) => current.map((owner) => owner.id === id ? { ...owner, ...patch } : owner))
-  const addOwner = () => setBeneficialOwners((current) => [...current, { id: `owner-${Date.now()}-${current.length}`, name: '', ownership: '', ownerType: 'individual' }])
+  const patchCompany = (patch: Partial<typeof company>) => setCompany((current) => ({ ...current, ...patch }))
+  const patchSignatory = (patch: Partial<typeof signatory>) => setSignatory((current) => ({ ...current, ...patch }))
+  const patchBanking = (patch: Partial<typeof banking>) => setBanking((current) => ({ ...current, ...patch }))
+  const updateOwner = (id: string, patch: Partial<BeneficialOwner>) =>
+    setBeneficialOwners((current) => current.map((owner) => owner.id === id ? { ...owner, ...patch } : owner))
 
   const submit = async () => {
     const owners = beneficialOwners.filter((owner) => owner.name.trim() || owner.ownership.trim())
-    if (!signatoryName.trim() || !signatoryAuthority.trim()) { toast('error', 'Укажите подписанта и основание его полномочий'); return }
-    if (owners.length === 0 || owners.some((owner) => !owner.name.trim() || !owner.ownership.trim() || Number(owner.ownership) < 5)) { toast('error', 'Укажите всех бенефициарных владельцев с долей 5% и более'); return }
+
+    const requiredCompany = [
+      company.legalForm,
+      company.registrationNumber,
+      company.registrationDate,
+      company.taxId,
+      company.legalAddress,
+      company.actualAddress,
+      company.mainActivity,
+      company.contactEmail,
+      company.phone,
+    ]
+    if (requiredCompany.some((value) => !value.trim())) {
+      toast('error', 'Заполните обязательные сведения о компании')
+      return
+    }
+
+    if (!signatory.name.trim() || !signatory.position.trim() || !signatory.authority.trim() || !signatory.taxResidency.trim()) {
+      toast('error', 'Заполните сведения об уполномоченном подписанте')
+      return
+    }
+
+    if (
+      owners.length === 0 ||
+      owners.some((owner) =>
+        !owner.name.trim() ||
+        !owner.ownership.trim() ||
+        Number(owner.ownership) < 5 ||
+        !owner.controlBasis.trim() ||
+        (owner.ownerType === 'individual' && (!owner.citizenship.trim() || !owner.taxResidency.trim()))
+      )
+    ) {
+      toast('error', 'Заполните сведения обо всех владельцах с долей 5% и более и основаниях контроля')
+      return
+    }
+
+    if (!banking.bankName.trim() || !banking.bankCountry.trim() || !banking.bankAccount.trim() || !banking.fundsPurpose.trim()) {
+      toast('error', 'Заполните банковские реквизиты и цель использования счёта')
+      return
+    }
+
     setSubmitting(true)
     try {
-      saveQuestionnaire({ legalName: session?.accountName ?? 'Юридическое лицо', jurisdiction: profile.jurisdiction, signatoryName: signatoryName.trim(), signatoryAuthority: signatoryAuthority.trim(), beneficialOwners: owners, submittedAt: new Date().toISOString() })
+      saveQuestionnaire({
+        legalName: session?.accountName ?? 'Юридическое лицо',
+        shortName: company.shortName.trim(),
+        jurisdiction: profile.jurisdiction,
+        legalForm: company.legalForm.trim(),
+        registrationNumber: company.registrationNumber.trim(),
+        registrationDate: company.registrationDate,
+        taxId: company.taxId.trim(),
+        kpp: company.kpp.trim(),
+        legalAddress: company.legalAddress.trim(),
+        actualAddress: company.actualAddress.trim(),
+        website: company.website.trim(),
+        phone: company.phone.trim(),
+        contactEmail: company.contactEmail.trim(),
+        mainActivity: company.mainActivity.trim(),
+        activityCode: company.activityCode.trim(),
+        employeesCount: company.employeesCount.trim(),
+        annualRevenue: company.annualRevenue.trim(),
+        signatoryName: signatory.name.trim(),
+        signatoryPosition: signatory.position.trim(),
+        signatoryAuthority: signatory.authority.trim(),
+        signatoryTaxResidency: signatory.taxResidency.trim(),
+        beneficialOwners: owners,
+        bankName: banking.bankName.trim(),
+        bankCountry: banking.bankCountry.trim(),
+        bankAccount: banking.bankAccount.trim(),
+        bicSwift: banking.bicSwift.trim(),
+        plannedFundingSources: banking.plannedFundingSources.trim(),
+        fundingCurrencies: banking.fundingCurrencies.trim(),
+        expectedMonthlyTurnover: banking.expectedMonthlyTurnover.trim(),
+        expectedTransactionsCount: banking.expectedTransactionsCount.trim(),
+        fundsPurpose: banking.fundsPurpose.trim(),
+        regulatedActivity: company.regulatedActivity,
+        licensesInfo: company.licensesInfo.trim(),
+        otherCountries: company.otherCountries.trim(),
+        submittedAt: new Date().toISOString(),
+      })
       markOnboardingState('SELF_CERT_COMPLETED')
       markOnboardingState('AGREEMENTS_ACCEPTED')
       notifyOnboardingChanged()
       navigate(ONBOARDING_ROUTES.documents)
-    } finally { setSubmitting(false) }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  return <div className="pb-10">
-    <PageHeader back={<BackToStatus />} title="Анкета юридического лица" description="Заполняем сведения, прямо следующие из перечня документов: уполномоченный подписант и бенефициарные владельцы с долей 5% и более. Остальные поля добавляются только по утверждённой форме анкеты." />
-    <div className="flex flex-col gap-5">
-      <Card title="Компания" action={<Building2 size={17} className="text-[var(--trigonum-blue)]" />}><div className="grid gap-3 sm:grid-cols-2"><Info label="Наименование" value={session?.accountName ?? 'Юридическое лицо'} /><Info label="Юрисдикция" value={profile.jurisdiction} /></div></Card>
-      <Card title="Лицо с правом подписи"><div className="grid gap-4 sm:grid-cols-2"><Field label="ФИО подписанта"><input value={signatoryName} onChange={(event) => setSignatoryName(event.target.value)} className={inputClass} /></Field><Field label="Должность / основание полномочий"><input value={signatoryAuthority} onChange={(event) => setSignatoryAuthority(event.target.value)} className={inputClass} /></Field></div><p className="mt-3 text-xs leading-relaxed text-[var(--trigonum-muted)]">Анкета подписывается лицом, имеющим право подписи и право открытия/ведения брокерского счёта.</p></Card>
-      <Card title="Бенефициарные владельцы от 5%"><p className="mb-4 text-xs leading-relaxed text-[var(--trigonum-muted)]">Укажите каждого владельца с долей 5% и более. Если владельцем является юридическое лицо, отметьте это; цепочка владения подтверждается отдельной схемой в досье.</p><div className="space-y-3">{beneficialOwners.map((owner,index)=><div key={owner.id} className="grid gap-3 rounded-xl border border-[var(--trigonum-border)] p-4 sm:grid-cols-[1fr_140px_160px_auto]"><Field label={`Владелец ${index+1}`}><input value={owner.name} onChange={(event)=>updateOwner(owner.id,{name:event.target.value})} className={inputClass}/></Field><Field label="Доля, %"><input type="number" min="5" max="100" step="0.01" value={owner.ownership} onChange={(event)=>updateOwner(owner.id,{ownership:event.target.value})} className={inputClass}/></Field><Field label="Тип владельца"><select value={owner.ownerType} onChange={(event)=>updateOwner(owner.id,{ownerType:event.target.value as BeneficialOwner['ownerType']})} className={inputClass}><option value="individual">Физическое лицо</option><option value="company">Юридическое лицо</option></select></Field><button type="button" aria-label="Удалить владельца" onClick={()=>setBeneficialOwners((current)=>current.filter((item)=>item.id!==owner.id))} className="mt-6 inline-flex size-10 items-center justify-center rounded-lg border border-[var(--trigonum-border)] text-[var(--trigonum-danger)]"><Trash2 size={15}/></button></div>)}</div><button type="button" onClick={addOwner} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--trigonum-blue)]"><Plus size={15}/>Добавить владельца</button></Card>
-      <div className="flex justify-end"><PrimaryButton disabled={submitting} onClick={()=>void submit()}>{submitting?'Сохраняем':'Сохранить анкету и перейти к досье'}</PrimaryButton></div>
+  return (
+    <div className="pb-10">
+      <PageHeader
+        back={<BackToStatus />}
+        title="Анкета юридического лица"
+        description="Собираем сведения о компании, структуре владения, подписанте, банковских реквизитах и предполагаемом использовании счёта. Данные должны совпадать с корпоративным досье."
+      />
+
+      <div className="flex flex-col gap-5">
+        <Card title="Регистрационные сведения" action={<Building2 size={17} className="text-[var(--trigonum-blue)]" />}>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Info label="Полное наименование" value={session?.accountName ?? 'Юридическое лицо'} />
+            <Info label="Юрисдикция регистрации" value={profile.jurisdiction} />
+            <Field label="Сокращённое наименование"><input value={company.shortName} onChange={(e) => patchCompany({ shortName: e.target.value })} className={inputClass} /></Field>
+            <Field label="Организационно-правовая форма *"><input value={company.legalForm} onChange={(e) => patchCompany({ legalForm: e.target.value })} className={inputClass} placeholder="ООО / АО / иное" /></Field>
+            <Field label="ОГРН / регистрационный номер *"><input value={company.registrationNumber} onChange={(e) => patchCompany({ registrationNumber: e.target.value })} className={inputClass} /></Field>
+            <Field label="Дата регистрации *"><input type="date" value={company.registrationDate} onChange={(e) => patchCompany({ registrationDate: e.target.value })} className={inputClass} /></Field>
+            <Field label="ИНН / налоговый номер *"><input value={company.taxId} onChange={(e) => patchCompany({ taxId: e.target.value })} className={inputClass} /></Field>
+            <Field label="КПП"><input value={company.kpp} onChange={(e) => patchCompany({ kpp: e.target.value })} className={inputClass} /></Field>
+          </div>
+        </Card>
+
+        <Card title="Адреса и контакты">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Юридический адрес *"><input value={company.legalAddress} onChange={(e) => patchCompany({ legalAddress: e.target.value })} className={inputClass} /></Field>
+            <Field label="Фактический адрес *"><input value={company.actualAddress} onChange={(e) => patchCompany({ actualAddress: e.target.value })} className={inputClass} /></Field>
+            <Field label="Корпоративный email *"><input type="email" value={company.contactEmail} onChange={(e) => patchCompany({ contactEmail: e.target.value })} className={inputClass} /></Field>
+            <Field label="Телефон *"><input value={company.phone} onChange={(e) => patchCompany({ phone: e.target.value })} className={inputClass} /></Field>
+            <Field label="Сайт"><input value={company.website} onChange={(e) => patchCompany({ website: e.target.value })} className={inputClass} placeholder="https://" /></Field>
+            <Field label="Страны основной деятельности"><input value={company.otherCountries} onChange={(e) => patchCompany({ otherCountries: e.target.value })} className={inputClass} placeholder="Россия, Казахстан, ОАЭ…" /></Field>
+          </div>
+        </Card>
+
+        <Card title="Деятельность компании">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Основной вид деятельности *"><input value={company.mainActivity} onChange={(e) => patchCompany({ mainActivity: e.target.value })} className={inputClass} /></Field>
+            <Field label="ОКВЭД / отраслевой код"><input value={company.activityCode} onChange={(e) => patchCompany({ activityCode: e.target.value })} className={inputClass} /></Field>
+            <Field label="Количество сотрудников"><input type="number" min="0" value={company.employeesCount} onChange={(e) => patchCompany({ employeesCount: e.target.value })} className={inputClass} /></Field>
+            <Field label="Годовая выручка"><input value={company.annualRevenue} onChange={(e) => patchCompany({ annualRevenue: e.target.value })} className={inputClass} placeholder="Сумма и валюта" /></Field>
+            <Field label="Регулируемая / лицензируемая деятельность">
+              <select value={company.regulatedActivity} onChange={(e) => patchCompany({ regulatedActivity: e.target.value })} className={inputClass}>
+                <option value="no">Нет</option>
+                <option value="yes">Да</option>
+              </select>
+            </Field>
+            <Field label="Лицензии и разрешения"><input value={company.licensesInfo} onChange={(e) => patchCompany({ licensesInfo: e.target.value })} className={inputClass} placeholder="Номер, орган, срок действия" /></Field>
+          </div>
+        </Card>
+
+        <Card title="Лицо с правом подписи">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="ФИО подписанта *"><input value={signatory.name} onChange={(e) => patchSignatory({ name: e.target.value })} className={inputClass} /></Field>
+            <Field label="Должность *"><input value={signatory.position} onChange={(e) => patchSignatory({ position: e.target.value })} className={inputClass} /></Field>
+            <Field label="Основание полномочий *"><input value={signatory.authority} onChange={(e) => patchSignatory({ authority: e.target.value })} className={inputClass} placeholder="Устав / решение / доверенность" /></Field>
+            <Field label="Налоговое резидентство подписанта *"><input value={signatory.taxResidency} onChange={(e) => patchSignatory({ taxResidency: e.target.value })} className={inputClass} /></Field>
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-[var(--trigonum-muted)]">
+            Паспорт и документ о полномочиях проверяются отдельным шагом. Здесь фиксируем сведения, которые должны совпадать с загруженными документами.
+          </p>
+        </Card>
+
+        <Card title="Структура владения и контроль">
+          <p className="mb-4 text-xs leading-relaxed text-[var(--trigonum-muted)]">
+            Укажите каждого прямого или косвенного владельца с долей 5% и более. Для юридического лица-владельца добавьте его отдельной строкой и раскройте цепочку до конечных физических лиц. Если контроль осуществляется не только через долю, укажите основание.
+          </p>
+
+          <div className="space-y-3">
+            {beneficialOwners.map((owner, index) => (
+              <div key={owner.id} className="rounded-xl border border-[var(--trigonum-border)] p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-[var(--trigonum-ink)]">Владелец / контролирующее лицо {index + 1}</p>
+                  <button type="button" aria-label="Удалить владельца" onClick={() => setBeneficialOwners((current) => current.filter((item) => item.id !== owner.id))} className="inline-flex size-9 items-center justify-center rounded-lg border border-[var(--trigonum-border)] text-[var(--trigonum-danger)]"><Trash2 size={15} /></button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <Field label="ФИО / наименование *"><input value={owner.name} onChange={(e) => updateOwner(owner.id, { name: e.target.value })} className={inputClass} /></Field>
+                  <Field label="Тип владельца *">
+                    <select value={owner.ownerType} onChange={(e) => updateOwner(owner.id, { ownerType: e.target.value as BeneficialOwner['ownerType'] })} className={inputClass}>
+                      <option value="individual">Физическое лицо</option>
+                      <option value="company">Юридическое лицо</option>
+                    </select>
+                  </Field>
+                  <Field label="Прямая / косвенная доля, % *"><input type="number" min="5" max="100" step="0.01" value={owner.ownership} onChange={(e) => updateOwner(owner.id, { ownership: e.target.value })} className={inputClass} /></Field>
+                  {owner.ownerType === 'individual' && <>
+                    <Field label="Гражданство *"><input value={owner.citizenship} onChange={(e) => updateOwner(owner.id, { citizenship: e.target.value })} className={inputClass} /></Field>
+                    <Field label="Налоговое резидентство *"><input value={owner.taxResidency} onChange={(e) => updateOwner(owner.id, { taxResidency: e.target.value })} className={inputClass} /></Field>
+                    <Field label="Дата рождения"><input type="date" value={owner.birthDate} onChange={(e) => updateOwner(owner.id, { birthDate: e.target.value })} className={inputClass} /></Field>
+                  </>}
+                  <Field label="Основание владения / контроля *"><input value={owner.controlBasis} onChange={(e) => updateOwner(owner.id, { controlBasis: e.target.value })} className={inputClass} placeholder="Доля, договор, право назначения, иной контроль" /></Field>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button type="button" onClick={() => setBeneficialOwners((current) => [...current, emptyOwner()])} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--trigonum-blue)]">
+            <Plus size={15} /> Добавить владельца / контролирующее лицо
+          </button>
+        </Card>
+
+        <Card title="Банковские реквизиты и планируемые операции">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Банк отправителя *"><input value={banking.bankName} onChange={(e) => patchBanking({ bankName: e.target.value })} className={inputClass} /></Field>
+            <Field label="Страна банка *"><input value={banking.bankCountry} onChange={(e) => patchBanking({ bankCountry: e.target.value })} className={inputClass} /></Field>
+            <Field label="Номер счёта / IBAN *"><input value={banking.bankAccount} onChange={(e) => patchBanking({ bankAccount: e.target.value })} className={inputClass} /></Field>
+            <Field label="БИК / SWIFT"><input value={banking.bicSwift} onChange={(e) => patchBanking({ bicSwift: e.target.value })} className={inputClass} /></Field>
+            <Field label="Источники будущих пополнений"><input value={banking.plannedFundingSources} onChange={(e) => patchBanking({ plannedFundingSources: e.target.value })} className={inputClass} placeholder="Банковский счёт компании, USDT/USDC…" /></Field>
+            <Field label="Планируемые валюты"><input value={banking.fundingCurrencies} onChange={(e) => patchBanking({ fundingCurrencies: e.target.value })} className={inputClass} placeholder="RUB, USD, USDT…" /></Field>
+            <Field label="Ожидаемый месячный оборот по счёту"><input value={banking.expectedMonthlyTurnover} onChange={(e) => patchBanking({ expectedMonthlyTurnover: e.target.value })} className={inputClass} placeholder="Сумма и валюта" /></Field>
+            <Field label="Ожидаемое число операций в месяц"><input type="number" min="0" value={banking.expectedTransactionsCount} onChange={(e) => patchBanking({ expectedTransactionsCount: e.target.value })} className={inputClass} /></Field>
+          </div>
+          <Field label="Цель открытия и использования счёта *">
+            <textarea rows={3} value={banking.fundsPurpose} onChange={(e) => patchBanking({ fundsPurpose: e.target.value })} className={inputClass} placeholder="Например: размещение временно свободной ликвидности, диверсификация, инвестиционное управление" />
+          </Field>
+        </Card>
+
+        <div className="flex justify-end">
+          <PrimaryButton disabled={submitting} onClick={() => void submit()}>
+            {submitting ? 'Сохраняем' : 'Сохранить анкету и перейти к досье'}
+          </PrimaryButton>
+        </div>
+      </div>
     </div>
-  </div>
+  )
 }
 
-const inputClass='mt-1 w-full rounded-lg border border-[var(--trigonum-border)] bg-white px-3 py-2.5 text-sm text-[var(--trigonum-ink)] outline-none focus:border-[var(--trigonum-ink)]'
-function Field({label,children}:{label:string;children:React.ReactNode}){return <label className="block text-xs font-semibold text-[var(--trigonum-ink)]">{label}{children}</label>}
-function Info({label,value}:{label:string;value:string}){return <div><p className="text-xs text-[var(--trigonum-muted)]">{label}</p><p className="mt-1 text-sm font-semibold text-[var(--trigonum-ink)]">{value}</p></div>}
+const inputClass = 'mt-1 w-full rounded-lg border border-[var(--trigonum-border)] bg-white px-3 py-2.5 text-sm text-[var(--trigonum-ink)] outline-none focus:border-[var(--trigonum-ink)]'
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <label className="block text-xs font-semibold text-[var(--trigonum-ink)]">{label}{children}</label>
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return <div><p className="text-xs text-[var(--trigonum-muted)]">{label}</p><p className="mt-1 text-sm font-semibold text-[var(--trigonum-ink)]">{value}</p></div>
+}
