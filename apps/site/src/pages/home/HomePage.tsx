@@ -1,4 +1,5 @@
 import { Header } from '../../widgets/Header'
+import { FloatingLiveEarningsTicker } from '../../widgets/LiveEarningsTicker'
 import { ComplianceSection } from '../../sections/ComplianceSection'
 import { CustodySection } from '../../sections/CustodySection'
 import { FaqSection } from '../../sections/FaqSection'
@@ -22,6 +23,7 @@ export function HomePage() {
   return (
     <div className="broker-site v2-broker-site">
       <Header />
+      <FloatingLiveEarningsTicker />
       <main>
         <HeroSection />
         <StatsStrip />
