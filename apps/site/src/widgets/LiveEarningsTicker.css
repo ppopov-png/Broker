@@ -263,3 +263,71 @@
     transition: none;
   }
 }
+
+
+/* 2026-09-30: compact-width / taller floating earnings card */
+.floating-earnings-shell {
+  width: min(330px, calc(100vw - 40px))!important;
+}
+
+.live-earnings-floating {
+  min-height: 118px;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 22px 20px!important;
+  border-radius: 17px;
+}
+
+.live-earnings-floating .live-earnings-icon {
+  width: 42px;
+  height: 42px;
+  margin-top: 3px;
+}
+
+.live-earnings-floating .live-earnings-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.live-earnings-floating .live-earnings-copy {
+  flex: 1 1 auto;
+  padding-top: 0;
+}
+
+.live-earnings-floating .live-earnings-title {
+  max-width: 235px;
+  font-size: 13px!important;
+  line-height: 1.32!important;
+  font-weight: 700!important;
+}
+
+.live-earnings-floating strong {
+  margin-top: 7px!important;
+  font-size: 30px!important;
+  line-height: 1!important;
+  font-weight: 800!important;
+}
+
+.live-earnings-floating .live-earnings-note {
+  display: none!important;
+}
+
+@media (max-width: 720px) {
+  .floating-earnings-shell {
+    width: min(310px, calc(100vw - 24px))!important;
+  }
+
+  .live-earnings-floating {
+    min-height: 108px;
+    align-items: flex-start;
+    padding: 18px 16px!important;
+  }
+
+  .live-earnings-floating .live-earnings-title {
+    font-size: 12px!important;
+  }
+
+  .live-earnings-floating strong {
+    font-size: 27px!important;
+  }
+}
