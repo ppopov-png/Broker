@@ -518,3 +518,32 @@
   .v2-stats-strip{width:calc(100% - 18px)!important}
   .v2-why,.v2-products,.v2-matcher{width:calc(100% - 28px)!important}
 }
+
+
+/* 2026-09-30: restore original hero-main responsive assets */
+.v2-hero{
+  background-color:#062451!important;
+  background-image:url('../shared/ui/hero-main-l.png')!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:cover!important;
+}
+.v2-hero::before{display:none!important}
+.v2-hero-shade{
+  background:linear-gradient(90deg,rgba(5,33,77,.96) 0%,rgba(5,35,81,.88) 28%,rgba(5,39,87,.42) 48%,rgba(5,40,88,.08) 66%,rgba(5,40,88,0) 76%)!important;
+}
+@media(min-width:1025px) and (max-width:1440px){
+  .v2-hero{background-image:url('../shared/ui/hero-main-m.png')!important}
+}
+@media(min-width:641px) and (max-width:1024px){
+  .v2-hero{
+    background-image:url('../shared/ui/hero-main-s.png')!important;
+    background-position:center center!important;
+  }
+}
+@media(max-width:640px){
+  .v2-hero{
+    background-image:url('../shared/ui/hero-main-xs.png')!important;
+    background-position:center bottom!important;
+  }
+}
