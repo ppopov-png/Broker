@@ -594,3 +594,195 @@
   .v2-benefit-card{min-height:300px!important}
   .v2-benefit-art{height:146px!important}
 }
+
+
+/* 2026-09-30: grid proportion + readable type pass
+   Reference rule: stat strip and card grids share one outer rail;
+   section headings sit on an inset rail. No text below 10px. */
+.v2-stats-strip,
+.v2-why,
+.v2-products,
+.v2-matcher{
+  width:min(1420px,calc(100% - 64px))!important;
+}
+
+.v2-why{
+  padding-bottom:46px!important;
+}
+.v2-why .v2-section-head,
+.v2-products .v2-section-head{
+  box-sizing:border-box;
+  width:100%;
+  max-width:none;
+  padding-left:34px;
+  padding-right:34px;
+  margin-bottom:24px!important;
+}
+.v2-benefit-grid,
+.v2-product-grid{
+  width:100%;
+}
+.v2-benefit-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:12px!important;
+}
+.v2-benefit-card{
+  min-width:0;
+  min-height:344px!important;
+  padding:16px 18px 0!important;
+}
+.v2-benefit-icon{
+  width:42px!important;
+  height:42px!important;
+}
+.v2-benefit-card h3{
+  margin-top:13px!important;
+  font-size:18px!important;
+  line-height:1.18!important;
+}
+.v2-benefit-card>p{
+  max-width:29ch!important;
+  margin-top:8px!important;
+  font-size:13px!important;
+  line-height:1.42!important;
+}
+.v2-benefit-art{
+  height:166px!important;
+}
+.v2-benefit-art::before{
+  height:54px!important;
+}
+.v2-section-head>span,
+.v2-matcher-head>div>span{
+  font-size:10px!important;
+  line-height:1.2!important;
+}
+.v2-section-head h2{
+  font-size:40px!important;
+  line-height:1.03!important;
+}
+.v2-section-head p{
+  max-width:790px!important;
+  font-size:15px!important;
+  line-height:1.42!important;
+}
+
+/* Stats are intentionally more readable than the old comp. */
+.v2-stat-item{
+  padding:22px 28px!important;
+}
+.v2-stat-value{
+  font-size:20px!important;
+  line-height:1.1!important;
+}
+.v2-stat-label{
+  font-size:11px!important;
+  line-height:1.25!important;
+}
+.v2-stat-note{
+  max-width:235px!important;
+  font-size:10px!important;
+  line-height:1.4!important;
+}
+
+/* Hard floor: no micro-copy in the v2 landing below 10px. */
+.v2-hero-trust span,
+.v2-product-topline>span,
+.v2-product-rate-row small,
+.v2-product-tagline,
+.v2-product-facts dt,
+.v2-product-facts dd,
+.v2-product-actions button,
+.v2-product-actions a,
+.v2-product-note,
+.v2-matcher-note,
+.v2-matcher-question h3,
+.v2-matcher-question button,
+.v2-match-kicker,
+.v2-match-result>p,
+.v2-match-result dt,
+.v2-match-result dd,
+.v2-match-result>a{
+  font-size:10px!important;
+}
+.v2-product-topline b{
+  font-size:11px!important;
+}
+.v2-matcher-head>div>p{
+  font-size:12px!important;
+}
+.v2-matcher-head h2{
+  font-size:32px!important;
+}
+.v2-product-note{
+  line-height:1.4!important;
+}
+
+/* Keep the same geometry at common desktop sizes instead of shrinking
+   sections onto a narrower second rail. */
+@media(min-width:1025px) and (max-width:1440px){
+  .v2-stats-strip,
+  .v2-why,
+  .v2-products,
+  .v2-matcher{
+    width:calc(100% - 48px)!important;
+    max-width:1340px!important;
+  }
+  .v2-why .v2-section-head,
+  .v2-products .v2-section-head{
+    padding-left:30px;
+    padding-right:30px;
+  }
+  .v2-benefit-card{
+    min-height:336px!important;
+  }
+}
+@media(min-width:641px) and (max-width:1024px){
+  .v2-stats-strip,
+  .v2-why,
+  .v2-products,
+  .v2-matcher{
+    width:calc(100% - 28px)!important;
+  }
+  .v2-why .v2-section-head,
+  .v2-products .v2-section-head{
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .v2-benefit-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:12px!important;
+  }
+  .v2-benefit-card{
+    min-height:330px!important;
+  }
+}
+@media(max-width:640px){
+  .v2-stats-strip,
+  .v2-why,
+  .v2-products,
+  .v2-matcher{
+    width:calc(100% - 20px)!important;
+  }
+  .v2-why .v2-section-head,
+  .v2-products .v2-section-head{
+    padding-left:6px;
+    padding-right:6px;
+  }
+  .v2-benefit-grid{
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+  }
+  .v2-benefit-card{
+    min-height:324px!important;
+  }
+  .v2-benefit-card>p{
+    font-size:13px!important;
+  }
+  .v2-stat-label,
+  .v2-stat-note,
+  .v2-section-head>span,
+  .v2-matcher-head>div>span{
+    font-size:10px!important;
+  }
+}
