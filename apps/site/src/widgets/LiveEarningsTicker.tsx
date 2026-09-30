@@ -58,7 +58,7 @@ export function LiveEarningsTicker({
       <div className="live-earnings-copy">
         <span className="live-earnings-title">{labels.title}</span>
         <strong aria-live="off">+{value}</strong>
-        {variant !== 'header' && <span className="live-earnings-note">{labels.note}</span>}
+        {variant === 'panel' && <span className="live-earnings-note">{labels.note}</span>}
       </div>
       {withCta && <a className="button button-primary" href={onboardingUrl()}>{final.cta}</a>}
     </div>
