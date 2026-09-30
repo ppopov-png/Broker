@@ -24,7 +24,7 @@ const COPY = {
       ['Fast start', 'Account opening is online, with support at every step.'],
     ],
   },
-  kg: {
+  ky: {
     eyebrow: 'АРТЫКЧЫЛЫКТАР',
     title: 'Эмне үчүн Trigonum',
     subtitle: 'Крипторынокто өз алдынча бүтүм издеп, рынокту көзөмөлдөп жана жыйынтыкты эсептебей инвестициялоо.',
