@@ -34,7 +34,7 @@ export function LiveEarningsTicker({
   variant = 'panel',
   withCta = false,
 }: {
-  variant?: 'panel' | 'header'
+  variant?: 'panel' | 'header' | 'floating'
   withCta?: boolean
 }) {
   const { language } = useI18n()
@@ -58,9 +58,38 @@ export function LiveEarningsTicker({
       <div className="live-earnings-copy">
         <span className="live-earnings-title">{labels.title}</span>
         <strong aria-live="off">+{value}</strong>
-        {variant === 'panel' && <span className="live-earnings-note">{labels.note}</span>}
+        {variant !== 'header' && <span className="live-earnings-note">{labels.note}</span>}
       </div>
       {withCta && <a className="button button-primary" href={onboardingUrl()}>{final.cta}</a>}
     </div>
+  )
+}
+
+
+export function FloatingLiveEarningsTicker() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const hero = document.getElementById('top')
+    if (!hero) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setVisible(!entry.isIntersecting)
+      },
+      { threshold: 0 },
+    )
+
+    observer.observe(hero)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <aside
+      className={`floating-earnings-shell${visible ? ' is-visible' : ''}`}
+      aria-hidden={!visible}
+    >
+      <LiveEarningsTicker variant="floating" />
+    </aside>
   )
 }
