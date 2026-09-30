@@ -2,14 +2,14 @@ import { ArrowRight, Clock3, Info, Sparkles, WalletCards } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useI18n } from '../i18n/I18nProvider'
 import { landingContent } from '../content/landingOfficial'
+import { EARN_STATS, STRATEGIES } from '../content/products'
 import { onboardingUrl } from '../lib/appLinks'
-import type { ProductId } from './ProductModal'
 
 const COPY = {
   ru: {
-    eyebrow: 'ПОДБОР ПРОДУКТА',
-    title: 'Подберите продукт под вашу цель',
-    subtitle: 'Ответьте на несколько вопросов, и мы подскажем, какой формат лучше соответствует вашим целям. Это не является индивидуальной инвестиционной рекомендацией.',
+    eyebrow: 'ПОДБОР ПРОГРАММЫ',
+    title: 'Подберите программу под вашу цель',
+    subtitle: 'Ответьте на несколько вопросов, и мы покажем наиболее близкий формат инвестирования внутри Trigonum. Events в подбор не входят — это дополнительный продукт для отдельных инвестиционных идей.',
     disclaimer: 'Это ознакомительный инструмент. Не является индивидуальной инвестиционной рекомендацией.',
     horizon: 'Какой у вас горизонт инвестирования?',
     horizonOptions: [['short', '1–3 месяца'], ['mid', '3–12 месяцев'], ['long', 'Более 1 года']],
@@ -19,11 +19,15 @@ const COPY = {
     priorityOptions: [['stable', 'Стабильность'], ['balance', 'Баланс'], ['return', 'Максимальный потенциал']],
     result: 'Вам ближе:',
     open: 'Открыть счёт',
+    annual: 'годовых',
+    targetAnnual: 'целевая доходность',
+    term: 'Срок',
+    liquidityLabel: 'Ликвидность',
   },
   en: {
-    eyebrow: 'PRODUCT MATCHER',
-    title: 'Find a format that fits your goal',
-    subtitle: 'Answer a few questions and we will show which format is closest to your selected parameters.',
+    eyebrow: 'PROGRAM MATCHER',
+    title: 'Find a program that fits your goal',
+    subtitle: 'Answer a few questions and we will show the closest Trigonum investment format. Events are excluded because they are an additional product for individual investment ideas.',
     disclaimer: 'This is an educational tool and not an individual investment recommendation.',
     horizon: 'What is your investment horizon?',
     horizonOptions: [['short', '1–3 months'], ['mid', '3–12 months'], ['long', 'More than 1 year']],
@@ -33,11 +37,15 @@ const COPY = {
     priorityOptions: [['stable', 'Stability'], ['balance', 'Balance'], ['return', 'Maximum potential']],
     result: 'Closer match:',
     open: 'Open account',
+    annual: 'annual',
+    targetAnnual: 'target annual return',
+    term: 'Term',
+    liquidityLabel: 'Liquidity',
   },
   ky: {
-    eyebrow: 'ПРОДУКТТУ ТАНДОО',
-    title: 'Максатыңызга ылайыктуу форматты табыңыз',
-    subtitle: 'Бир нече суроого жооп бериңиз — тандалган параметрлерге жакын форматты көрсөтөбүз.',
+    eyebrow: 'ПРОГРАММАНЫ ТАНДОО',
+    title: 'Максатыңызга ылайыктуу программаны табыңыз',
+    subtitle: 'Бир нече суроого жооп бериңиз — Trigonum ичиндеги эң жакын инвестициялык форматты көрсөтөбүз. Events өзүнчө инвестициялык идеялар үчүн кошумча продукт болгондуктан бул тандоого кирбейт.',
     disclaimer: 'Бул таанышуу куралы жана жеке инвестициялык сунуш эмес.',
     horizon: 'Инвестициялык мөөнөтүңүз кандай?',
     horizonOptions: [['short', '1–3 ай'], ['mid', '3–12 ай'], ['long', '1 жылдан ашык']],
@@ -47,12 +55,88 @@ const COPY = {
     priorityOptions: [['stable', 'Туруктуулук'], ['balance', 'Баланс'], ['return', 'Максималдуу потенциал']],
     result: 'Сизге жакыныраак:',
     open: 'Эсеп ачуу',
+    annual: 'жылдык',
+    targetAnnual: 'максаттуу жылдык киреше',
+    term: 'Мөөнөт',
+    liquidityLabel: 'Ликвиддүүлүк',
   },
 } as const
 
 type Horizon = 'short' | 'mid' | 'long'
 type Liquidity = 'fast' | 'medium' | 'low'
 type Priority = 'stable' | 'balance' | 'return'
+type MatchPlanId = 'earn' | 'stable-income' | 'balanced-growth' | 'alpha-momentum'
+
+const PLAN_COPY: Record<MatchPlanId, Record<'ru' | 'en' | 'ky', { description: string; term: string; liquidity: string }>> = {
+  earn: {
+    ru: {
+      description: 'Базовый формат для размещения капитала с фиксированной ставкой и регулярным окном вывода.',
+      term: 'Без ограничения',
+      liquidity: 'Еженедельно',
+    },
+    en: {
+      description: 'Core capital placement format with a fixed rate and a regular withdrawal window.',
+      term: 'No fixed term',
+      liquidity: 'Weekly',
+    },
+    ky: {
+      description: 'Белгиленген ставка жана үзгүлтүксүз чыгаруу терезеси бар капитал жайгаштыруунун негизги форматы.',
+      term: 'Чектелбейт',
+      liquidity: 'Апта сайын',
+    },
+  },
+  'stable-income': {
+    ru: {
+      description: 'Консервативная стратегия для инвестора, которому важнее стабильность и ограничение просадки.',
+      term: '3–12 месяцев',
+      liquidity: 'По условиям стратегии',
+    },
+    en: {
+      description: 'A conservative strategy for investors who prioritise stability and drawdown control.',
+      term: '3–12 months',
+      liquidity: 'Per strategy terms',
+    },
+    ky: {
+      description: 'Туруктуулукту жана төмөндөөнү чектөөнү биринчи орунга койгон инвестор үчүн консервативдүү стратегия.',
+      term: '3–12 ай',
+      liquidity: 'Стратегия шарттары боюнча',
+    },
+  },
+  'balanced-growth': {
+    ru: {
+      description: 'Умеренная стратегия с балансом между потенциальной доходностью и уровнем принимаемого риска.',
+      term: '3–12 месяцев',
+      liquidity: 'По условиям стратегии',
+    },
+    en: {
+      description: 'A moderate strategy balancing potential return and the level of risk taken.',
+      term: '3–12 months',
+      liquidity: 'Per strategy terms',
+    },
+    ky: {
+      description: 'Потенциалдуу киреше менен кабыл алынган тобокелдиктин ортосундагы тең салмактуу стратегия.',
+      term: '3–12 ай',
+      liquidity: 'Стратегия шарттары боюнча',
+    },
+  },
+  'alpha-momentum': {
+    ru: {
+      description: 'Агрессивная стратегия для инвестора, который готов принять более высокий риск ради большего потенциала.',
+      term: '3–12 месяцев',
+      liquidity: 'По условиям стратегии',
+    },
+    en: {
+      description: 'An aggressive strategy for investors willing to accept higher risk for greater upside potential.',
+      term: '3–12 months',
+      liquidity: 'Per strategy terms',
+    },
+    ky: {
+      description: 'Жогорку потенциал үчүн көбүрөөк тобокелдик кабыл алууга даяр инвестор үчүн агрессивдүү стратегия.',
+      term: '3–12 ай',
+      liquidity: 'Стратегия шарттары боюнча',
+    },
+  },
+}
 
 export function ProductMatcherSection() {
   const { language } = useI18n()
@@ -62,14 +146,24 @@ export function ProductMatcherSection() {
   const [liquidity, setLiquidity] = useState<Liquidity>('medium')
   const [priority, setPriority] = useState<Priority>('stable')
 
-  const recommendation = useMemo<ProductId>(() => {
-    if (liquidity === 'fast' || priority === 'stable') return 'earn'
-    if (priority === 'return') return 'events'
-    if (horizon === 'long' || horizon === 'mid') return 'strategies'
-    return 'earn'
+  const recommendation = useMemo<MatchPlanId>(() => {
+    // Events intentionally do not participate in the matcher: they are an
+    // additional opportunity product, not the core investment allocation.
+    if (liquidity === 'fast' || horizon === 'short') return 'earn'
+    if (priority === 'stable') return 'stable-income'
+    if (priority === 'balance') return 'balanced-growth'
+    return 'alpha-momentum'
   }, [horizon, liquidity, priority])
 
-  const product = products.rows.find((row) => row.id === recommendation) ?? products.rows[0]
+  const strategy = recommendation === 'earn'
+    ? null
+    : STRATEGIES.find((item) => item.id === recommendation) ?? STRATEGIES[0]
+
+  const planName = recommendation === 'earn' ? 'EARN' : strategy?.name ?? 'STRATEGY'
+  const planCopy = PLAN_COPY[recommendation][language]
+  const rate = recommendation === 'earn' ? `${EARN_STATS.rate}%` : strategy?.target ?? '—'
+  const rateCaption = recommendation === 'earn' ? copy.annual : copy.targetAnnual
+  const resultClass = recommendation === 'earn' ? 'earn' : 'strategies'
 
   return (
     <section className="v2-matcher" aria-labelledby="product-matcher-title">
@@ -89,14 +183,14 @@ export function ProductMatcherSection() {
           <MatcherQuestion number="3" title={copy.priority} options={copy.priorityOptions} value={priority} onChange={(value) => setPriority(value as Priority)} />
         </div>
 
-        <aside className={`v2-match-result v2-match-${recommendation}`}>
+        <aside className={`v2-match-result v2-match-${resultClass}`}>
           <span className="v2-match-kicker"><Sparkles size={18} />{copy.result}</span>
-          <h3>{recommendation === 'earn' ? 'EARN' : product.name}</h3>
-          <p>{recommendation === 'earn' && language === 'ru' ? 'Оптимальный выбор для стабильного дохода с предсказуемыми условиями. Подходит при умеренном горизонте и потребности в ликвидности.' : product.tagline}</p>
+          <h3>{planName}</h3>
+          <p>{planCopy.description}</p>
           <dl>
-            <div><dt>{recommendation === 'earn' ? '5–12%' : product.rate}</dt><dd>{language === 'ru' ? 'годовых' : product.rateNote}</dd></div>
-            <div><dt><Clock3 size={17} />{recommendation === 'earn' ? 'от 1 месяца' : product.term}</dt><dd>{products.columns.term}</dd></div>
-            <div><dt><WalletCards size={17} />{recommendation === 'earn' && language === 'ru' ? 'Гибкая' : product.liquidity}</dt><dd>{products.columns.liquidity}</dd></div>
+            <div><dt>{rate}</dt><dd>{rateCaption}</dd></div>
+            <div><dt><Clock3 size={17} />{planCopy.term}</dt><dd>{copy.term}</dd></div>
+            <div><dt><WalletCards size={17} />{planCopy.liquidity}</dt><dd>{copy.liquidityLabel}</dd></div>
           </dl>
           <a href={onboardingUrl()}>{copy.open}<ArrowRight size={17} /></a>
         </aside>
