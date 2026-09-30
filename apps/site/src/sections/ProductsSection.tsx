@@ -11,7 +11,7 @@ const COPY = {
   ru: {
     eyebrow: 'ИНВЕСТИЦИОННЫЕ ПРОДУКТЫ',
     title: 'Выберите подходящий формат',
-    subtitle: 'Несколько способов разместить капитал на крипторынке — с разным горизонтом, ликвидностью и уровнем риска.',
+    subtitle: 'Три инвестиционных решения для разных целей. Все продукты работают на криптовалютном рынке и помогают вашему капиталу расти при разном уровне риска и горизонте инвестирования.',
     tags: { earn: 'СТАБИЛЬНОСТЬ', strategies: 'РОСТ', events: 'ВОЗМОЖНОСТИ' },
     more: 'Подробнее',
     invest: 'Инвестировать',
@@ -37,7 +37,7 @@ const COPY = {
 export function ProductsSection() {
   const { language } = useI18n()
   const { products } = landingContent(language)
-  const copy = COPY[language] ?? COPY.ru
+  const copy = COPY[language]
   const [open, setOpen] = useState<ProductId | null>(null)
 
   const rows = ORDER.map((id) => products.rows.find((row) => row.id === id)).filter(
@@ -66,8 +66,8 @@ export function ProductsSection() {
 
               <div className="v2-product-rate-row">
                 <div>
-                  <strong>{product.rate}</strong>
-                  <small>{product.rateNote}</small>
+                  <strong>{id === 'earn' ? '5–12%' : id === 'events' ? 'до 30%' : '8–20%'}</strong>
+                  <small>{language === 'ru' ? 'годовых в USDT' : product.rateNote}</small>
                 </div>
                 <div className="v2-product-bars" aria-hidden="true">
                   <i /><i /><i /><i /><i /><i /><i />
@@ -75,8 +75,8 @@ export function ProductsSection() {
               </div>
 
               <dl className="v2-product-facts">
-                <div><dt><Clock3 size={17} />{products.columns.term}</dt><dd>{product.term}</dd></div>
-                <div><dt><WalletCards size={17} />{products.columns.liquidity}</dt><dd>{product.liquidity}</dd></div>
+                <div><dt><Clock3 size={17} />{products.columns.term}</dt><dd>{id === 'earn' ? 'от 1 месяца' : id === 'strategies' ? 'от 3 месяцев' : 'от 1 месяца'}</dd></div>
+                <div><dt><WalletCards size={17} />{products.columns.liquidity}</dt><dd>{id === 'earn' ? 'Возможность вывода по графику' : id === 'strategies' ? 'Ежемесячные окна для вывода' : 'По условиям стратегии'}</dd></div>
               </dl>
 
               <div className="v2-product-actions">
