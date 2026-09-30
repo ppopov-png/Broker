@@ -786,3 +786,236 @@
     font-size:10px!important;
   }
 }
+
+
+/* 2026-09-30: readability pass for Products + Program Matcher */
+.v2-products .v2-section-head>span,
+.v2-matcher-head>div>span{
+  font-size:12px!important;
+  line-height:1.2!important;
+}
+.v2-products .v2-section-head h2,
+.v2-matcher-head h2{
+  font-size:38px!important;
+  line-height:1.05!important;
+}
+.v2-products .v2-section-head p,
+.v2-matcher-head>div>p{
+  max-width:900px!important;
+  font-size:15px!important;
+  line-height:1.5!important;
+}
+
+.v2-product-card{
+  min-height:430px!important;
+  padding:22px!important;
+}
+.v2-product-topline b{
+  font-size:14px!important;
+}
+.v2-product-topline b i{
+  width:18px!important;
+  height:18px!important;
+}
+.v2-product-topline>span{
+  padding:6px 11px!important;
+  font-size:12px!important;
+}
+.v2-product-card h3{
+  margin-top:18px!important;
+  font-size:25px!important;
+  line-height:1.1!important;
+}
+.v2-product-tagline{
+  min-height:48px!important;
+  margin-top:8px!important;
+  font-size:14px!important;
+  line-height:1.45!important;
+}
+.v2-product-rate-row{
+  grid-template-columns:1fr 128px!important;
+  margin-top:18px!important;
+}
+.v2-product-rate-row strong{
+  font-size:42px!important;
+}
+.v2-product-rate-row small{
+  margin-top:5px!important;
+  font-size:12px!important;
+  line-height:1.35!important;
+}
+.v2-product-bars{
+  height:68px!important;
+}
+.v2-product-facts{
+  margin-top:18px!important;
+}
+.v2-product-facts>div{
+  grid-template-columns:145px 1fr!important;
+  gap:14px!important;
+  min-height:46px!important;
+  padding:12px 0!important;
+}
+.v2-product-facts dt,
+.v2-product-facts dd{
+  font-size:13px!important;
+  line-height:1.35!important;
+}
+.v2-product-facts dt svg{
+  width:17px!important;
+  height:17px!important;
+}
+.v2-product-actions{
+  gap:10px!important;
+  margin-top:18px!important;
+}
+.v2-product-actions button,
+.v2-product-actions a{
+  min-height:46px!important;
+  font-size:13px!important;
+}
+.v2-product-note{
+  margin-top:14px!important;
+  font-size:11px!important;
+  line-height:1.5!important;
+}
+
+.v2-matcher{
+  padding:28px!important;
+}
+.v2-matcher-head{
+  gap:32px!important;
+}
+.v2-matcher-note{
+  max-width:350px!important;
+  padding:13px 15px!important;
+  font-size:12px!important;
+  line-height:1.45!important;
+}
+.v2-matcher-layout{
+  grid-template-columns:minmax(0,1.7fr) minmax(360px,.8fr)!important;
+  gap:26px!important;
+  margin-top:22px!important;
+}
+.v2-matcher-questions{
+  gap:18px!important;
+}
+.v2-matcher-question h3{
+  min-height:38px!important;
+  margin-bottom:10px!important;
+  font-size:13px!important;
+  line-height:1.4!important;
+}
+.v2-matcher-question>div{
+  gap:8px!important;
+}
+.v2-matcher-question button{
+  min-height:44px!important;
+  padding:0 13px!important;
+  font-size:13px!important;
+  line-height:1.25!important;
+}
+.v2-matcher-question button i{
+  width:14px!important;
+  height:14px!important;
+}
+.v2-match-result{
+  padding:22px!important;
+}
+.v2-match-kicker{
+  font-size:12px!important;
+}
+.v2-match-kicker svg{
+  width:18px!important;
+  height:18px!important;
+}
+.v2-match-result h3{
+  margin-top:8px!important;
+  font-size:28px!important;
+  line-height:1.1!important;
+}
+.v2-match-result>p{
+  margin-top:11px!important;
+  font-size:13px!important;
+  line-height:1.5!important;
+}
+.v2-match-result dl{
+  gap:10px!important;
+  margin-top:18px!important;
+}
+.v2-match-result dt{
+  font-size:13px!important;
+  line-height:1.3!important;
+}
+.v2-match-result dt svg{
+  width:17px!important;
+  height:17px!important;
+}
+.v2-match-result dd{
+  margin-top:5px!important;
+  font-size:11px!important;
+  line-height:1.35!important;
+}
+.v2-match-result>a{
+  min-height:46px!important;
+  margin-top:18px!important;
+  font-size:13px!important;
+}
+
+@media (min-width:641px) and (max-width:1024px){
+  .v2-product-card{
+    min-height:0!important;
+  }
+  .v2-matcher-layout{
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media (max-width:640px){
+  .v2-products .v2-section-head h2,
+  .v2-matcher-head h2{
+    font-size:30px!important;
+  }
+  .v2-products .v2-section-head p,
+  .v2-matcher-head>div>p{
+    font-size:14px!important;
+  }
+  .v2-product-card{
+    padding:18px!important;
+  }
+  .v2-product-topline b{
+    font-size:13px!important;
+  }
+  .v2-product-card h3{
+    font-size:23px!important;
+  }
+  .v2-product-tagline{
+    font-size:13px!important;
+  }
+  .v2-product-facts dt,
+  .v2-product-facts dd,
+  .v2-product-actions button,
+  .v2-product-actions a{
+    font-size:12px!important;
+  }
+  .v2-matcher{
+    padding:18px!important;
+  }
+  .v2-matcher-question h3{
+    font-size:13px!important;
+  }
+  .v2-matcher-question button{
+    min-height:42px!important;
+    font-size:13px!important;
+  }
+  .v2-match-result h3{
+    font-size:25px!important;
+  }
+  .v2-match-result>p,
+  .v2-match-result dt{
+    font-size:12px!important;
+  }
+  .v2-match-result dd{
+    font-size:11px!important;
+  }
+}
