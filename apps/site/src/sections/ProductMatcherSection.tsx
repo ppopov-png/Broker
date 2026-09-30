@@ -9,8 +9,8 @@ const COPY = {
   ru: {
     eyebrow: 'ПОДБОР ПРОДУКТА',
     title: 'Подберите продукт под вашу цель',
-    subtitle: 'Ответьте на несколько вопросов — мы покажем, какой формат ближе к выбранным параметрам.',
-    disclaimer: 'Это ознакомительный инструмент. Он не является индивидуальной инвестиционной рекомендацией.',
+    subtitle: 'Ответьте на несколько вопросов, и мы подскажем, какой формат лучше соответствует вашим целям. Это не является индивидуальной инвестиционной рекомендацией.',
+    disclaimer: 'Это ознакомительный инструмент. Не является индивидуальной инвестиционной рекомендацией.',
     horizon: 'Какой у вас горизонт инвестирования?',
     horizonOptions: [['short', '1–3 месяца'], ['mid', '3–12 месяцев'], ['long', 'Более 1 года']],
     liquidity: 'Нужна ли высокая ликвидность?',
@@ -91,12 +91,12 @@ export function ProductMatcherSection() {
 
         <aside className={`v2-match-result v2-match-${recommendation}`}>
           <span className="v2-match-kicker"><Sparkles size={18} />{copy.result}</span>
-          <h3>{product.name}</h3>
-          <p>{product.tagline}</p>
+          <h3>{recommendation === 'earn' ? 'EARN' : product.name}</h3>
+          <p>{recommendation === 'earn' && language === 'ru' ? 'Оптимальный выбор для стабильного дохода с предсказуемыми условиями. Подходит при умеренном горизонте и потребности в ликвидности.' : product.tagline}</p>
           <dl>
-            <div><dt>{product.rate}</dt><dd>{product.rateNote}</dd></div>
-            <div><dt><Clock3 size={17} />{product.term}</dt><dd>{products.columns.term}</dd></div>
-            <div><dt><WalletCards size={17} />{product.liquidity}</dt><dd>{products.columns.liquidity}</dd></div>
+            <div><dt>{recommendation === 'earn' ? '5–12%' : product.rate}</dt><dd>{language === 'ru' ? 'годовых' : product.rateNote}</dd></div>
+            <div><dt><Clock3 size={17} />{recommendation === 'earn' ? 'от 1 месяца' : product.term}</dt><dd>{products.columns.term}</dd></div>
+            <div><dt><WalletCards size={17} />{recommendation === 'earn' && language === 'ru' ? 'Гибкая' : product.liquidity}</dt><dd>{products.columns.liquidity}</dd></div>
           </dl>
           <a href={onboardingUrl()}>{copy.open}<ArrowRight size={17} /></a>
         </aside>
