@@ -89,7 +89,7 @@ export function ProductMatcherSection() {
           <MatcherQuestion number="3" title={copy.priority} options={copy.priorityOptions} value={priority} onChange={(value) => setPriority(value as Priority)} />
         </div>
 
-        <aside className={\`v2-match-result v2-match-\${recommendation}\`}>
+        <aside className={`v2-match-result v2-match-${recommendation}`}>
           <span className="v2-match-kicker"><Sparkles size={18} />{copy.result}</span>
           <h3>{product.name}</h3>
           <p>{product.tagline}</p>
