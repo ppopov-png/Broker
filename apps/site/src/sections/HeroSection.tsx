@@ -27,7 +27,7 @@ const COPY = {
     floatMain: 'WORKS 24/7',
     floatBottom: 'RESULTS STAY VISIBLE',
   },
-  kg: {
+  ky: {
     titleTop: 'КРИПТОДО',
     titleBottom: 'ТУРУКТУУ\nКИРЕШЕ',
     description:
