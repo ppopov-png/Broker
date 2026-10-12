@@ -13,6 +13,12 @@ RUN npm ci --prefer-offline --no-audit --no-fund \
 
 FROM nginx:1.27-alpine
 
+ARG VCS_REF=unknown
+ARG VCS_URL=unknown
+LABEL org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.source="${VCS_URL}" \
+      org.opencontainers.image.title="Trigonum Broker"
+
 COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/apps/site/dist/ /usr/share/nginx/html/
 COPY --from=build /app/apps/onboarding/dist/ /usr/share/nginx/html/open/

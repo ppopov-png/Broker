@@ -108,7 +108,23 @@ trace и screenshot при сбое. Локальные отчёты исклю�
 У тестов нет автоматических retries; ожидание health ограничено 60 секундами.
 
 В CI каждый gate имеет отдельное имя. Итоговый check **Broker CI required**
-успешен только при успехе всех gates и Docker smoke; failure, skipped,
-cancelled и отсутствующий результат дают ошибку. Администратор репозитория
-должен назначить этот check required в branch protection, чтобы блокировать
-merge. Workflow не публикует образы и не выполняет продуктовые операции.
+успешен только при успехе всех gates, Docker smoke и release job на `main`;
+failure, skipped, cancelled и отсутствующий результат дают ошибку. Администратор
+репозитория должен назначить этот check required в branch protection, чтобы
+блокировать merge.
+
+После успешных gates и Docker smoke push в `main` передаёт уже проверенный OCI
+образ в release job — production-образ не пересобирается. Release job публикует
+его в `${CONTAINER_REGISTRY:-ghcr.io}/${CONTAINER_IMAGE:-owner/repository}` с
+полным commit SHA в `org.opencontainers.image.revision`, получает digest,
+прикрепляет provenance и SPDX SBOM к этому digest, проверяет обе attestation,
+делает pull по `image@digest` и повторяет smoke. Все результаты сохраняются в
+artifact `docker-release-<sha>`.
+
+Сейчас workflow намеренно поддерживает только GHCR: repository administrator
+должен включить server-side immutability для commit-SHA tags и установить
+repository variable `CONTAINER_REGISTRY_IMMUTABLE=true`. Workflow также
+отказывается публиковать уже существующий SHA-тег и проверяет digest после push;
+предварительная проверка не заменяет server-side policy. Используется только
+встроенный `GITHUB_TOKEN`; credentials не попадают в image layers или логи.
+Для rollback используйте сохранённый digest, а не mutable alias.
