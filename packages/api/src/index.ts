@@ -2,6 +2,8 @@ export interface ApiClientOptions {
   baseUrl: string
 }
 
+export * from './v1'
+
 export function createApiClient({ baseUrl }: ApiClientOptions) {
   return async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const response = await fetch(`${baseUrl}${path}`, {
