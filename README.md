@@ -1,85 +1,64 @@
-# Trigonum Broker 2.0
+# Trigonum Broker
 
-Новая реализация Broker с нуля.
+Монорепозиторий фронтенда Broker:
 
-## Приложения
+- `apps/site` — публичный сайт;
+- `apps/onboarding` — регистрация и открытие счёта;
+- `apps/cabinet` — личный кабинет;
+- `packages/*` — общий UI, бренд, типы и API-клиент.
 
-- `apps/site` — публичный сайт.
-- `apps/onboarding` — регистрация, KYC и первичное пополнение.
-- `apps/cabinet` — личный кабинет после активации аккаунта.
-
-В разработке это три независимых Vite-приложения, а при публикации они собираются в один продукт:
-
-```text
-/       → site
-/open/  → onboarding
-/app/   → cabinet
-```
-
-Кнопка «Открыть счёт» ведёт в onboarding, кнопка «Войти» — в cabinet.
-
-## Общие пакеты
-
-- `packages/ui` — переиспользуемые UI-примитивы.
-- `packages/brand` — дизайн-токены и фирменные стили.
-- `packages/shared` — общие типы и утилиты.
-- `packages/api` — единый HTTP/API transport.
-
-## Установка
+## Локальная разработка
 
 ```bash
-npm install
-```
-
-## Запуск
-
-Каждое приложение запускается в отдельном терминале из корня проекта:
-
-```bash
+npm ci
 npm run dev:site
 npm run dev:onboarding
 npm run dev:cabinet
 ```
 
-Dev-серверы слушают все сетевые интерфейсы (`0.0.0.0`). Порты:
+Dev-серверы работают на портах 5173, 5174 и 5175.
 
-- site: `5173`
-- onboarding: `5174`
-- cabinet: `5175`
-
-При локальной разработке ссылки между приложениями автоматически используют тот же hostname, с которого открыт сайт. Поэтому LAN-адрес компьютера не зашит в код.
-
-## Сборка
+## Проверка
 
 ```bash
+npm run lint
 npm run build
 ```
 
-## Автоматический deploy
+## Локальное развёртывание
 
-Workflow: `.github/workflows/deploy-pages.yml`.
+GitHub Pages больше не используется. Production-подобная сборка запускается
+локально через Docker Compose:
 
-Каждый обычный `push` в ветку `broker-2.0` автоматически:
-
-1. устанавливает зависимости через `npm ci`;
-2. собирает `site`, `onboarding` и `cabinet`;
-3. объединяет их в один Pages artifact;
-4. публикует его через GitHub Pages.
-
-Для репозитория `Broker` итоговая структура GitHub Pages будет:
-
-```text
-https://ppopov-png.github.io/Broker/       → публичный сайт
-https://ppopov-png.github.io/Broker/open/  → onboarding
-https://ppopov-png.github.io/Broker/app/   → личный кабинет
+```bash
+docker compose up --build -d
 ```
 
-### Однократная настройка GitHub
+После запуска:
 
-В репозитории откройте:
+- `http://localhost:8080/` — публичный сайт;
+- `http://localhost:8080/open/` — onboarding;
+- `http://localhost:8080/app/` — личный кабинет;
+- `http://localhost:8080/healthz` — health check.
 
-`Settings → Pages → Build and deployment → Source → GitHub Actions`
+Порт можно изменить через переменную `BROKER_HTTP_PORT`:
 
-После этого workflow можно один раз запустить вручную во вкладке `Actions → Deploy Broker 2.0 → Run workflow`. Дальнейшие push в `broker-2.0` будут разворачиваться автоматически.
+```bash
+BROKER_HTTP_PORT=8090 docker compose up --build -d
+```
 
-Для будущего собственного домена архитектуру приложений менять не потребуется: `/`, `/open/` и `/app/` можно сохранить за nginx/Cloudflare/Vercel.
+Остановка:
+
+```bash
+docker compose down
+```
+
+Этот же образ рассчитан на будущий VPS: перед контейнером достаточно поставить
+Caddy, Traefik или внешний Nginx для домена и TLS. Содержимое и маршруты приложения
+при переносе менять не потребуется.
+
+## GitHub
+
+Workflow `Broker CI` только проверяет lint, сборку и Docker-образ. Автоматической
+публикации на Pages больше нет. Рабочие ветки создаёт Broker Pipeline; он отправляет
+ветку в GitHub и при доступном `gh` может создать pull request.
