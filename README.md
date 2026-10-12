@@ -57,6 +57,48 @@ BROKER_HTTP_PORT=8090 docker compose up --build -d
 docker compose down
 ```
 
+### Deploy и rollback по immutable digest
+
+Локальный deployment adapter запускает уже опубликованный образ без сборки текущего checkout.
+Обе ссылки обязательны и должны иметь полный вид `registry/repository@sha256:<64 hex>`; previous
+берётся из ранее подтверждённых release metadata:
+
+```bash
+npm run deploy:local -- --target ghcr.io/owner/broker@sha256:<target-digest> --previous ghcr.io/owner/broker@sha256:<previous-digest>
+```
+
+Adapter выполняет `docker compose pull`, переключает только сервис `broker` через `--no-build`,
+ждёт container healthcheck и запускает полный Playwright smoke против published endpoint фактического
+контейнера. Порт по-прежнему задаётся через `BROKER_HTTP_PORT` (в том числе через Compose `.env`),
+но передавать его в deploy-команду не требуется: adapter читает binding после запуска. `--endpoint`
+можно указать как дополнительную проверку ожидаемого host/port; несовпадение остановит rollout до smoke:
+
+```bash
+BROKER_HTTP_PORT=8090 npm run deploy:local -- --target <image@sha256:digest> --previous <image@sha256:digest> --endpoint http://127.0.0.1:8090 --timeout 180000
+```
+
+Если target не запускается или не проходит проверки, adapter без пересборки переключается на previous
+и повторяет healthcheck и весь smoke. Для явного отката используйте предыдущий проверенный digest как
+новый `--target`, а текущий digest — как `--previous`. Команда печатает JSON со статусом `deployed`,
+`rolled_back`, `deploy_failed` или `rollback_failed`; последние два статуса завершаются ненулевым кодом.
+
+Состояние, активная immutable-ссылка, логи и остановка:
+
+```bash
+docker compose ps
+docker inspect --format '{{.Config.Image}}' "$(docker compose ps -q broker)"
+docker compose logs broker
+docker compose down
+```
+
+На PowerShell идентификатор контейнера сначала сохраните в `$brokerContainer = docker compose ps -q broker`,
+затем выполните `docker inspect --format '{{.Config.Image}}' $brokerContainer`.
+
+Runner в `scripts/deploy/contract.mjs` фиксирует платформо-независимый контракт adapter: входы — target,
+previous, endpoint и timeout; результат — статус, requested/actual digest, факт rollback и безопасная
+диагностика. Stage/prod реализация появится отдельно после выбора платформы; manifests, DNS, TLS и
+credentials в этом репозитории намеренно не имитируются.
+
 Этот же образ рассчитан на будущий VPS: перед контейнером достаточно поставить
 Caddy, Traefik или внешний Nginx для домена и TLS. Содержимое и маршруты приложения
 при переносе менять не потребуется.
