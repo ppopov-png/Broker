@@ -112,16 +112,12 @@ jobs:
         run: npm ci --prefer-offline --no-audit --no-fund
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
-      - name: Require the supported immutable registry policy
+      - name: Require the supported registry
         shell: bash
         run: |
           set -euo pipefail
           test "$REGISTRY" = "ghcr.io" || {
-            echo "Only GHCR is supported: its package must have immutable commit-SHA tags enabled by repository administration." >&2
-            exit 1
-          }
-          test "${{ vars.CONTAINER_REGISTRY_IMMUTABLE }}" = "true" || {
-            echo "Set the repository variable CONTAINER_REGISTRY_IMMUTABLE=true only after GHCR tag immutability is configured." >&2
+            echo "Only GHCR is supported by this release workflow." >&2
             exit 1
           }
       - name: Normalize image reference
@@ -161,14 +157,14 @@ jobs:
         env:
           BROKER_IMAGE: ${{ steps.image.outputs.local }}
         run: npm run ci:gate -- test:e2e
-      - name: Refuse to overwrite an immutable commit tag
+      - name: Refuse to overwrite an existing commit-SHA tag
         shell: bash
         env:
           PUBLISHED_IMAGE: ${{ steps.image.outputs.published }}
         run: |
           set -euo pipefail
           if docker manifest inspect "$PUBLISHED_IMAGE" > reports/existing-manifest.json 2>/dev/null; then
-            echo "Immutable image tag already exists; refusing to publish or replace it: $PUBLISHED_IMAGE" >&2
+            echo "Commit-SHA tag already exists; refusing to publish or replace it: $PUBLISHED_IMAGE" >&2
             exit 1
           fi
       - name: Push the tested image to a staging reference and record its digest
@@ -230,7 +226,7 @@ jobs:
           set -euo pipefail
           docker pull "${IMAGE_REPOSITORY}@${DIGEST}"
           npm run ci:gate -- test:e2e
-      - name: Publish the immutable commit-SHA reference after verification
+      - name: Publish the commit-SHA reference after digest verification
         shell: bash
         env:
           IMAGE_REPOSITORY: ${{ steps.image.outputs.repository }}

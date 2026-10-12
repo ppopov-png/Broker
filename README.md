@@ -121,10 +121,9 @@ failure, skipped, cancelled и отсутствующий результат д�
 делает pull по `image@digest` и повторяет smoke. Все результаты сохраняются в
 artifact `docker-release-<sha>`.
 
-Сейчас workflow намеренно поддерживает только GHCR: repository administrator
-должен включить server-side immutability для commit-SHA tags и установить
-repository variable `CONTAINER_REGISTRY_IMMUTABLE=true`. Workflow также
-отказывается публиковать уже существующий SHA-тег и проверяет digest после push;
-предварительная проверка не заменяет server-side policy. Используется только
-встроенный `GITHUB_TOKEN`; credentials не попадают в image layers или логи.
+Сейчас workflow намеренно поддерживает только GHCR. Канонический immutable
+идентификатор релиза — сохранённая ссылка `image@sha256:<digest>`; SHA-тег служит
+удобной ссылкой, а не trust boundary. Workflow отказывается публиковать уже
+существующий SHA-тег и сразу проверяет, что он указывает на аттестованный digest.
+Используется только встроенный `GITHUB_TOKEN`; credentials не попадают в image layers или логи.
 Для rollback используйте сохранённый digest, а не mutable alias.
