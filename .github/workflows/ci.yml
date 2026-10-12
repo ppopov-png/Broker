@@ -61,7 +61,7 @@ jobs:
             --build-arg "VCS_REF=${{ github.sha }}" \
             --build-arg "VCS_URL=${{ github.server_url }}/${{ github.repository }}" \
             -t broker:${{ github.sha }} . 2>&1 | tee reports/docker-build.log
-          test "$(docker image inspect --format '{{index .Config.Labels \"org.opencontainers.image.revision\"}}' broker:${{ github.sha }})" = "${{ github.sha }}"
+          test "$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' broker:${{ github.sha }})" = "${{ github.sha }}"
       - name: Smoke the built image and clean up container
         run: npm run ci:gate -- test:e2e
       - name: Export the tested image for release
@@ -156,7 +156,7 @@ jobs:
           set -euo pipefail
           gunzip -c reports/broker-image.tar.gz | docker load
           docker tag "broker:${COMMIT_SHA}" "$LOCAL_IMAGE"
-          test "$(docker image inspect --format '{{index .Config.Labels \"org.opencontainers.image.revision\"}}' "$LOCAL_IMAGE")" = "$COMMIT_SHA"
+          test "$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$LOCAL_IMAGE")" = "$COMMIT_SHA"
       - name: Smoke the release image before publication
         env:
           BROKER_IMAGE: ${{ steps.image.outputs.local }}
