@@ -56,6 +56,16 @@ test('health and server SPA fallbacks for each application', async ({ request })
   expect(new Set(documents).size, 'Each fallback must serve its own app').toBe(3)
 })
 
+test('missing static assets are not handled by SPA fallbacks', async ({ request }) => {
+  for (const root of ['/', '/open/', '/app/']) {
+    for (const extension of ['js', 'css']) {
+      const response = await request.get(`${root}missing-ci-smoke-asset.${extension}`)
+      expect(response.status(), `${root} must return 404 for a missing .${extension} asset`).toBe(404)
+      expect(await response.text()).not.toContain('id="root"')
+    }
+  }
+})
+
 test('public site renders', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Стабильный способ')
