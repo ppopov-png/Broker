@@ -10,8 +10,14 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  gates:
+    name: Gate / ${{ matrix.gate }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        gate: [typecheck, lint, test, 'test:contracts', security, build]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,7 +25,59 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --prefer-offline --no-audit --no-fund
-      - run: npm run lint
-      - run: npm run build
-      - name: Build local/VPS container
-        run: docker build -t broker:${{ github.sha }} .
+      - name: Run ${{ matrix.gate }} gate
+        run: npm run ci:gate -- ${{ matrix.gate }}
+      - name: Save gate diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate-${{ strategy.job-index }}-${{ github.sha }}
+          path: reports/
+          retention-days: 14
+
+  docker-smoke:
+    name: Gate / Docker browser smoke
+    needs: gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build tested Docker image
+        shell: bash
+        run: |
+          mkdir -p reports
+          set -o pipefail
+          docker build -t broker:${{ github.sha }} . 2>&1 | tee reports/docker-build.log
+      - name: Smoke the built image and clean up container
+        run: npm run ci:gate -- test:e2e
+      - name: Save image and browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-smoke-${{ github.sha }}
+          path: reports/
+          retention-days: 14
+
+  required:
+    name: Broker CI required
+    if: always()
+    needs: [gates, docker-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Require every gate to succeed
+        env:
+          GATE_RESULTS: ${{ toJSON(needs) }}
+        run: node scripts/required-gates.mjs
