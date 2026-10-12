@@ -16,6 +16,7 @@
     "test": "vitest run --config vitest.config.ts",
     "test:contracts": "vitest run --config vitest.contracts.config.ts",
     "test:e2e": "node scripts/docker-smoke.mjs",
+    "deploy:local": "node scripts/deploy.mjs",
     "security": "node scripts/security.mjs",
     "ci:gate": "node scripts/gate.mjs"
   },
