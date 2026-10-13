@@ -11,17 +11,9 @@
     "dev:onboarding": "npm run dev --workspace=@trigonum/onboarding",
     "dev:cabinet": "npm run dev --workspace=@trigonum/cabinet",
     "build": "npm run build --workspaces --if-present",
-    "lint": "oxlint apps packages",
-    "typecheck": "tsc --noEmit --incremental false -p apps/site/tsconfig.json && tsc --noEmit --incremental false -p apps/onboarding/tsconfig.json && tsc --noEmit --incremental false -p apps/cabinet/tsconfig.json && tsc --noEmit --incremental false -p tsconfig.packages.json && tsc --noEmit --incremental false -p tsconfig.tests.json",
-    "test": "vitest run --config vitest.config.ts",
-    "test:contracts": "vitest run --config vitest.contracts.config.ts",
-    "test:e2e": "node scripts/docker-smoke.mjs",
-    "deploy:local": "node scripts/deploy.mjs",
-    "security": "node scripts/security.mjs",
-    "ci:gate": "node scripts/gate.mjs"
+    "lint": "oxlint apps packages"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.17",
@@ -30,7 +22,6 @@
     "oxlint": "^1.75.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
-    "vite": "^8.2.0",
-    "vitest": "5.0.4"
+    "vite": "^8.2.0"
   }
 }

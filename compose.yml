@@ -1,8 +1,0 @@
-services:
-  broker:
-    build:
-      context: .
-    image: ${BROKER_IMAGE:-trigonum-broker:local}
-    restart: unless-stopped
-    ports:
-      - "${BROKER_HTTP_PORT:-8080}:80"
